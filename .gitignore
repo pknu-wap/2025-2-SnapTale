@@ -1,0 +1,32 @@
+# === Backend (Spring Boot) ===
+backend/.gradle/
+backend/build/
+backend/out/
+backend/.idea/
+backend/*.iml
+backend/*.ipr
+backend/*.iws
+backend/bin/
+backend/.settings/
+backend/.classpath
+backend/.project
+backend/.factorypath
+backend/.apt_generated
+backend/.springBeans
+backend/.sts4-cache
+
+# Gradle wrapper jar 제외
+!backend/gradle/wrapper/gradle-wrapper.jar
+
+# === Frontend (React/Vite) ===
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.env
+frontend/.env.*
+
+# === Common ===
+**/logs/
+*.log
+.DS_Store
+.vscode/
