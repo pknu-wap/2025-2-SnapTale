@@ -1,5 +1,6 @@
 package com.snaptale.backend.card.entity;
 
+import com.snaptale.backend.card.model.CardUpdateReq;
 import com.snaptale.backend.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -38,4 +39,15 @@ public class Card extends BaseEntity {
 
     @Column(name = "is_active", nullable = false)
     private boolean isActive;
+
+    // 카드 정보 변경 메서드
+    public void apply(CardUpdateReq req) {
+        if (req.name() != null) this.name = req.name();
+        if (req.imageUrl() != null) this.imageUrl = req.imageUrl();
+        if (req.cost() != null) this.cost = req.cost();
+        if (req.power() != null) this.power = req.power();
+        if (req.faction() != null) this.faction = req.faction();
+        if (req.effectDesc() != null) this.effectDesc = req.effectDesc();
+        if (req.active() != null) this.isActive = req.active();
+    }
 }
