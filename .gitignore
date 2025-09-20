@@ -1,5 +1,6 @@
 # === Backend (Spring Boot) ===
 backend/.gradle/
+backend/.gradle-temp/
 backend/build/
 backend/out/
 backend/.idea/
