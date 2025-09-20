@@ -6,7 +6,11 @@ import com.snaptale.backend.card.model.CardRes;
 import com.snaptale.backend.card.model.CardUpdateReq;
 
 import java.util.List;
-
+/**
+ * 참고: CardService를 인터페이스로 설계하고 실제 구현은 CardServiceImpl에서 하는 방식을 고려했었는데
+ * 그냥 CardService에 비즈니스 로직을 바로 포함하는 방식으로 설계해주세요
+ * 다른 Service도 마찬가지입니다.
+ */
 public interface CardService {
 
     /**

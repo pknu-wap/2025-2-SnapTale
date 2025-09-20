@@ -14,6 +14,11 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Entity
 @Table(name = "users")
+/**
+ * 참고 : 지금은 따로 유저를 식별하지 않고 그냥 닉네임만 매번 입력해서 플레이하도록 합니다.
+ * 따라서 guest_id는 GeneratedValue로 설정하였고 실제로 사용하는 필드는 guestId, nickname 뿐입니다.
+ * 추후 쿠키 기반 사용자 식별 또는 로그인 도입 시 나머지 필드를 사용할 예정입니다.
+ */
 public class User extends BaseEntity {
 
     @Id
