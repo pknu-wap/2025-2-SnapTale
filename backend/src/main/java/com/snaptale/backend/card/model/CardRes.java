@@ -1,6 +1,5 @@
 package com.snaptale.backend.card.model;
 
-
 import com.snaptale.backend.card.entity.Card;
 
 public record CardRes(
