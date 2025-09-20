@@ -1,12 +1,28 @@
-# === Backend (Spring Boot) ===
+# === Root (공통) ===
+.DS_Store
+.vscode/
+.idea/
+**/logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+# OS 임시
+Thumbs.db
+
+# === Backend (Spring Boot / Gradle) ===
 backend/.gradle/
+backend/.gradle-cache/
 backend/.gradle-temp/
 backend/build/
 backend/out/
-backend/.idea/
-backend/*.iml
-backend/*.ipr
-backend/*.iws
 backend/bin/
 backend/.settings/
 backend/.classpath
@@ -15,9 +31,10 @@ backend/.factorypath
 backend/.apt_generated
 backend/.springBeans
 backend/.sts4-cache
-
-# Gradle wrapper jar 제외
+backend/.idea/
+# gradle wrapper는 커밋 유지(jar/props 모두 포함 권장)
 !backend/gradle/wrapper/gradle-wrapper.jar
+!backend/gradle/wrapper/gradle-wrapper.properties
 
 # === Frontend (React/Vite) ===
 frontend/node_modules/
@@ -27,19 +44,3 @@ frontend/.vite/
 frontend/*.local
 frontend/.env
 frontend/.env.*
-
-# === Common ===
-**/logs/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-.DS_Store
-.vscode/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
