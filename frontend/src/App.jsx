@@ -1,9 +1,9 @@
 import './App.css'
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { Init } from "./Components/Init";
-import { Home } from "./Components/Home";
-import { GamePlay } from "./Components/GamePlay";
-import { GameResult } from "./Components/GameResult";
+import  Init  from "./Components/Init";
+import  Home  from "./Components/Home";
+import  GamePlay  from "./Components/GamePlay/Index";
+import  GameResult  from "./Components/GameResult";
 
 function App() {
   return (
@@ -24,4 +24,4 @@ function App() {
   )
 }
 
-export default App
+export default App;
