@@ -27,7 +27,7 @@ public class CardService {
     /**
      * 모든 카드를 조회 (관리자용 목록)
      */
-    List<CardRes> getCards() {
+    public List<CardRes> getCards() {
         List<Card> cards = cardRepository.findAll();
         return cards.stream()
                 .map(CardRes::from)
@@ -37,7 +37,7 @@ public class CardService {
     /**
      * 특정 카드의 상세 정보를 조회
      */
-    CardDetailRes getCard(Long cardId) {
+    public CardDetailRes getCard(Long cardId) {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.CARD_NOT_FOUND));
         return CardDetailRes.from(card);
@@ -47,7 +47,7 @@ public class CardService {
      * 새로운 카드를 등록
      */
     @Transactional
-    CardDetailRes createCard(CardCreateReq request) {
+    public CardDetailRes createCard(CardCreateReq request) {
         Card card = Card.builder()
                 .name(request.name())
                 .imageUrl(request.imageUrl())
@@ -65,7 +65,7 @@ public class CardService {
      * 카드의 메타데이터(코스트/파워 등)를 수정
      */
     @Transactional
-    CardDetailRes updateCard(Long cardId, CardUpdateReq request) {
+    public CardDetailRes updateCard(Long cardId, CardUpdateReq request) {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.CARD_NOT_FOUND));
         card.apply(request);
@@ -76,7 +76,7 @@ public class CardService {
     /**
      * 카드를 삭제
      */
-    void deleteCard(Long cardId) {
+    public void deleteCard(Long cardId) {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.CARD_NOT_FOUND));
         cardRepository.delete(card);
