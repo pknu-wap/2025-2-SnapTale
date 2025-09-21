@@ -6,7 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Getter
-@Setter
+//@Setter 이건 막아둘게요
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -31,11 +31,15 @@ public class Card extends BaseEntity {
     @Column(name = "power", nullable = false)
     private Integer power;
 
+    //진영(한국, 중국)
     @Column(name = "faction", length = 40)
     private String faction;
 
+    //효과 설명(자연어)
     @Column(name = "effect_desc", columnDefinition = "TEXT")
     private String effectDesc;
+
+    //todo 효과는 나중에 정해지면 어떻게 할지 알 수 있을 거 같다.
 
     @Column(name = "is_active", nullable = false)
     private boolean isActive;
