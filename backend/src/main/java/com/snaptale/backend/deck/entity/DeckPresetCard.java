@@ -2,6 +2,8 @@ package com.snaptale.backend.deck.entity;
 
 import com.snaptale.backend.card.entity.Card;
 import com.snaptale.backend.common.entity.BaseEntity;
+import com.snaptale.backend.deck.model.DeckPresetCardUpdateReq;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -29,11 +31,18 @@ public class DeckPresetCard extends BaseEntity {
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
 
-    @Column(name = "position", nullable = false)
-    private Integer position;
+    // sort_order는 프엔에서 하는 거 => 삭제
 
-    // Package-private method for DeckPreset to set the relationship
-    void setDeckPreset(DeckPreset deckPreset) {
+    // 정보 바꿀 때
+    public void apply(DeckPresetCardUpdateReq req) {
+        if (req.quantity() != null) {
+            this.quantity = req.quantity();
+        }
+    }
+
+    // 연관관계 설정을 위한 메서드
+    public void setDeckPreset(DeckPreset deckPreset) {
         this.deckPreset = deckPreset;
     }
+
 }

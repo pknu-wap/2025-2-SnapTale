@@ -28,7 +28,7 @@ public class DeckPreset extends BaseEntity {
     private String name;
 
     @Column(name = "is_active", nullable = false)
-    private boolean isActive;
+    private Integer isActive;
 
     @Builder.Default
     @OneToMany(mappedBy = "deckPreset", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
@@ -51,6 +51,6 @@ public class DeckPreset extends BaseEntity {
 
     public void removeCard(DeckPresetCard deckPresetCard) {
         deckPresetcards.remove(deckPresetCard);
-        deckPresetCard.setDeckPreset(null);
+        deckPresetCard.setDeckPreset(this);
     }
 }
