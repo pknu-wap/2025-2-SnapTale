@@ -6,7 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Getter
-@Setter
+// @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -31,4 +31,9 @@ public class DeckPresetCard extends BaseEntity {
 
     @Column(name = "position", nullable = false)
     private Integer position;
+
+    // Package-private method for DeckPreset to set the relationship
+    void setDeckPreset(DeckPreset deckPreset) {
+        this.deckPreset = deckPreset;
+    }
 }

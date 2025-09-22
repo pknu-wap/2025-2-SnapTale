@@ -6,7 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Getter
-//@Setter 이건 막아둘게요
+// @Setter 이건 막아둘게요
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -31,27 +31,34 @@ public class Card extends BaseEntity {
     @Column(name = "power", nullable = false)
     private Integer power;
 
-    //진영(한국, 중국)
+    // 진영(한국, 중국)
     @Column(name = "faction", length = 40)
     private String faction;
 
-    //효과 설명(자연어)
+    // 효과 설명(자연어)
     @Column(name = "effect_desc", columnDefinition = "TEXT")
     private String effectDesc;
 
-    //todo 효과는 나중에 정해지면 어떻게 할지 알 수 있을 거 같다.
+    // todo 효과(json)는 나중에 정해지면 어떻게 할지 알 수 있을 거 같다.
 
     @Column(name = "is_active", nullable = false)
     private boolean isActive;
 
     // 카드 정보 변경 메서드
     public void apply(CardUpdateReq req) {
-        if (req.name() != null) this.name = req.name();
-        if (req.imageUrl() != null) this.imageUrl = req.imageUrl();
-        if (req.cost() != null) this.cost = req.cost();
-        if (req.power() != null) this.power = req.power();
-        if (req.faction() != null) this.faction = req.faction();
-        if (req.effectDesc() != null) this.effectDesc = req.effectDesc();
-        if (req.active() != null) this.isActive = req.active();
+        if (req.name() != null)
+            this.name = req.name();
+        if (req.imageUrl() != null)
+            this.imageUrl = req.imageUrl();
+        if (req.cost() != null)
+            this.cost = req.cost();
+        if (req.power() != null)
+            this.power = req.power();
+        if (req.faction() != null)
+            this.faction = req.faction();
+        if (req.effectDesc() != null)
+            this.effectDesc = req.effectDesc();
+        if (req.active() != null)
+            this.isActive = req.active();
     }
 }
