@@ -1,0 +1,21 @@
+.Matching {
+  box-sizing: border-box;
+  width: 200px;
+  height: 75px;
+  background: #D9D9D9;
+  border: 1px solid #8C8C8C;
+  border-radius: 5px;
+  margin-bottom: 11px;
+
+  font-family: 'Song Myung', serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 25px;
+  line-height: 31px;
+  color: #FFFFFF;
+
+  display: flex;
+  align-items: center;
+  justify-content: center; /* 글자를 중앙 정렬 */
+  text-align: center;
+}

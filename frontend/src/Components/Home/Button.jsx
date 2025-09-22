@@ -1,6 +1,7 @@
+import './MatchingButton.css'
 const Button = ({text}) => {
   return (
-    <button>
+    <button className = "Matching">
         {text}
     </button>
   );
