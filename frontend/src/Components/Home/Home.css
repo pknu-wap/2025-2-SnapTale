@@ -1,0 +1,43 @@
+body {
+  margin: 0;
+}
+/* home-container: 전체 배경 및 레이아웃 설정 */
+.home-container {
+  /* 화면 전체를 채우도록 설정 */
+  width: 100vw;
+  height: 100vh;
+
+  /* 배경 이미지 설정 */
+  background-image: url('../../assets/tempBackGround.png'); 
+  background-size: cover;      
+  background-position: center; 
+  
+  /* Flexbox를 사용한 레이아웃 설정 */
+  display: flex;
+  flex-direction: column;    
+  align-items: center;       
+  justify-content: space-between; 
+
+  box-sizing: border-box;
+  padding: 20px 0;
+}
+
+/* top-menu: 상단 아이콘 배치 */
+.top-menu {
+  width: 90%; /* 화면 양 옆에 약간의 여백을 줌 */
+  display: flex;
+  justify-content: space-between; /* 사운드바와 프로필 아이콘을 양 끝으로 보냄 */
+  align-items: center;
+}
+
+/* matching-buttons: 중앙 버튼 배치 */
+.matching-buttons {
+  width: 100%;
+  display: flex;
+  flex-direction: column; 
+  align-items: center;    
+  gap: 11px; 
+
+  /* 전체 세로 위치를 조금 위로 올리기*/
+  margin-bottom: 20vh;
+}
