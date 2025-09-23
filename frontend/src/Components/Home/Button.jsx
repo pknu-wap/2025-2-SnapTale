@@ -1,7 +1,7 @@
 import './MatchingButton.css'
-const Button = ({text}) => {
+const Button = ({text, onClick}) => {
   return (
-    <button className = "Matching">
+    <button className = "Matching" onClick = {onClick}>
         {text}
     </button>
   );
