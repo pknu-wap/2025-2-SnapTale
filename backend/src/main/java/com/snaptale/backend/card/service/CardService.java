@@ -29,6 +29,9 @@ public class CardService {
      */
     public List<CardRes> getCards() {
         List<Card> cards = cardRepository.findAll();
+        if (cards.isEmpty()) {
+            throw new BaseException(BaseResponseStatus.CARD_NOT_FOUND);
+        }
         return cards.stream()
                 .map(CardRes::from)
                 .toList();
@@ -74,11 +77,12 @@ public class CardService {
     };
 
     /**
-     * 카드를 삭제
+     * 카드를 삭제(뭐 삭제했는지 알려주기 위해 아이디 반환)
      */
-    public void deleteCard(Long cardId) {
+    public Long deleteCard(Long cardId) {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.CARD_NOT_FOUND));
         cardRepository.delete(card);
+        return cardId;
     };
 }

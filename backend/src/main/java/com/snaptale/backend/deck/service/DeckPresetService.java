@@ -21,6 +21,7 @@ public class DeckPresetService {
     private final DeckPresetRepository deckPresetRepository;
 
     // 덱 프리셋 생성
+    @Transactional
     public DeckPresetRes createDeckPreset(DeckPresetCreateReq request) {
         DeckPreset deckPreset = DeckPreset.builder()
                 .name(request.name())
@@ -45,6 +46,7 @@ public class DeckPresetService {
     }
 
     // 덱 프리셋 수정
+    @Transactional
     public DeckPresetRes updateDeckPreset(Long deckPresetId, DeckPresetUpdateReq request) {
         DeckPreset deckPreset = deckPresetRepository.findById(deckPresetId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.DECK_PRESET_NOT_FOUND));
@@ -53,10 +55,12 @@ public class DeckPresetService {
         return DeckPresetRes.from(deckPreset);
     }
 
-    // 덱 프리셋 삭제
-    public void deleteDeckPreset(Long deckPresetId) {
+    // 덱 프리셋 삭제(뭐 삭제했는지 알려주기 위해 아이디 반환)
+    @Transactional
+    public Long deleteDeckPreset(Long deckPresetId) {
         DeckPreset deckPreset = deckPresetRepository.findById(deckPresetId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.DECK_PRESET_NOT_FOUND));
         deckPresetRepository.delete(deckPreset);
+        return deckPresetId;
     }
 }
