@@ -9,6 +9,7 @@ import com.snaptale.backend.card.repository.CardRepository;
 import com.snaptale.backend.common.exceptions.BaseException;
 import com.snaptale.backend.common.response.BaseResponseStatus;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.List;
  * 그냥 CardService에 비즈니스 로직을 바로 포함하는 방식으로 설계해주세요
  * 다른 Service도 마찬가지입니다.
  */
+@Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true) // 조회 성능을 위한
 public class CardService {
