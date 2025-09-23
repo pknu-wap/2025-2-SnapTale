@@ -1,0 +1,20 @@
+.Matching {
+  box-sizing: border-box;
+  width: clamp(200px, 50vw, 400px);  /* 최소 200, 최대 400 */
+  aspect-ratio: 8 / 3;               /* 가로:세로 비율 유지 (8:3) */
+  background: #D9D9D9;
+  border: 1px solid #8C8C8C;
+  border-radius: 5px;
+
+  font-family: 'Song Myung', serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: clamp(25px, 2.5vw, 37px); /* 글자도 화면에 맞게 조정 */
+  line-height: 31px;
+  color: #FFFFFF;
+
+  display: flex;
+  align-items: center;
+  justify-content: center; /* 글자를 중앙 정렬 */
+  text-align: center;
+}
