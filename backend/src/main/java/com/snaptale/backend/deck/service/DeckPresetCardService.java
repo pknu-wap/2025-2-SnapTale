@@ -1,7 +1,5 @@
 package com.snaptale.backend.deck.service;
 
-import java.util.List;
-
 import org.springframework.transaction.annotation.Transactional;
 
 import com.snaptale.backend.card.model.CardRes;
@@ -15,7 +13,9 @@ import com.snaptale.backend.deck.repository.DeckPresetCardRepository;
 import com.snaptale.backend.deck.repository.DeckPresetRepository;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
+@Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class DeckPresetCardService {
@@ -26,12 +26,15 @@ public class DeckPresetCardService {
     // 덱 프리셋 카드 생성
     @Transactional
     public DeckPresetCardRes createDeckPresetCard(DeckPresetCardCreateReq request) {
+        // DeckPreset이 이미 존재하는지 확인하고, 없으면 저장
+        if (request.deckPreset().getDeckPresetId() == null) {
+            deckPresetRepository.save(request.deckPreset());
+        }
         DeckPresetCard deckPresetCard = DeckPresetCard.builder()
                 .deckPreset(request.deckPreset())
                 .card(request.card())
                 .quantity(request.quantity())
                 .build();
-        deckPresetRepository.save(deckPresetCard.getDeckPreset());
         deckPresetCardRepository.save(deckPresetCard);
         return DeckPresetCardRes.from(deckPresetCard);
     }
