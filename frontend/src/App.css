@@ -1,0 +1,15 @@
+/*
+문서 전체 뼈대, 내용, React가 붙는 최상위 div에 적용
+*/
+html, body, #root {
+  /*height: 100%;*/
+  margin: 0; /*여백 제거*/
+  /*min-height: 100dvh;*/
+  font-family: "Diphylleia", serif;
+}
+
+.app-bg {
+  min-height: 100dvh;                          /* 모바일 주소창 변화 대응 */
+  background: url("./assets/tempBackGround.png") center / cover no-repeat;
+  overflow: hidden;
+}

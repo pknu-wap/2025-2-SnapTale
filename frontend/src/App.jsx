@@ -7,7 +7,7 @@ import  GameResult  from "./Components/GameResult";
 
 function App() {
   return (
-    <>
+    <div className='app-bg'>
     <Router>
       <Routes>
         {/* 초기 화면 */}
@@ -20,7 +20,7 @@ function App() {
         <Route path="/gameresult" element={<GameResult />} />
       </Routes>
     </Router>
-    </>
+    </div>
   )
 }
 
