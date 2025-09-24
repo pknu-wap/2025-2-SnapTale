@@ -1,4 +1,4 @@
-package com.snaptale.backend.location;
+package com.snaptale.backend.location.controller;
 
 import java.util.List;
 
