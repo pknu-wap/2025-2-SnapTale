@@ -9,6 +9,7 @@ import com.snaptale.backend.card.repository.CardRepository;
 import com.snaptale.backend.common.exceptions.BaseException;
 import com.snaptale.backend.common.response.BaseResponseStatus;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.List;
  */
 @RequiredArgsConstructor
 @Transactional(readOnly = true) // 조회 성능을 위한
+@Service
 public class CardService {
 
     private final CardRepository cardRepository;
