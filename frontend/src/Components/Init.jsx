@@ -1,6 +1,7 @@
 import "./Init.css";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import logo from "../assets/logo.png";
 
 const NICK_RULE = /^[가-힣a-zA-Z0-9]{2,8}$/;
 
