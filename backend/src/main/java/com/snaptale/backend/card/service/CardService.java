@@ -22,7 +22,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true) // 조회 성능을 위한
-@Service
 public class CardService {
 
     private final CardRepository cardRepository;
