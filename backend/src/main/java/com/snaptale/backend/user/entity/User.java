@@ -1,6 +1,8 @@
 package com.snaptale.backend.user.entity;
 
 import com.snaptale.backend.common.entity.BaseEntity;
+import com.snaptale.backend.user.model.UserUpdateReq;
+
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -30,13 +32,13 @@ public class User extends BaseEntity {
     private String nickname;
 
     @Column(name = "rank_point", nullable = false)
-    private int rankPoint;
+    private Integer rankPoint;
 
     @Column(name = "matches_played", nullable = false)
-    private int matchesPlayed;
+    private Integer matchesPlayed;
 
     @Column(name = "wins", nullable = false)
-    private int wins;
+    private Integer wins;
 
     @Column(name = "last_seen")
     @UpdateTimestamp
@@ -51,5 +53,23 @@ public class User extends BaseEntity {
 
     public void touchLastSeen(LocalDateTime timestamp) {
         this.lastSeen = timestamp;
+    }
+
+    public void apply(UserUpdateReq request) {
+        if (request.nickname() != null) {
+            this.nickname = request.nickname();
+        }
+        if (request.rankPoint() != null) {
+            this.rankPoint = request.rankPoint();
+        }
+        if (request.matchesPlayed() != null) {
+            this.matchesPlayed = request.matchesPlayed();
+        }
+        if (request.wins() != null) {
+            this.wins = request.wins();
+        }
+        if (request.lastSeen() != null) {
+            this.lastSeen = request.lastSeen();
+        }
     }
 }
