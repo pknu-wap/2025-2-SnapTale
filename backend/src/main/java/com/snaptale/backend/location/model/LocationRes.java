@@ -7,13 +7,13 @@ public record LocationRes(
         String name,
         String imageUrl,
         String effectDesc,
-        boolean active) {
+        Boolean active) {
     public static LocationRes from(Location location) {
         return new LocationRes(
                 location.getLocationId(),
                 location.getName(),
                 location.getImageUrl(),
                 location.getEffectDesc(),
-                location.isActive());
+                location.getIsActive());
     }
 }

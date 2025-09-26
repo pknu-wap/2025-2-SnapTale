@@ -53,10 +53,7 @@ public class LocationService {
     public LocationRes updateLocation(Long locationId, LocationUpdateReq request) {
         Location location = locationRepository.findById(locationId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.LOCATION_NOT_FOUND));
-        location.setName(request.name());
-        location.setImageUrl(request.imageUrl());
-        location.setEffectDesc(request.effectDesc());
-        location.setActive(request.active());
+        location.apply(request);
         locationRepository.save(location);
         return LocationRes.from(location);
     }
