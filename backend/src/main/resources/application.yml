@@ -44,6 +44,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+
 logging:
   level:
     org.hibernate.SQL: warn

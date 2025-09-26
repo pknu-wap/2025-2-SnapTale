@@ -1,6 +1,8 @@
 package com.snaptale.backend.match.entity;
 
 import com.snaptale.backend.common.entity.BaseEntity;
+import com.snaptale.backend.match.model.request.MatchUpdateReq;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -9,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -26,7 +27,7 @@ public class Match extends BaseEntity {
     @Column(name = "status", length = 20, nullable = false)
     private MatchStatus status;
 
-    @Column(name = "winner_id")
+    @Column(name = "winner_id", length = 36)
     private String winnerId;
 
     @Column(name = "turn_count", nullable = false)
@@ -60,5 +61,20 @@ public class Match extends BaseEntity {
     public void addPlay(Play play) {
         plays.add(play);
         play.setMatch(this);
+    }
+
+    public void apply(MatchUpdateReq request) {
+        if (request.status() != null) {
+            this.status = request.status();
+        }
+        if (request.winnerId() != null) {
+            this.winnerId = request.winnerId();
+        }
+        if (request.turnCount() != null) {
+            this.turnCount = request.turnCount();
+        }
+        if (request.endedAt() != null) {
+            this.endedAt = request.endedAt();
+        }
     }
 }

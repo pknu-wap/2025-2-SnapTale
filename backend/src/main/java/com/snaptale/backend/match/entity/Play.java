@@ -2,6 +2,8 @@ package com.snaptale.backend.match.entity;
 
 import com.snaptale.backend.card.entity.Card;
 import com.snaptale.backend.common.entity.BaseEntity;
+import com.snaptale.backend.match.model.request.PlayUpdateReq;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,8 +24,8 @@ public class Play extends BaseEntity {
     @JoinColumn(name = "match_id", nullable = false)
     private Match match;
 
-    @Column(name = "turn_no", nullable = false)
-    private Integer turnNo;
+    @Column(name = "turn_count", nullable = false)
+    private Integer turnCount;
 
     @Column(name = "guest_id", length = 36, nullable = false)
     private String guestId;
@@ -37,4 +39,22 @@ public class Play extends BaseEntity {
 
     @Column(name = "power_snapshot")
     private Integer powerSnapshot;
+
+    public void apply(PlayUpdateReq request) {
+        if (request.turnCount() != null) {
+            this.turnCount = request.turnCount();
+        }
+        if (request.card() != null) {
+            this.card = request.card();
+        }
+        if (request.slotIndex() != null) {
+            this.slotIndex = request.slotIndex();
+        }
+        if (request.powerSnapshot() != null) {
+            this.powerSnapshot = request.powerSnapshot();
+        }
+        if (request.match() != null) {
+            this.match = request.match();
+        }
+    }
 }

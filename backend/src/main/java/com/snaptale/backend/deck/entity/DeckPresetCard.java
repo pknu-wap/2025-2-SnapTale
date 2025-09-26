@@ -35,6 +35,12 @@ public class DeckPresetCard extends BaseEntity {
 
     // 정보 바꿀 때
     public void apply(DeckPresetCardUpdateReq req) {
+        if (req.deckPreset() != null) {
+            this.deckPreset = req.deckPreset();
+        }
+        if (req.card() != null) {
+            this.card = req.card();
+        }
         if (req.quantity() != null) {
             this.quantity = req.quantity();
         }

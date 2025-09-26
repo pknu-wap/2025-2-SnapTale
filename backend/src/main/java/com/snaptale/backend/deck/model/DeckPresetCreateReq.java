@@ -7,9 +7,9 @@ import jakarta.validation.constraints.Size;
 
 public record DeckPresetCreateReq(
 
-        @NotBlank @Size(max = 80) String name,
+                @NotBlank @Size(max = 80) String name,
 
-        Integer active,
+                Integer active,
 
-        LocalDateTime datetime) {
+                LocalDateTime datetime) {
 }
