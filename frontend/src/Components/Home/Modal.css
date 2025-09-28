@@ -1,0 +1,66 @@
+.Overlay{
+    position: fixed; 
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 262px;
+    height: 164px;
+
+    background-color: #D9D9D9;
+    border: 1px solid #8C8C8C;
+    border-radius: 5px;
+}
+
+.modal-title{
+    font-family: 'Song Myung';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 24px;
+    line-height: 30px;
+    display: flex;
+    align-items: center;
+    text-align: center;
+    color: #FFFFFF;
+    margin-top: 19px;
+    margin-left: 19px;
+}
+.modal-input{
+    box-sizing: border-box;
+    position: absolute;
+    width: 223px;
+    height: 36px;
+    background: #FFFFFF;
+    border: 1px solid #000000;
+    border-radius: 5px;
+    margin-top: 15px;
+    margin-left: 19px;
+}
+.cancel, .accept{
+    position: absolute;
+    width: 104px;
+    height: 32px;
+    border: 1px solid #000000;
+    border-radius: 5px;
+
+    font-family: 'Song Myung';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #FFFFFF;
+}
+.cancel{
+    background: #800000;
+    margin-top: 72px;
+    margin-left: 19px;
+}
+.accept{
+    background: #228B22;
+    margin-top: 72px;
+    margin-left: 138px;
+    
+}

@@ -1,0 +1,119 @@
+/* 화면 중앙 정렬 + 바깥 여백을 뷰포트 기반으로 부드럽게 */
+.init-wrap {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: clamp(16px, 4vw, 40px);
+}
+
+/* 로고: 너무 작지도 크지도 않게 clamp */
+.init-logo {
+  display: block;
+  width: clamp(180px, 40vw, 360px);
+  height: auto;
+  margin: 0 auto clamp(24px, 6vh, 64px);
+}
+
+/* 폼 컨테이너 폭 = (화면 100%) - (양옆 여백 2vw씩 + 카드 내부 패딩 24px*2) */
+.init-form {
+  /* min(최대폭, 계산된 가변폭) */
+  width: min(600px, calc(100% - (4vw + 48px)));
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: clamp(12px, 2vw, 20px);
+  box-sizing: border-box;
+}
+
+/* 라벨: 가운데 정렬 + 반응형 폰트 */
+.init-label {
+  display: block;
+  text-align: center;
+  color: #0e1a24;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  font-size: clamp(18px, 2.2vw, 24px);
+  text-shadow: 0 1px 0 rgba(255,255,255,0.25);
+}
+
+/* 인풋/버튼 공통: 부모 폭 100%로 맞추고, 패딩/보더 포함 계산 */
+.init-input,
+.init-btn {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 6px;
+  height: clamp(48px, 7vh, 56px); /* 소형 기기에서 너무 크지 않게, 데스크톱에선 고정에 가깝게 */
+}
+
+/* 인풋: 내부 패딩은 픽셀, 외곽은 얇게 */
+.init-input {
+  padding: 0 16px;
+  border: 1px solid rgba(0,0,0,0.2);
+  background: rgba(255,255,255,0.95);
+  outline: none;
+  font-family: "Diphylleia", serif;
+  font-size: clamp(14px, 1.8vw, 16px);
+}
+.init-input::placeholder {
+  color: #777;
+  font-family: "Diphylleia", serif;
+}
+
+/* 버튼: 가로 100%, 높이는 인풋과 동일, hover/active 살짝만 */
+.init-btn {
+  border: 1px solid rgba(0,0,0,0.18);
+  background: linear-gradient(#f4f4f4, #e7e7e7);
+  font-family: "Diphylleia", serif;
+  font-size: clamp(16px, 2vw, 18px);
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform .05s ease, filter .15s ease;
+}
+.init-btn:hover:enabled { filter: brightness(1.03); }
+.init-btn:active:enabled { transform: translateY(1px); }
+.init-btn:disabled { opacity: .55; cursor: not-allowed; }
+
+/* 에러 문구: 레이아웃 흔들림 방지 + 색만 선명하게 */
+.init-error {
+  min-height: 18px;
+  color: #d4220e;
+  font-family: "Diphylleia", serif;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* --- calc() 응용 예: 카드(패널) 외곽 폭을 가변 + 고정 혼합으로 제어하고 싶다면 --- */
+/* 필요 시 섹션에 className="init-panel"을 주고 활성화하세요 */
+.init-panel {
+  /* 전체에서 좌우 여백(5vw)과 ‘시각적 프레임’(px)을 뺀 실제 표시 폭 */
+  width: min(720px, calc(100% - (10vw + 32px)));
+  margin: 0 auto;
+  padding: clamp(12px, 2.5vw, 24px) clamp(16px, 3vw, 28px);
+  /* 테두리/배경이 싫으면 아래 두 줄을 주석 처리 */
+  /* border: 2px solid rgba(44,151,255,.85); */
+  /* background: rgba(0,0,0,.06); */
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+
+/* 태블릿 이상에서는 여백을 살짝 줄이고, 폼 max-width를 조정 */
+@media (min-width: 768px) {
+  .init-form {
+    width: min(640px, calc(100% - (6vw + 48px)));
+    gap: clamp(14px, 1.6vw, 18px);
+  }
+  .init-panel {
+    width: min(760px, calc(100% - (8vw + 32px)));
+  }
+}
+
+/* 데스크톱: 패널/폼이 너무 좁아 보이지 않도록 상한을 살짝 올림 */
+@media (min-width: 1024px) {
+  .init-panel {
+    width: min(800px, calc(100% - (6vw + 32px)));
+  }
+  .init-form {
+    width: min(680px, calc(100% - (4vw + 48px)));
+  }
+}

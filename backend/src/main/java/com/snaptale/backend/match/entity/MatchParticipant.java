@@ -2,6 +2,8 @@ package com.snaptale.backend.match.entity;
 
 import com.snaptale.backend.common.entity.BaseEntity;
 import com.snaptale.backend.deck.entity.DeckPreset;
+import com.snaptale.backend.match.model.request.MatchParticipantUpdateReq;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -34,4 +36,19 @@ public class MatchParticipant extends BaseEntity {
 
     @Column(name = "final_score")
     private Integer finalScore;
+
+    public void apply(MatchParticipantUpdateReq request) {
+        if (request.finalScore() != null) {
+            this.finalScore = request.finalScore();
+        }
+        if (request.playerIndex() != null) {
+            this.playerIndex = request.playerIndex();
+        }
+        if (request.deckPreset() != null) {
+            this.deckPreset = request.deckPreset();
+        }
+        if (request.match() != null) {
+            this.match = request.match();
+        }
+    }
 }
