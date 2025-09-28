@@ -27,8 +27,8 @@ public class Match extends BaseEntity {
     @Column(name = "status", length = 20, nullable = false)
     private MatchStatus status;
 
-    @Column(name = "winner_id", length = 36)
-    private String winnerId;
+    @Column(name = "winner_id")
+    private Long winnerId;
 
     @Column(name = "turn_count", nullable = false)
     private Integer turnCount;

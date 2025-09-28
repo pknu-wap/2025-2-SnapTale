@@ -8,7 +8,7 @@ import com.snaptale.backend.match.entity.Match;
 public record MatchRes(
         Long matchId,
         MatchStatus status,
-        String winnerId,
+        Long winnerId,
         Integer turnCount,
         LocalDateTime endedAt) {
     public static MatchRes from(Match match) {

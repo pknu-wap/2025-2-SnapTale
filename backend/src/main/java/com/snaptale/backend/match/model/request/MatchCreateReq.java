@@ -8,12 +8,12 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public record MatchCreateReq(
-                @NotNull @Size(max = 20) MatchStatus status,
+        @NotNull @Size(max = 20) MatchStatus status,
 
-                @Size(max = 36) String winnerId,
+        Long winnerId,
 
-                @NotNull Integer turnCount,
+        @NotNull Integer turnCount,
 
-                LocalDateTime endedAt) {
+        LocalDateTime endedAt) {
 
 }

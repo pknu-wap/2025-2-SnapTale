@@ -50,7 +50,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "잘못된 요청"),
     })
     @GetMapping("/{userId}")
-    public BaseResponse<UserRes> getUser(@PathVariable String userId) {
+    public BaseResponse<UserRes> getUser(@PathVariable Long userId) {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, userService.getUser(userId));
     }
 
@@ -70,7 +70,7 @@ public class UserController {
             @ApiResponse(responseCode = "400", description = "잘못된 요청"),
     })
     @PatchMapping("/{userId}")
-    public BaseResponse<UserRes> updateUser(@PathVariable String userId, @RequestBody UserUpdateReq request) {
+    public BaseResponse<UserRes> updateUser(@PathVariable Long userId, @RequestBody UserUpdateReq request) {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, userService.updateUser(userId, request));
     }
 
@@ -80,7 +80,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "잘못된 요청"),
     })
     @DeleteMapping("/{userId}")
-    public BaseResponse<Void> deleteUser(@PathVariable String userId) {
+    public BaseResponse<Void> deleteUser(@PathVariable Long userId) {
         userService.deleteUser(userId);
         return new BaseResponse<>(BaseResponseStatus.SUCCESS);
     }

@@ -24,8 +24,8 @@ public class MatchParticipant extends BaseEntity {
     @JoinColumn(name = "match_id", nullable = false)
     private Match match;
 
-    @Column(name = "guest_id", length = 36, nullable = false)
-    private String guestId;
+    @Column(name = "guest_id", nullable = false)
+    private Long guestId;
 
     @Column(name = "player_index", nullable = false)
     private Integer playerIndex;
