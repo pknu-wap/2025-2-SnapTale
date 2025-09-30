@@ -1,6 +1,7 @@
-/*
-문서 전체 뼈대, 내용, React가 붙는 최상위 div에 적용
-*/
+/* 문서 전체 뼈대, 내용, React가 붙는 최상위 div에 적용 */
+
+/*Song Myung 폰트 import*/
+@import url('https://fonts.googleapis.com/css2?family=Song+Myung&display=swap'); 
 html, body, #root {
   /*height: 100%;*/
   margin: 0; /*여백 제거*/
