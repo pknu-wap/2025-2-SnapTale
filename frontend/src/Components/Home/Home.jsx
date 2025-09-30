@@ -5,11 +5,15 @@ import RDModal from "./RDModal";
 import PWModal from "./PWModal";
 import { useState } from "react";
 import './Home.css'
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
   const [openPWModal, setOpenPWModal] = useState(false);
   const [openRDModal, setOpenRDModal] = useState(false);
   const [matchCode, setMatchCode] = useState(""); // 매치코드 값 저장
+  const [openModal, setOpenModal] = useState(false);
+  const navigate = useNavigate();
+
   return (
     <div className="home-container">
       
@@ -43,6 +47,9 @@ const Home = () => {
           />} {/* state가 true면 패스워드 입력 모달창 표시 */}
         </div>
         <Button text={"튜토리얼"} />
+        <button
+          onClick={() => navigate('/gameplay')}>
+            </button>
       </main>
     </div>
   );
