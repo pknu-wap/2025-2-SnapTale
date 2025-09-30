@@ -27,8 +27,8 @@ public class Play extends BaseEntity {
     @Column(name = "turn_count", nullable = false)
     private Integer turnCount;
 
-    @Column(name = "guest_id", length = 36, nullable = false)
-    private String guestId;
+    @Column(name = "guest_id", nullable = false)
+    private Long guestId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "card_id", nullable = false)

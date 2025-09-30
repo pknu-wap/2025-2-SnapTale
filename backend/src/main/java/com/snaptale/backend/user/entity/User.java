@@ -10,7 +10,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Getter
-//@Setter
+// @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -25,8 +25,9 @@ public class User extends BaseEntity {
 
     @Id
     @Column(name = "guest_id")
+    // String은 @GeneratedValue(strategy = GenerationType.IDENTITY) 이걸 쓸 수 없다.
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String guestId;
+    private Long guestId;
 
     @Column(name = "nickname", length = 50, nullable = false)
     private String nickname;

@@ -60,7 +60,7 @@ public class CardService {
                 .power(request.power())
                 .faction(request.faction())
                 .effectDesc(request.effectDesc())
-                .isActive(request.active())
+                .isActive(request.active() != null ? request.active() : true) // 기본값 true
                 .build();
         cardRepository.save(card);
         return CardDetailRes.from(card);
@@ -81,6 +81,7 @@ public class CardService {
     /**
      * 카드를 삭제(뭐 삭제했는지 알려주기 위해 아이디 반환)
      */
+    @Transactional
     public Long deleteCard(Long cardId) {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.CARD_NOT_FOUND));

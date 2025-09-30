@@ -22,7 +22,7 @@ public class UserService {
     private final UserRepository userRepository;
 
     // 유저 조회
-    public UserRes getUser(String userId) {
+    public UserRes getUser(Long userId) {
         return userRepository.findById(userId)
                 .map(UserRes::from)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
@@ -51,7 +51,7 @@ public class UserService {
 
     // 유저 수정
     @Transactional
-    public UserRes updateUser(String userId, UserUpdateReq request) {
+    public UserRes updateUser(Long userId, UserUpdateReq request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
         user.apply(request);
@@ -61,7 +61,7 @@ public class UserService {
 
     // 유저 삭제
     @Transactional
-    public String deleteUser(String userId) {
+    public Long deleteUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
         userRepository.delete(user);

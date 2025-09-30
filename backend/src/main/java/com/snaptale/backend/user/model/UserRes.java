@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import com.snaptale.backend.user.entity.User;
 
 public record UserRes(
-        String userId,
+        Long guestId,
         String nickname,
         int rankPoint,
         int matchesPlayed,
