@@ -10,7 +10,7 @@ html, body, #root {
 
 .app-bg {
   min-height: 100dvh;                          /* 모바일 주소창 변화 대응 */
-  background: url("./assets/tempBackGround.png") center / cover no-repeat;
+  background: url("./assets/initBackGround.png") center / cover no-repeat;
   overflow: hidden;
 
 }
