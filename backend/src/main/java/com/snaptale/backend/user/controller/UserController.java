@@ -27,13 +27,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
 @Validated
 @Tag(name = "User", description = "User API")
 public class UserController {
     private final UserService userService;
 
+    // 테스트 완료
     @Operation(summary = "유저 생성", description = "유저를 생성합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "유저 생성 성공"),
@@ -44,16 +45,18 @@ public class UserController {
         return new BaseResponse<>(BaseResponseStatus.CREATED, userService.createUser(request));
     }
 
+    // 테스트 완료
     @Operation(summary = "유저 조회", description = "유저를 조회합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "유저 조회 성공"),
             @ApiResponse(responseCode = "404", description = "잘못된 요청"),
     })
     @GetMapping("/{userId}")
-    public BaseResponse<UserRes> getUser(@PathVariable String userId) {
+    public BaseResponse<UserRes> getUser(@PathVariable Long userId) {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, userService.getUser(userId));
     }
 
+    // 테스트 완료
     @Operation(summary = "유저 목록 조회", description = "유저 목록을 조회합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "유저 목록 조회 성공"),
@@ -64,23 +67,25 @@ public class UserController {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, userService.getUsers());
     }
 
+    // 테스트 완료
     @Operation(summary = "유저 수정", description = "유저를 수정합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "유저 수정 성공"),
             @ApiResponse(responseCode = "400", description = "잘못된 요청"),
     })
     @PatchMapping("/{userId}")
-    public BaseResponse<UserRes> updateUser(@PathVariable String userId, @RequestBody UserUpdateReq request) {
+    public BaseResponse<UserRes> updateUser(@PathVariable Long userId, @RequestBody UserUpdateReq request) {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, userService.updateUser(userId, request));
     }
 
+    // 테스트 완료
     @Operation(summary = "유저 삭제", description = "유저를 삭제합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "유저 삭제 성공"),
             @ApiResponse(responseCode = "404", description = "잘못된 요청"),
     })
     @DeleteMapping("/{userId}")
-    public BaseResponse<Void> deleteUser(@PathVariable String userId) {
+    public BaseResponse<Void> deleteUser(@PathVariable Long userId) {
         userService.deleteUser(userId);
         return new BaseResponse<>(BaseResponseStatus.SUCCESS);
     }
