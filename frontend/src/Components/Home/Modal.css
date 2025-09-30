@@ -3,50 +3,85 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 262px;
-    height: 164px;
-
-    background-color: #D9D9D9;
-    border: 1px solid #8C8C8C;
-    border-radius: 5px;
+    width: 302px;
+    height: 191px;
+    background: url("../../assets/modal.png") center / cover no-repeat;
 }
 
-.modal-title{
+.modal-title, .modal-main {
     font-family: 'Song Myung';
     font-style: normal;
     font-weight: 400;
-    font-size: 24px;
-    line-height: 30px;
+    text-shadow: -1px 0 #5B1B17, 0 1px #5B1B17, 1px 0 #5B1B17, 0 -1px #5B1B17;
     display: flex;
     align-items: center;
     text-align: center;
     color: #FFFFFF;
-    margin-top: 19px;
-    margin-left: 19px;
+}
+
+.modal-code {
+    font-family: 'Song Myung';
+    display: flex;
+    align-items: center;
+    text-align: center;
+    
+
+    color: #000000;    
+    text-shadow: none;   
+    font-size: 24px; 
+    margin-bottom: 9px; 
+}
+.modal-title
+{
+    font-size: 28px;
+    line-height: 28px;
+    margin-top: 36px;
+    margin-left: 36px;
+}
+.modal-main{
+    font-size: 24px;
+    position: absolute;  
+    top: 50%;          
+    left: 50%;         
+    transform: translate(-50%, -50%);
+    
+    flex-direction: column; 
+    justify-content: center; 
+}
+
+
+.modal-input, .cancel, .accept{
+    border: 2px solid #5B1B17;
+    border-radius: 5px;
 }
 .modal-input{
     box-sizing: border-box;
     position: absolute;
-    width: 223px;
-    height: 36px;
+    width: 228px;
+    height: 40px;
     background: #FFFFFF;
-    border: 1px solid #000000;
-    border-radius: 5px;
-    margin-top: 15px;
-    margin-left: 19px;
+    margin-top: 19px;
+    margin-left: 36px;
+}
+.cancelIcon {
+    position: absolute;
+    top: 25px;   
+    right: 32px;
+    width: 24px;
+    height: 24px;
+    background: url("../../assets/closeIcon.png") no-repeat center / contain;
+    border: none;
+    cursor: pointer;
 }
 .cancel, .accept{
     position: absolute;
-    width: 104px;
+    width: 108px;
     height: 32px;
-    border: 1px solid #000000;
-    border-radius: 5px;
 
     font-family: 'Song Myung';
     font-style: normal;
     font-weight: 400;
     font-size: 16px;
-    line-height: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -55,12 +90,11 @@
 }
 .cancel{
     background: #800000;
-    margin-top: 72px;
-    margin-left: 19px;
+    margin-top: 71px;
+    margin-left: 37px;
 }
 .accept{
     background: #228B22;
-    margin-top: 72px;
-    margin-left: 138px;
-    
+    margin-top: 71px;
+    margin-left: 157px;
 }

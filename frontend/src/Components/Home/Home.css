@@ -3,11 +3,6 @@
   /* 화면 전체를 채우도록 설정 */
   width: 100vw;
   height: 100vh;
-
-  /* 배경 이미지 설정 */
-  background-image: url('../../assets/tempBackGround.png'); 
-  background-size: cover;      
-  background-position: center; 
   
   /* Flexbox를 사용한 레이아웃 설정 */
   display: flex;
