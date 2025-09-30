@@ -10,7 +10,7 @@ jobs:
   auto-assign:
     runs-on: ubuntu-latest
     steps:
-      - uses: peter-evans/auto-assign@v2
+      - uses: peter-evans/auto-assign-action@v2
         with:
           add-assignees: author
           add-reviewers: true
