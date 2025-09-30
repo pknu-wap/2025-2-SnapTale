@@ -11,7 +11,6 @@ const Home = () => {
   const [openPWModal, setOpenPWModal] = useState(false);
   const [openRDModal, setOpenRDModal] = useState(false);
   const [matchCode, setMatchCode] = useState(""); // 매치코드 값 저장
-  const [openModal, setOpenModal] = useState(false);
   const navigate = useNavigate();
 
   return (
