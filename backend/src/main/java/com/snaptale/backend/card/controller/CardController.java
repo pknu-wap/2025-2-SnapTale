@@ -29,6 +29,7 @@ public class CardController {
 
     private final CardService cardService;
 
+    // 테스트 완
     @Operation(summary = "모든 카드 조회", description = "모든 카드를 조회합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "카드 조회 성공"),
@@ -39,6 +40,7 @@ public class CardController {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, cardService.getCards());
     }
 
+    // 테스트 완
     @Operation(summary = "특정 카드 조회", description = "특정 카드를 조회합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "카드 조회 성공"),
@@ -49,6 +51,7 @@ public class CardController {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, cardService.getCard(cardId));
     }
 
+    // 테스트 완
     @Operation(summary = "카드 생성", description = "카드를 생성합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "카드 생성 성공"),
@@ -59,6 +62,7 @@ public class CardController {
         return new BaseResponse<>(BaseResponseStatus.CREATED, cardService.createCard(request));
     }
 
+    // 테스트 완
     @Operation(summary = "카드 수정", description = "카드를 수정합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "카드 수정 성공"),
@@ -70,6 +74,7 @@ public class CardController {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, cardService.updateCard(cardId, request));
     }
 
+    // 테스트 완
     @Operation(summary = "카드 삭제", description = "카드를 삭제합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "카드 삭제 성공"),

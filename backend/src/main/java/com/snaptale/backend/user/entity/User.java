@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "user_info")
+@Table(name = "users")
 /**
  * 참고 : 지금은 따로 유저를 식별하지 않고 그냥 닉네임만 매번 입력해서 플레이하도록 합니다.
  * 따라서 guest_id는 GeneratedValue로 설정하였고 실제로 사용하는 필드는 guestId, nickname 뿐입니다.

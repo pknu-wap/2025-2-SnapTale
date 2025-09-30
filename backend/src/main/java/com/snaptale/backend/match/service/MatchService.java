@@ -29,7 +29,7 @@ public class MatchService {
         Match match = Match.builder()
                 .status(request.status())
                 .winnerId(request.winnerId())
-                .turnCount(request.turnCount())
+                .turnCount(request.turnCount() != null ? request.turnCount() : 0) // 기본값 0
                 .endedAt(request.endedAt())
                 .build();
         matchRepository.save(match);

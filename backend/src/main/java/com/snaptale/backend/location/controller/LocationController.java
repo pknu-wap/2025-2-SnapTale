@@ -33,6 +33,7 @@ public class LocationController {
 
     private final LocationService locationService;
 
+    // 테스트 완
     @Operation(summary = "지역 생성", description = "지역을 생성합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "지역 생성 성공"),
@@ -43,6 +44,7 @@ public class LocationController {
         return new BaseResponse<>(BaseResponseStatus.CREATED, locationService.createLocation(request));
     }
 
+    // 테스트 완
     @Operation(summary = "지역 목록 조회", description = "지역 목록을 조회합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "지역 목록 조회 성공"),
@@ -53,6 +55,7 @@ public class LocationController {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, locationService.getLocations());
     }
 
+    // 테스트 완
     @Operation(summary = "지역 하나 조회", description = "지역을 조회합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "지역 조회 성공"),
@@ -63,6 +66,7 @@ public class LocationController {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, locationService.getLocation(locationId));
     }
 
+    // 테스트 완
     @Operation(summary = "지역 수정", description = "지역을 수정합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "지역 수정 성공"),
@@ -74,6 +78,7 @@ public class LocationController {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, locationService.updateLocation(locationId, request));
     }
 
+    // 테스트 완
     @Operation(summary = "지역 삭제", description = "지역을 삭제합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "지역 삭제 성공"),

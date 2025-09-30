@@ -5,10 +5,9 @@ import java.time.LocalDateTime;
 import com.snaptale.backend.match.entity.MatchStatus;
 
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 
 public record MatchCreateReq(
-        @NotNull @Size(max = 20) MatchStatus status,
+        @NotNull MatchStatus status,
 
         Long winnerId,
 

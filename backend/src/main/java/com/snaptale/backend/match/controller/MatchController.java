@@ -33,6 +33,7 @@ public class MatchController {
 
     private final MatchService matchService;
 
+    // 테스트 완
     @Operation(summary = "매치 생성", description = "매치를 생성합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "매치 생성 성공"),
@@ -43,6 +44,7 @@ public class MatchController {
         return new BaseResponse<>(BaseResponseStatus.CREATED, matchService.createMatch(request));
     }
 
+    // 테스트 완
     @Operation(summary = "매치 조회", description = "매치를 조회합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "매치 조회 성공"),
@@ -53,6 +55,7 @@ public class MatchController {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, matchService.getMatch(matchId));
     }
 
+    // 테스트 완
     @Operation(summary = "매치 전체 조회", description = "매치 전체를 조회합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "매치 전체 조회 성공"),
@@ -63,6 +66,7 @@ public class MatchController {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, matchService.getMatches());
     }
 
+    // 테스트 완
     @Operation(summary = "매치 수정", description = "매치를 수정합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "매치 수정 성공"),
@@ -73,6 +77,7 @@ public class MatchController {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, matchService.updateMatch(matchId, request));
     }
 
+    // 테스트 완
     @Operation(summary = "매치 삭제", description = "매치를 삭제합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "매치 삭제 성공"),

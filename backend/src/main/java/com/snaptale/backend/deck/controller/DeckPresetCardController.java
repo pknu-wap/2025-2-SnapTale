@@ -32,49 +32,51 @@ import lombok.RequiredArgsConstructor;
 @Validated
 public class DeckPresetCardController {
 
-    private final DeckPresetCardService deckPresetCardService;
+        private final DeckPresetCardService deckPresetCardService;
 
-    @Operation(summary = "덱 프리셋 카드 생성", description = "덱 프리셋 카드를 생성합니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "덱 프리셋 카드 생성 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
-    })
-    @PostMapping
-    public BaseResponse<DeckPresetCardRes> createDeckPresetCard(@Valid @RequestBody DeckPresetCardCreateReq request) {
-        return new BaseResponse<>(BaseResponseStatus.CREATED, deckPresetCardService.createDeckPresetCard(request));
-    }
+        @Operation(summary = "덱 프리셋 카드 생성", description = "덱 프리셋 카드를 생성합니다.")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "201", description = "덱 프리셋 카드 생성 성공"),
+                        @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+        })
+        @PostMapping
+        public BaseResponse<DeckPresetCardRes> createDeckPresetCard(
+                        @Valid @RequestBody DeckPresetCardCreateReq request) {
+                return new BaseResponse<>(BaseResponseStatus.CREATED,
+                                deckPresetCardService.createDeckPresetCard(request));
+        }
 
-    @Operation(summary = "덱 프리셋 카드 조회", description = "덱 프리셋 카드를 조회합니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "덱 프리셋 카드 조회 성공"),
-            @ApiResponse(responseCode = "404", description = "잘못된 요청"),
-    })
-    @GetMapping("/{deckPresetCardId}")
-    public BaseResponse<CardRes> getDeckPresetCard(@PathVariable Long deckPresetCardId) {
-        return new BaseResponse<>(BaseResponseStatus.SUCCESS,
-                deckPresetCardService.getDeckPresetCard(deckPresetCardId));
-    }
+        @Operation(summary = "덱 프리셋 카드 조회", description = "덱 프리셋 카드를 조회합니다.")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "덱 프리셋 카드 조회 성공"),
+                        @ApiResponse(responseCode = "404", description = "잘못된 요청"),
+        })
+        @GetMapping("/{deckPresetCardId}")
+        public BaseResponse<CardRes> getDeckPresetCard(@PathVariable Long deckPresetCardId) {
+                return new BaseResponse<>(BaseResponseStatus.SUCCESS,
+                                deckPresetCardService.getDeckPresetCard(deckPresetCardId));
+        }
 
-    @Operation(summary = "덱 프리셋 카드 수정", description = "덱 프리셋 카드를 수정합니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "덱 프리셋 카드 수정 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
-    })
-    @PatchMapping("/{deckPresetCardId}")
-    public BaseResponse<DeckPresetCardRes> updateDeckPresetCard(@PathVariable Long deckPresetCardId,
-            @Valid @RequestBody DeckPresetCardUpdateReq request) {
-        return new BaseResponse<>(BaseResponseStatus.SUCCESS,
-                deckPresetCardService.updateDeckPresetCard(deckPresetCardId, request));
-    }
+        @Operation(summary = "덱 프리셋 카드 수정", description = "덱 프리셋 카드를 수정합니다.")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "덱 프리셋 카드 수정 성공"),
+                        @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+        })
+        @PatchMapping("/{deckPresetCardId}")
+        public BaseResponse<DeckPresetCardRes> updateDeckPresetCard(@PathVariable Long deckPresetCardId,
+                        @Valid @RequestBody DeckPresetCardUpdateReq request) {
+                return new BaseResponse<>(BaseResponseStatus.SUCCESS,
+                                deckPresetCardService.updateDeckPresetCard(deckPresetCardId, request));
+        }
 
-    @Operation(summary = "덱 프리셋 카드 삭제", description = "덱 프리셋 카드를 삭제합니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "덱 프리셋 카드 삭제 성공"),
-            @ApiResponse(responseCode = "404", description = "잘못된 요청"),
-    })
-    @DeleteMapping("/{deckPresetCardId}")
-    public BaseResponse<Void> deleteDeckPresetCard(@PathVariable Long deckPresetCardId) {
-        deckPresetCardService.deleteDeckPresetCard(deckPresetCardId);
-        return new BaseResponse<>(BaseResponseStatus.SUCCESS);
-    }
+        @Operation(summary = "덱 프리셋 카드 삭제", description = "덱 프리셋 카드를 삭제합니다.")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "204", description = "덱 프리셋 카드 삭제 성공"),
+                        @ApiResponse(responseCode = "404", description = "잘못된 요청"),
+        })
+        @DeleteMapping("/{deckPresetCardId}")
+        public BaseResponse<Void> deleteDeckPresetCard(@PathVariable Long deckPresetCardId) {
+                deckPresetCardService.deleteDeckPresetCard(deckPresetCardId);
+                return new BaseResponse<>(BaseResponseStatus.SUCCESS);
+        }
 }

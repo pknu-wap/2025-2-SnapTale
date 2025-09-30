@@ -4,13 +4,11 @@ import java.time.LocalDateTime;
 
 import com.snaptale.backend.match.entity.MatchStatus;
 
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-
 public record MatchUpdateReq(
-                @Size(max = 20) MatchStatus status,
-                Long winnerId,
-                @NotNull Integer turnCount,
-                LocalDateTime endedAt) {
+        // enum에 size는 쓰면 안된다.
+        MatchStatus status,
+        Long winnerId,
+        Integer turnCount,
+        LocalDateTime endedAt) {
 
 }

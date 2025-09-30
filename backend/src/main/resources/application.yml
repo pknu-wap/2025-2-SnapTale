@@ -7,9 +7,12 @@ spring:
     properties:
       hibernate:
         format_sql: true
+    defer-datasource-initialization: true
   sql:
     init:
-      mode: never
+      #// 현재 목데이터 받을 때만 이렇게 하고 원래는 never로 바꾼다.
+      mode: always
+      continue-on-error: true
 
 logging:
   level:
