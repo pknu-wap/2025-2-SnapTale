@@ -1,0 +1,25 @@
+name: Auto assign author & request reviewers
+on:
+  pull_request:
+    types: [opened, ready_for_review, reopened]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  auto-assign:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: peter-evans/auto-assign@v3
+        with:
+          add-assignees: author
+          add-reviewers: true
+          # 아래 둘 중 상황에 맞게 택1 (개인 레포 vs 조직 레포)
+          # 1) 개인 레포: 개별 사용자 나열
+          reviewers: |
+            Seol-Munhyeok
+            gilnyang-coding
+            mututu17
+            Gyuri0315
+
+          # NOTE: author가 리뷰어 목록에 있으면 자동으로 제외됨
