@@ -9,7 +9,6 @@
 }
 
 .modal-title, .modal-main {
-    font-family: 'Song Myung';
     font-style: normal;
     font-weight: 400;
     text-shadow: -1px 0 #5B1B17, 0 1px #5B1B17, 1px 0 #5B1B17, 0 -1px #5B1B17;
@@ -20,7 +19,6 @@
 }
 
 .modal-code {
-    font-family: 'Song Myung';
     display: flex;
     align-items: center;
     text-align: center;

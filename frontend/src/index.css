@@ -1,0 +1,13 @@
+/*Song Myung 폰트 import*/
+@import url('https://fonts.googleapis.com/css2?family=Song+Myung&display=swap'); 
+
+html, body, #root {
+  margin: 0;
+  font-family: "Song Myung", serif;
+}
+
+*,
+*::before,
+*::after {
+  font-family: inherit;
+}
