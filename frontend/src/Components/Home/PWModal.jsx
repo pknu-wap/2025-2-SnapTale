@@ -1,7 +1,7 @@
 import './Modal.css'
 import { useState } from "react";
 {/* 친선전 모달창 */}
-const Modal = ({setOpenPWModal, setOpenRDModal, setMatchCode }) => {
+const PWModal = ({setOpenPWModal, setOpenRDModal, setMatchCode }) => {
     const [password, setPassword] = useState("");
     return (
         <div className = "Overlay">
@@ -34,4 +34,4 @@ const Modal = ({setOpenPWModal, setOpenRDModal, setMatchCode }) => {
         </div>
     );
 };
-export default Modal;
+export default PWModal;

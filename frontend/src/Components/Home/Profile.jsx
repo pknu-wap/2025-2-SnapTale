@@ -1,9 +1,10 @@
-import userProfile from "../../assets/userProfile.png";
+import profileIcon from "../../assets/userProfile.png";
+/*추후에 덱 선택 아이콘으로 교체할 예정 */
 const Profile = () => {
   return (
     <img
-        src = {userProfile} 
-        alt= "User Profile" 
+        src = {profileIcon} 
+        alt= "Profile Icon" 
         width={55} 
         height={55}
     />

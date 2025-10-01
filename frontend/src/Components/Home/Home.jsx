@@ -1,12 +1,12 @@
+import './Home.css'
 import Button from "./Button"
 import Profile from "./Profile";
-import Soundbar from "./SoundIcon";
+import SoundIcon from "./SoundIcon";
 import RDModal from "./RDModal";
 import PWModal from "./PWModal";
 import { useState } from "react";
-import './Home.css'
 import { useNavigate } from "react-router-dom";
-import SoundIcon from "./SoundIcon";
+
 
 const Home = () => {
   const [openPWModal, setOpenPWModal] = useState(false);
