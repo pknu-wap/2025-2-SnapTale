@@ -68,7 +68,6 @@ public class MatchLocationController {
                                 matchLocationService.getMatchLocation(matchLocationId));
         }
 
-        // 테스트 완
         @Operation(summary = "매치 지역 수정", description = "매치 지역을 수정합니다.")
         @ApiResponses({
                         @ApiResponse(responseCode = "200", description = "매치 지역 수정 성공"),
@@ -81,7 +80,6 @@ public class MatchLocationController {
                                 matchLocationService.updateMatchLocation(matchLocationId, request));
         }
 
-        // 테스트 완
         @Operation(summary = "매치 지역 삭제", description = "매치 지역을 삭제합니다.")
         @ApiResponses({
                         @ApiResponse(responseCode = "204", description = "매치 지역 삭제 성공"),
