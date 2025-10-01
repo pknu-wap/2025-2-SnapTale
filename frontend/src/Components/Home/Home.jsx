@@ -1,11 +1,12 @@
 import Button from "./Button"
 import Profile from "./Profile";
-import Soundbar from "./Soundbar";
+import Soundbar from "./SoundIcon";
 import RDModal from "./RDModal";
 import PWModal from "./PWModal";
 import { useState } from "react";
 import './Home.css'
 import { useNavigate } from "react-router-dom";
+import SoundIcon from "./SoundIcon";
 
 const Home = () => {
   const [openPWModal, setOpenPWModal] = useState(false);
@@ -18,7 +19,7 @@ const Home = () => {
       
       {/* 상단 메뉴 (사운드바, 프로필) */}
       <header className="top-menu">
-        <Soundbar />
+        <SoundIcon />
         <Profile />
       </header>
 
