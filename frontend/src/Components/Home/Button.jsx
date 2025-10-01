@@ -1,7 +1,10 @@
 import './MatchingButton.css'
-const Button = ({text, onClick}) => {
+const Button = ({text, onClick, disabled}) => {
   return (
-    <button className = "Matching" onClick = {onClick}>
+    <button 
+    className={`Matching ${disabled ? "disabled" : ""}`}  
+    onClick = {onClick}
+    disabled={disabled}>
         {text}
     </button>
   );

@@ -1,6 +1,6 @@
 import './Modal.css'
 import MatchCode from './MatchCode';
-{/* 전투준비중 모달창 */}
+{/* 전투 준비 중 모달창 */}
 const Modal = ({setOpenRDModal, matchCode }) => {
     return (
         <div className = "Overlay">
