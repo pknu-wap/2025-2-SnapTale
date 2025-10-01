@@ -16,26 +16,20 @@ const Modal = ({setOpenPWModal, setOpenRDModal, setMatchCode }) => {
                 />
             </div>
             <div className = "modal-footer">
-                <button 
-                className = "cancel"
-                onClick={() => {
-                    setOpenPWModal(false); // 클릭하면 모달창 닫기
-                }}>
-                    취소
-                </button>
+                <button className = "cancel"
+                    onClick={() => {
+                        setOpenPWModal(false); // 클릭하면 모달창 닫기
+                    }}>취소</button>
                 <button className = "accept"
-                
                     onClick={() => {
                         if(password === "")
                         { 
                             return;
                         }
-                      setMatchCode(password);
-                      setOpenPWModal(false); // PWModal 닫기
-                      setOpenRDModal(true);  // RDModal 열기
-                  }
-                }
-                >확인</button>
+                        setMatchCode(password);
+                        setOpenPWModal(false); // PWModal 닫기
+                        setOpenRDModal(true);  // RDModal 열기
+                    }}>확인</button>
             </div>
         </div>
     );
