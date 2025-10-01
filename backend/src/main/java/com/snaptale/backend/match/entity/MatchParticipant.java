@@ -37,18 +37,21 @@ public class MatchParticipant extends BaseEntity {
     @Column(name = "final_score")
     private Integer finalScore;
 
-    public void apply(MatchParticipantUpdateReq request) {
+    public void apply(MatchParticipantUpdateReq request, Match match, DeckPreset deckPreset) {
         if (request.finalScore() != null) {
             this.finalScore = request.finalScore();
         }
         if (request.playerIndex() != null) {
             this.playerIndex = request.playerIndex();
         }
-        if (request.deckPreset() != null) {
-            this.deckPreset = request.deckPreset();
+        if (request.guestId() != null) {
+            this.guestId = request.guestId();
         }
-        if (request.match() != null) {
-            this.match = request.match();
+        if (request.deckPresetId() != null && deckPreset != null) {
+            this.deckPreset = deckPreset;
+        }
+        if (request.matchId() != null && match != null) {
+            this.match = match;
         }
     }
 }

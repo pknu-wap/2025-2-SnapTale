@@ -34,6 +34,7 @@ public class MatchParticipantController {
 
         private final MatchParticipantService matchParticipantService;
 
+        // 테스트 완
         @Operation(summary = "매치 참가자 생성", description = "매치 참가자를 생성합니다.")
         @ApiResponses({
                         @ApiResponse(responseCode = "201", description = "매치 참가자 생성 성공"),
@@ -46,6 +47,7 @@ public class MatchParticipantController {
                                 matchParticipantService.createMatchParticipant(request));
         }
 
+        // 테스트 완
         @Operation(summary = "매치 참가자 조회", description = "매치 참가자를 조회합니다.")
         @ApiResponses({
                         @ApiResponse(responseCode = "200", description = "매치 참가자 조회 성공"),
@@ -57,6 +59,7 @@ public class MatchParticipantController {
                                 matchParticipantService.getMatchParticipant(matchParticipantId));
         }
 
+        // 테스트 완
         @Operation(summary = "매치 참가자 전체 조회", description = "매치 참가자 전체를 조회합니다.")
         @ApiResponses({
                         @ApiResponse(responseCode = "200", description = "매치 참가자 전체 조회 성공"),
@@ -67,6 +70,7 @@ public class MatchParticipantController {
                 return new BaseResponse<>(BaseResponseStatus.SUCCESS, matchParticipantService.getMatchParticipants());
         }
 
+        // 테스트 완
         @Operation(summary = "매치 참가자 수정", description = "매치 참가자를 수정합니다.")
         @ApiResponses({
                         @ApiResponse(responseCode = "200", description = "매치 참가자 수정 성공"),
@@ -79,6 +83,7 @@ public class MatchParticipantController {
                                 matchParticipantService.updateMatchParticipant(matchParticipantId, request));
         }
 
+        // 테스트 완
         @Operation(summary = "매치 참가자 삭제", description = "매치 참가자를 삭제합니다.")
         @ApiResponses({
                         @ApiResponse(responseCode = "204", description = "매치 참가자 삭제 성공"),
