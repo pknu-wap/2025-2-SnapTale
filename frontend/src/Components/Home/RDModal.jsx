@@ -1,4 +1,5 @@
 import './Modal.css'
+import MatchCode from './MatchCode';
 {/* 전투준비중 모달창 */}
 const Modal = ({setOpenRDModal, matchCode }) => {
     return (
@@ -9,9 +10,7 @@ const Modal = ({setOpenRDModal, matchCode }) => {
                 }}></button>
             <div className = "modal-main">
                 {matchCode && (
-                    <div className="modal-code">
-                        매치 코드: {matchCode}
-                    </div>
+                    <MatchCode matchCode={matchCode}/>
                 )}
                 <span className = "modal-text">전투 준비 중...</span> 
             </div>

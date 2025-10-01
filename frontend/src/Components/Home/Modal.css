@@ -21,9 +21,11 @@
 .modal-code {
     display: flex;
     align-items: center;
+    justify-content: center; 
     text-align: center;
+    width: 247px;
     
-
+    white-space: nowrap;   /* 줄바꿈 방지 */
     color: #000000;    
     text-shadow: none;   
     font-size: 24px; 

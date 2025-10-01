@@ -10,9 +10,10 @@ const Modal = ({setOpenPWModal, setOpenRDModal, setMatchCode }) => {
             </div>
             <div className = "input-container"> 
                 <input className = "modal-input"
-                maxLength={10}
+                maxLength={8} /* 8글자 입력 제한 */
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}/>
+                onChange={(e) => setPassword(e.target.value)} //입력 받은 값 상태로 저장
+                />
             </div>
             <div className = "modal-footer">
                 <button 
@@ -23,11 +24,17 @@ const Modal = ({setOpenPWModal, setOpenRDModal, setMatchCode }) => {
                     취소
                 </button>
                 <button className = "accept"
-                   onClick={() => {
+                
+                    onClick={() => {
+                        if(password === "")
+                        { 
+                            return;
+                        }
                       setMatchCode(password);
                       setOpenPWModal(false); // PWModal 닫기
                       setOpenRDModal(true);  // RDModal 열기
-                  }}
+                  }
+                }
                 >확인</button>
             </div>
         </div>
