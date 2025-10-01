@@ -36,6 +36,7 @@ public class DeckPresetController {
         // Operation의 설명이 충분하니 따로 설명하진 않을게요!
         private final DeckPresetService deckPresetService;
 
+        // 테스트 완
         @Operation(summary = "덱 프리셋 생성", description = "덱 프리셋을 생성합니다.")
         @ApiResponses({
                         @ApiResponse(responseCode = "201", description = "덱 프리셋 생성 성공"),
@@ -46,6 +47,7 @@ public class DeckPresetController {
                 return new BaseResponse<>(BaseResponseStatus.CREATED, deckPresetService.createDeckPreset(request));
         }
 
+        // 테스트 완
         @Operation(summary = "덱 프리셋 목록 조회", description = "덱 프리셋 목록을 조회합니다.")
         @ApiResponses({
                         @ApiResponse(responseCode = "200", description = "덱 프리셋 목록 조회 성공"),
@@ -56,6 +58,7 @@ public class DeckPresetController {
                 return new BaseResponse<>(BaseResponseStatus.SUCCESS, deckPresetService.getDeckPresets());
         }
 
+        // 테스트 완
         @Operation(summary = "덱 프리셋 하나 조회", description = "덱 프리셋을 조회합니다.")
         @ApiResponses({
                         @ApiResponse(responseCode = "200", description = "덱 프리셋 조회 성공"),
@@ -66,6 +69,7 @@ public class DeckPresetController {
                 return new BaseResponse<>(BaseResponseStatus.SUCCESS, deckPresetService.getDeckPreset(deckPresetId));
         }
 
+        // 테스트 완
         @Operation(summary = "덱 프리셋 수정", description = "덱 프리셋을 수정합니다.")
         @ApiResponses({
                         @ApiResponse(responseCode = "200", description = "덱 프리셋 수정 성공"),
@@ -78,6 +82,7 @@ public class DeckPresetController {
                                 deckPresetService.updateDeckPreset(deckPresetId, request));
         }
 
+        // 테스트 완
         @Operation(summary = "덱 프리셋 삭제", description = "덱 프리셋을 삭제합니다.")
         @ApiResponses({
                         @ApiResponse(responseCode = "204", description = "덱 프리셋 삭제 성공"),
