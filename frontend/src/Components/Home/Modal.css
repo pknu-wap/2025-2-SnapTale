@@ -20,6 +20,24 @@
     text-align: center; /*텍스트 중앙 정렬 */
 }
 
+.extra-text {
+    position: absolute;
+    top: calc(50% + 191px/2 + 20.5px); /* modal-main 높이 기준으로 아래 */
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.explain-text{
+    font-size: 35px;
+    color: #F4B033;
+}
+.alert-text{
+    font-size: 24px;
+    color: #D21515;
+    margin-top: -15px;
+}
+
 /* 흰 글씨에 갈색 stroke 넣기 */
 .modal-title, .modal-text {
     font-style: normal;
