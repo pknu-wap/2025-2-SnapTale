@@ -2,7 +2,7 @@ package com.snaptale.backend.match.controller;
 
 import java.util.List;
 
-import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,7 +25,7 @@ import com.snaptale.backend.match.service.PlayService;
 import jakarta.validation.Valid;
 import org.springframework.validation.annotation.Validated;
 
-@Controller
+@RestController
 @RequestMapping("/api/plays")
 @RequiredArgsConstructor
 @Validated
@@ -33,6 +33,7 @@ import org.springframework.validation.annotation.Validated;
 public class PlayController {
     private final PlayService playService;
 
+    // 테스트 완
     @Operation(summary = "플레이 생성", description = "플레이를 생성합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "플레이 생성 성공"),
@@ -43,6 +44,7 @@ public class PlayController {
         return new BaseResponse<>(BaseResponseStatus.CREATED, playService.createPlay(request));
     }
 
+    // 테스트 완
     @Operation(summary = "플레이 조회", description = "플레이를 조회합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "플레이 조회 성공"),
@@ -53,6 +55,7 @@ public class PlayController {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, playService.getPlay(playId));
     }
 
+    // 테스트 완
     @Operation(summary = "플레이 전체 조회", description = "플레이 전체를 조회합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "플레이 전체 조회 성공"),
@@ -63,6 +66,7 @@ public class PlayController {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, playService.getPlays());
     }
 
+    // 테스트 완
     @Operation(summary = "플레이 수정", description = "플레이를 수정합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "플레이 수정 성공"),
@@ -73,6 +77,7 @@ public class PlayController {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, playService.updatePlay(playId, request));
     }
 
+    // 테스트 완
     @Operation(summary = "플레이 삭제", description = "플레이를 삭제합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "플레이 삭제 성공"),
