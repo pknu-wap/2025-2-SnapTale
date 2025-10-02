@@ -3,11 +3,11 @@
 -- =============================================
 
 -- 사용자 데이터 삽입
-INSERT INTO user_info (nickname, rank_point, matches_played, wins, last_seen, linked_account_id, created_at, updated_at) VALUES
+INSERT INTO users (nickname, rank_point, matches_played, wins, last_seen, linked_account_id, created_at, updated_at) VALUES
 ('플레이어1', 1000, 5, 3, NOW(), NULL, NOW(), NOW()),
-('플레이어2', 1200, 8, 6, NOW() - INTERVAL 1 HOUR, NULL, NOW(), NOW()),
-('고수플레이어', 1800, 20, 18, NOW() - INTERVAL 30 MINUTE, NULL, NOW(), NOW()),
-('초보자', 800, 2, 0, NOW() - INTERVAL 1 DAY, NULL, NOW(), NOW()),
+('플레이어2', 1200, 8, 6, DATEADD('HOUR', -1, NOW()), NULL, NOW(), NOW()),
+('고수플레이어', 1800, 20, 18, DATEADD('MINUTE', -30, NOW()), NULL, NOW(), NOW()),
+('초보자', 800, 2, 0, DATEADD('DAY', -1, NOW()), NULL, NOW(), NOW()),
 ('테스터', 1500, 10, 7, NOW(), NULL, NOW(), NOW());
 
 -- 카드 데이터 삽입
@@ -33,23 +33,59 @@ INSERT INTO locations (name, image_url, effect_desc, is_active, created_at, upda
 ('산의 정상', 'https://example.com/mountain_peak.jpg', '고비용 카드들의 효과 +1', true, NOW(), NOW()),
 ('사막의 오아시스', 'https://example.com/desert_oasis.jpg', '체력 회복 효과 +100%', true, NOW(), NOW());
 
+-- 덱 프리셋 데이터 삽입
+INSERT INTO deck_presets (name, is_active, created_at, updated_at) VALUES
+('기본 덱', 1, NOW(), NOW()),
+('공격형 덱', 1, NOW(), NOW()),
+('방어형 덱', 1, NOW(), NOW()),
+('균형형 덱', 1, NOW(), NOW());
+
+-- 덱 프리셋 카드 데이터 삽입
+INSERT INTO deck_preset_cards (deck_preset_id, card_id, quantity, created_at, updated_at) VALUES
+-- 기본 덱 (덱 프리셋 ID: 1)
+(1, 1, 2, NOW(), NOW()),  -- 한국 전사 2장
+(1, 3, 2, NOW(), NOW()),  -- 한국 궁수 2장
+(1, 5, 1, NOW(), NOW()),  -- 한국 치료사 1장
+(1, 2, 2, NOW(), NOW()),  -- 중국 마법사 2장
+(1, 4, 1, NOW(), NOW()),  -- 중국 기사 1장
+-- 공격형 덱 (덱 프리셋 ID: 2)
+(2, 1, 3, NOW(), NOW()),  -- 한국 전사 3장
+(2, 3, 3, NOW(), NOW()),  -- 한국 궁수 3장
+(2, 8, 2, NOW(), NOW()),  -- 중국 암살자 2장
+(2, 2, 1, NOW(), NOW()),  -- 중국 마법사 1장
+(2, 9, 1, NOW(), NOW()),  -- 한국 궁수장 1장
+-- 방어형 덱 (덱 프리셋 ID: 3)
+(3, 5, 3, NOW(), NOW()),  -- 한국 치료사 3장
+(3, 7, 2, NOW(), NOW()),  -- 한국 수도승 2장
+(3, 4, 2, NOW(), NOW()),  -- 중국 기사 2장
+(3, 2, 2, NOW(), NOW()),  -- 중국 마법사 2장
+(3, 1, 1, NOW(), NOW()),  -- 한국 전사 1장
+-- 균형형 덱 (덱 프리셋 ID: 4)
+(4, 1, 2, NOW(), NOW()),  -- 한국 전사 2장
+(4, 3, 2, NOW(), NOW()),  -- 한국 궁수 2장
+(4, 5, 1, NOW(), NOW()),  -- 한국 치료사 1장
+(4, 7, 1, NOW(), NOW()),  -- 한국 수도승 1장
+(4, 2, 2, NOW(), NOW()),  -- 중국 마법사 2장
+(4, 4, 1, NOW(), NOW()),  -- 중국 기사 1장
+(4, 8, 1, NOW(), NOW());  -- 중국 암살자 1장
+
 -- 매치 데이터 삽입
 INSERT INTO matches (status, winner_id, turn_count, ended_at, created_at, updated_at) VALUES
 ('PLAYING', NULL, 5, NULL, NOW(), NOW()),
-('ENDED', 1, 12, NOW() - INTERVAL 2 HOUR, NOW(), NOW()),
+('ENDED', 1, 12, DATEADD('HOUR', -2, NOW()), NOW(), NOW()),
 ('QUEUED', NULL, 0, NULL, NOW(), NOW()),
-('ENDED', 2, 8, NOW() - INTERVAL 1 DAY, NOW(), NOW());
+('ENDED', 2, 8, DATEADD('DAY', -1, NOW()), NOW(), NOW());
 
 -- 매치 참가자 데이터 삽입
 INSERT INTO match_participants (match_id, guest_id, player_index, deck_preset_id, created_at, updated_at) VALUES
-(1, 1, 0, NULL, NOW(), NOW()),
-(1, 2, 1, NULL, NOW(), NOW()),
-(2, 1, 0, NULL, NOW(), NOW()),
-(2, 2, 1, NULL, NOW(), NOW()),
-(3, 3, 0, NULL, NOW(), NOW()),
-(3, 4, 1, NULL, NOW(), NOW()),
-(4, 2, 0, NULL, NOW(), NOW()),
-(4, 3, 1, NULL, NOW(), NOW());
+(1, 1, 0, 1, NOW(), NOW()),
+(1, 2, 1, 2, NOW(), NOW()),
+(2, 1, 0, 1, NOW(), NOW()),
+(2, 2, 1, 2, NOW(), NOW()),
+(3, 3, 0, 3, NOW(), NOW()),
+(3, 4, 1, 4, NOW(), NOW()),
+(4, 2, 0, 2, NOW(), NOW()),
+(4, 3, 1, 3, NOW(), NOW());
 
 -- 매치 위치 데이터 삽입
 INSERT INTO match_locations (match_id, slot_index, location_id, revealed_turn, created_at, updated_at) VALUES
