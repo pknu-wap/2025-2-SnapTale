@@ -2,7 +2,6 @@ package com.snaptale.backend.card.service;
 
 import com.snaptale.backend.card.entity.Card;
 import com.snaptale.backend.card.model.CardCreateReq;
-import com.snaptale.backend.card.model.CardDetailRes;
 import com.snaptale.backend.card.model.CardRes;
 import com.snaptale.backend.card.model.CardUpdateReq;
 import com.snaptale.backend.card.repository.CardRepository;
@@ -40,19 +39,19 @@ public class CardService {
     }
 
     /**
-     * 특정 카드의 상세 정보를 조회
+     * 특정 카드 조회
      */
-    public CardDetailRes getCard(Long cardId) {
+    public CardRes getCard(Long cardId) {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.CARD_NOT_FOUND));
-        return CardDetailRes.from(card);
+        return CardRes.from(card);
     };
 
     /**
      * 새로운 카드를 등록
      */
     @Transactional
-    public CardDetailRes createCard(CardCreateReq request) {
+    public CardRes createCard(CardCreateReq request) {
         Card card = Card.builder()
                 .name(request.name())
                 .imageUrl(request.imageUrl())
@@ -63,19 +62,19 @@ public class CardService {
                 .isActive(request.active() != null ? request.active() : true) // 기본값 true
                 .build();
         cardRepository.save(card);
-        return CardDetailRes.from(card);
+        return CardRes.from(card);
     };
 
     /**
      * 카드의 메타데이터(코스트/파워 등)를 수정
      */
     @Transactional
-    public CardDetailRes updateCard(Long cardId, CardUpdateReq request) {
+    public CardRes updateCard(Long cardId, CardUpdateReq request) {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.CARD_NOT_FOUND));
         card.apply(request);
         cardRepository.save(card);
-        return CardDetailRes.from(card);
+        return CardRes.from(card);
     };
 
     /**

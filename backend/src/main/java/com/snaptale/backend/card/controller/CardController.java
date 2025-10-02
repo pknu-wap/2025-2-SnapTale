@@ -1,7 +1,6 @@
 package com.snaptale.backend.card.controller;
 
 import com.snaptale.backend.card.model.CardCreateReq;
-import com.snaptale.backend.card.model.CardDetailRes;
 import com.snaptale.backend.card.model.CardRes;
 import com.snaptale.backend.card.model.CardUpdateReq;
 import com.snaptale.backend.card.service.CardService;
@@ -47,7 +46,7 @@ public class CardController {
             @ApiResponse(responseCode = "404", description = "잘못된 요청"),
     })
     @GetMapping("/{cardId}")
-    public BaseResponse<CardDetailRes> getCard(@PathVariable Long cardId) {
+    public BaseResponse<CardRes> getCard(@PathVariable Long cardId) {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, cardService.getCard(cardId));
     }
 
@@ -58,7 +57,7 @@ public class CardController {
             @ApiResponse(responseCode = "400", description = "잘못된 요청"),
     })
     @PostMapping
-    public BaseResponse<CardDetailRes> createCard(@Valid @RequestBody CardCreateReq request) {
+    public BaseResponse<CardRes> createCard(@Valid @RequestBody CardCreateReq request) {
         return new BaseResponse<>(BaseResponseStatus.CREATED, cardService.createCard(request));
     }
 
@@ -69,7 +68,7 @@ public class CardController {
             @ApiResponse(responseCode = "400", description = "잘못된 요청"),
     })
     @PatchMapping("/{cardId}")
-    public BaseResponse<CardDetailRes> updateCard(@PathVariable Long cardId,
+    public BaseResponse<CardRes> updateCard(@PathVariable Long cardId,
             @Valid @RequestBody CardUpdateReq request) {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, cardService.updateCard(cardId, request));
     }
