@@ -67,4 +67,15 @@ public class UserService {
         userRepository.delete(user);
         return userId;
     }
+
+    // 유저의 마지막 접속 시간을 현재 시간으로 업데이트
+    @Transactional
+    public UserRes updateLastSeen(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+        user.touchLastSeen();
+        userRepository.save(user);
+
+        return UserRes.from(user);
+    }
 }

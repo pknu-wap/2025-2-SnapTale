@@ -8,5 +8,4 @@ public record UserUpdateReq(
         Integer matchesPlayed,
         Integer wins,
         LocalDateTime lastSeen) {
-
 }

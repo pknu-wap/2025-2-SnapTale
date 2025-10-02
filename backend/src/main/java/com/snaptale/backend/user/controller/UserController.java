@@ -89,4 +89,14 @@ public class UserController {
         userService.deleteUser(userId);
         return new BaseResponse<>(BaseResponseStatus.SUCCESS);
     }
+
+    @Operation(summary = "유저 마지막 접속 시간 업데이트", description = "유저의 마지막 접속 시간을 현재 시간으로 업데이트합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "마지막 접속 시간 업데이트 성공"),
+            @ApiResponse(responseCode = "404", description = "유저를 찾을 수 없음"),
+    })
+    @PatchMapping("/last-seen/{userId}")
+    public BaseResponse<UserRes> updateLastSeen(@PathVariable Long userId) {
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, userService.updateLastSeen(userId));
+    }
 }
