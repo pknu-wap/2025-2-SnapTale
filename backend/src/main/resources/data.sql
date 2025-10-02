@@ -12,18 +12,18 @@ INSERT INTO users (nickname, rank_point, matches_played, wins, last_seen, linked
 
 -- 카드 데이터 삽입
 INSERT INTO cards (name, image_url, cost, power, faction, effect_desc, is_active, created_at, updated_at) VALUES
-('한국 전사', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_dhw31q.png', 3, 1, '한국', '모든 지역 +1 파워', true, NOW(), NOW()),
-('중국 마법사', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_xruhcs.png', 4, 1, '중국', '해당 지역 +1 파워', true, NOW(), NOW()),
-('한국 궁수', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_bhd60l.png', 2, 2, '한국', '해당 지역 제외 모든 지역 +1 파워', true, NOW(), NOW()),
-('중국 기사', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_qmebbq.png', 5, 2, '중국', '해당 지역 +2 파워', true, NOW(), NOW()),
-('한국 치료사', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_koccre.png', 3, 3, '한국', '해당 지역 +3 파워', true, NOW(), NOW()),
-('일본 용', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_r1z9ty.png', 8, 3, '일본', '모든 지역 +1 파워', true, NOW(), NOW()),
-('한국 수도승', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_unlqzs.png', 4, 4, '한국', '해당 지역의 상대 지역 -5 파워', true, NOW(), NOW()),
-('일본 닌자', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_vtoxfg.png', 3, 4, '일본', '해당 지역 x2 파워', true, NOW(), NOW()),
-('한국 궁수장', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_s04iz3.png', 6, 5, '한국', '해당 지역 제외 모든 지역 x2 파워', true, NOW(), NOW()),
-('중국 황제', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_kgsxkg.png', 10, 5, '중국', '모든 중국 카드들의 파워 +1', true, NOW(), NOW()),
-('한국 이순신', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_cgrdlb.png', 3, 6, '한국', '상대 지역의 모든 중국, 일본 카드의 파워 -1', true, NOW(), NOW()),
-('일본 사무라이', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_zw7pul.png', 5, 6, '일본', '상대 지역의 파워 -5', true, NOW(), NOW());
+('을지문덕', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_dhw31q.png', 3, 1, '한국', '모든 지역 +1 파워', true, NOW(), NOW()),
+('이순신', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_cgrdlb.png', 3, 6, '한국', '상대 지역의 모든 중국, 일본 카드의 파워 -1', true, NOW(), NOW()),
+('주몽', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_bhd60l.png', 2, 2, '한국', '해당 지역 제외 모든 지역 +1 파워', true, NOW(), NOW()),
+('선턱여왕', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_mlxezs.png', 3, 3, '한국', '해당 지역 +3 파워', true, NOW(), NOW()),
+('강감찬', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_tz0724.png', 4, 4, '한국', '해당 지역의 상대 지역 -5 파워', true, NOW(), NOW()),
+('연개소문', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_vz9wus.png', 6, 5, '한국', '해당 지역 제외 모든 지역 x2 파워', true, NOW(), NOW()),
+('관우', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_fjzmsx.png', 4, 1, '중국', '해당 지역 +1 파워', true, NOW(), NOW()),
+('조조', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_atmhrv.png', 5, 2, '중국', '해당 지역 +2 파워', true, NOW(), NOW()),
+('제갈량', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_dkb8co.png', 10, 5, '중국', '모든 중국 카드들의 파워 +1', true, NOW(), NOW()),
+('미나모토노 요시츠네', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_qtrxtj.png', 8, 3, '일본', '모든 지역 +1 파워', true, NOW(), NOW()),
+('다케다 신겐', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_emixis.png', 3, 4, '일본', '해당 지역 x2 파워', true, NOW(), NOW()),
+('우에스기 켄신', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_uhs1wx.png', 5, 6, '일본', '상대 지역의 파워 -5', true, NOW(), NOW());
 
 -- 위치 데이터 삽입
 INSERT INTO locations (name, image_url, effect_desc, is_active, created_at, updated_at) VALUES
