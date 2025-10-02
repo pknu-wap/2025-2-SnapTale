@@ -1,5 +1,7 @@
 package com.snaptale.backend.deck.controller;
 
+import java.util.List;
+
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,6 +36,7 @@ public class DeckPresetCardController {
 
         private final DeckPresetCardService deckPresetCardService;
 
+        // 테스트 완
         @Operation(summary = "덱 프리셋 카드 생성", description = "덱 프리셋 카드를 생성합니다.")
         @ApiResponses({
                         @ApiResponse(responseCode = "201", description = "덱 프리셋 카드 생성 성공"),
@@ -46,6 +49,19 @@ public class DeckPresetCardController {
                                 deckPresetCardService.createDeckPresetCard(request));
         }
 
+        // 테스트 완
+        @Operation(summary = "덱 프리셋 카드 목록 조회", description = "덱 프리셋 카드 목록을 조회합니다.")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "덱 프리셋 카드 목록 조회 성공"),
+                        @ApiResponse(responseCode = "404", description = "잘못된 요청"),
+        })
+        @GetMapping
+        public BaseResponse<List<DeckPresetCardRes>> getDeckPresetCards() {
+                return new BaseResponse<List<DeckPresetCardRes>>(BaseResponseStatus.SUCCESS,
+                                deckPresetCardService.getDeckPresetCards());
+        }
+
+        // 테스트 완
         @Operation(summary = "덱 프리셋 카드 조회", description = "덱 프리셋 카드를 조회합니다.")
         @ApiResponses({
                         @ApiResponse(responseCode = "200", description = "덱 프리셋 카드 조회 성공"),
@@ -57,6 +73,7 @@ public class DeckPresetCardController {
                                 deckPresetCardService.getDeckPresetCard(deckPresetCardId));
         }
 
+        // 테스트 완
         @Operation(summary = "덱 프리셋 카드 수정", description = "덱 프리셋 카드를 수정합니다.")
         @ApiResponses({
                         @ApiResponse(responseCode = "200", description = "덱 프리셋 카드 수정 성공"),
@@ -69,6 +86,7 @@ public class DeckPresetCardController {
                                 deckPresetCardService.updateDeckPresetCard(deckPresetCardId, request));
         }
 
+        // 테스트 완
         @Operation(summary = "덱 프리셋 카드 삭제", description = "덱 프리셋 카드를 삭제합니다.")
         @ApiResponses({
                         @ApiResponse(responseCode = "204", description = "덱 프리셋 카드 삭제 성공"),

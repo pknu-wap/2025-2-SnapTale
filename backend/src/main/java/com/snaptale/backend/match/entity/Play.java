@@ -40,12 +40,15 @@ public class Play extends BaseEntity {
     @Column(name = "power_snapshot")
     private Integer powerSnapshot;
 
-    public void apply(PlayUpdateReq request) {
+    public void apply(PlayUpdateReq request, Match match, Card card) {
         if (request.turnCount() != null) {
             this.turnCount = request.turnCount();
         }
-        if (request.card() != null) {
-            this.card = request.card();
+        if (request.guestId() != null) {
+            this.guestId = request.guestId();
+        }
+        if (request.cardId() != null && card != null) {
+            this.card = card;
         }
         if (request.slotIndex() != null) {
             this.slotIndex = request.slotIndex();
@@ -53,8 +56,8 @@ public class Play extends BaseEntity {
         if (request.powerSnapshot() != null) {
             this.powerSnapshot = request.powerSnapshot();
         }
-        if (request.match() != null) {
-            this.match = request.match();
+        if (request.matchId() != null && match != null) {
+            this.match = match;
         }
     }
 }
