@@ -4,9 +4,8 @@ import java.time.LocalDateTime;
 
 public record UserCreateReq(
         String nickname,
-        int rankPoint,
-        int matchesPlayed,
-        int wins,
+        Integer rankPoint,
+        Integer matchesPlayed,
+        Integer wins,
         LocalDateTime lastSeen) {
-
 }

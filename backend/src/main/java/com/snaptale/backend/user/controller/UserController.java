@@ -34,7 +34,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 public class UserController {
     private final UserService userService;
 
-    // 테스트 완료
+    // 테스트 완
     @Operation(summary = "유저 생성", description = "유저를 생성합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "유저 생성 성공"),
@@ -45,7 +45,7 @@ public class UserController {
         return new BaseResponse<>(BaseResponseStatus.CREATED, userService.createUser(request));
     }
 
-    // 테스트 완료
+    // 테스트 완
     @Operation(summary = "유저 조회", description = "유저를 조회합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "유저 조회 성공"),
@@ -56,7 +56,7 @@ public class UserController {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, userService.getUser(userId));
     }
 
-    // 테스트 완료
+    // 테스트 완
     @Operation(summary = "유저 목록 조회", description = "유저 목록을 조회합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "유저 목록 조회 성공"),
@@ -67,7 +67,7 @@ public class UserController {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, userService.getUsers());
     }
 
-    // 테스트 완료
+    // 테스트 완
     @Operation(summary = "유저 수정", description = "유저를 수정합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "유저 수정 성공"),
@@ -78,7 +78,7 @@ public class UserController {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, userService.updateUser(userId, request));
     }
 
-    // 테스트 완료
+    // 테스트 완
     @Operation(summary = "유저 삭제", description = "유저를 삭제합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "유저 삭제 성공"),
@@ -88,5 +88,16 @@ public class UserController {
     public BaseResponse<Void> deleteUser(@PathVariable Long userId) {
         userService.deleteUser(userId);
         return new BaseResponse<>(BaseResponseStatus.SUCCESS);
+    }
+
+    // 테스트 완
+    @Operation(summary = "유저 마지막 접속 시간 업데이트", description = "유저의 마지막 접속 시간을 현재 시간으로 업데이트합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "마지막 접속 시간 업데이트 성공"),
+            @ApiResponse(responseCode = "404", description = "유저를 찾을 수 없음"),
+    })
+    @PatchMapping("/last-seen/{userId}")
+    public BaseResponse<UserRes> updateLastSeen(@PathVariable Long userId) {
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, userService.updateLastSeen(userId));
     }
 }

@@ -5,12 +5,11 @@ import com.snaptale.backend.user.model.UserUpdateReq;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
 @Getter
-// @Setter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -42,7 +41,6 @@ public class User extends BaseEntity {
     private Integer wins;
 
     @Column(name = "last_seen")
-    @UpdateTimestamp
     private LocalDateTime lastSeen;
 
     @Column(name = "linked_account_id")
@@ -52,6 +50,16 @@ public class User extends BaseEntity {
         this.nickname = nickname;
     }
 
+    /**
+     * 유저의 마지막 접속 시간을 현재 시간으로 업데이트
+     */
+    public void touchLastSeen() {
+        this.lastSeen = LocalDateTime.now();
+    }
+
+    /**
+     * 유저의 마지막 접속 시간을 특정 시간으로 업데이트
+     */
     public void touchLastSeen(LocalDateTime timestamp) {
         this.lastSeen = timestamp;
     }
