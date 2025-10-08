@@ -2,9 +2,9 @@ import './MatchingButton.css'
 const Button = ({text, onClick, disabled}) => {
   return (
     <button 
-    className={`Matching ${disabled ? "disabled" : ""}`}  
+    className= {`Matching ${disabled ? "disabled" : ""}`}  
     onClick = {onClick}
-    disabled={disabled}>
+    disabled = {disabled}>
         {text}
     </button>
   );
