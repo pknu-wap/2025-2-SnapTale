@@ -2,6 +2,7 @@
 import { useState } from "react";
 import "./GameLayout.css";
 import Card from "./Card";
+import EnlargedCard from "./EnlargedCard";
 import DCI from "../../assets/defaultCardImg.svg";
 
 export default function GameLayout() {
@@ -93,28 +94,8 @@ export default function GameLayout() {
       </footer>
     </div>
       {selectedCard && (
-        <div className="modal-backdrop" onClick={handleCloseModal}>
-          <div 
-            className="enlarged-card-container" 
-            onClick={(e) => e.stopPropagation()} // 배경 클릭 방지
-          >
-            {/* 선택된 카드의 정보로 확대된 카드 UI를 구성 */}
-            <img 
-              className={`card-image card-border-${selectedCard.faction}`} 
-              src={selectedCard.imageUrl} 
-              alt={selectedCard.name} 
-            />
-            <div className="card-cost-container">
-              <img src="/src/assets/cost.svg" alt="Cost" className="icon" />
-              <span className="icon-text">{selectedCard.cost}</span>
-            </div>
-            <div className="card-power-container">
-              <img src="/src/assets/power.svg" alt="Power" className="icon" />
-              <span className="icon-text">{selectedCard.power}</span>
-            </div>
-            <div className="card-name">{selectedCard.name}</div>
-            <div className="card-desc">{selectedCard.effectDesc}</div>
-          </div>
+        <div className="modal-backdrop">
+          <EnlargedCard card={selectedCard} onClose={handleCloseModal} />
         </div>
       )}
   </div>
