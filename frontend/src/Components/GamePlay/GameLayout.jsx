@@ -1,4 +1,5 @@
 // src/Components/GamePlay/GameLayout.jsx
+import { useState } from "react";
 import "./GameLayout.css";
 import Card from "./Card";
 import DCI from "../../assets/defaultCardImg.svg";
@@ -8,6 +9,15 @@ export default function GameLayout() {
   const topCountPerLane = 4;       // 위 4장
   const botCountPerLane = 4;       // 아래 4장
   const handCount = 12;            // 6x2
+  const [selectedCard, setSelectedCard] = useState(null);
+
+  const handleCardClick = (cardData) => {
+    setSelectedCard(cardData);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedCard(null);
+  };
 
   // 샘플 카드 데이터 12장 (임의 생성)
   const sampleCards = Array.from({ length: handCount }).map((_, i) => ({
@@ -24,6 +34,7 @@ export default function GameLayout() {
   }));
 
   return (
+  <div>
     <div className="gl-wrap">
       <div className="gl-oppo-chip">상대닉네임</div>
 
@@ -73,13 +84,39 @@ export default function GameLayout() {
             active={card.active}
             createdAt={card.createdAt}
             updatedAt={card.updatedAt}
+            onCardClick={() => handleCardClick(card)}
           />
         ))}
       </section>
-
       <footer className="gl-footer">
         <button className="gl-endBtn">턴 종료 (1/6)</button>
       </footer>
     </div>
+      {selectedCard && (
+        <div className="modal-backdrop" onClick={handleCloseModal}>
+          <div 
+            className="enlarged-card-container" 
+            onClick={(e) => e.stopPropagation()} // 배경 클릭 방지
+          >
+            {/* 선택된 카드의 정보로 확대된 카드 UI를 구성 */}
+            <img 
+              className={`card-image card-border-${selectedCard.faction}`} 
+              src={selectedCard.imageUrl} 
+              alt={selectedCard.name} 
+            />
+            <div className="card-cost-container">
+              <img src="/src/assets/cost.svg" alt="Cost" className="icon" />
+              <span className="icon-text">{selectedCard.cost}</span>
+            </div>
+            <div className="card-power-container">
+              <img src="/src/assets/power.svg" alt="Power" className="icon" />
+              <span className="icon-text">{selectedCard.power}</span>
+            </div>
+            <div className="card-name">{selectedCard.name}</div>
+            <div className="card-desc">{selectedCard.effectDesc}</div>
+          </div>
+        </div>
+      )}
+  </div>
   );
 }

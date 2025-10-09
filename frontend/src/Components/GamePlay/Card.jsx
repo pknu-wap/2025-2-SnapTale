@@ -1,4 +1,3 @@
-import React from 'react';
 import "./Card.css";
 import costIcon from "../../assets/cost.svg";
 import powerIcon from "../../assets/power.svg";
@@ -34,7 +33,8 @@ const Card = ({
   effectiveDesc,
   active,
   createdAt,
-  updatedAt
+  updatedAt,
+  onCardClick 
 }) => {
   console.log({
     cardId,
@@ -50,7 +50,7 @@ const Card = ({
   });
   const borderClass = factionClasses[faction] || "card-border-default";
   return (
-    <div className="card-container">
+    <div className="card-container" onClick={onCardClick}>
       <img className={`card-image ${borderClass}`} src={imageUrl} alt={name} />
 
       <div className="card-cost-container">

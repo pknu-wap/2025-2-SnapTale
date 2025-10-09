@@ -2,6 +2,14 @@
   position: relative;
   width: 46px;
   height: 76px; 
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+/* 마우스를 올렸을 때 약간 확대되는 효과 추가 */
+.card-container:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
 }
 
 .card-image {
@@ -79,4 +87,68 @@
   z-index: 6;
   text-align: center;
   white-space: nowrap;
+}
+
+.modal-backdrop {
+  position: fixed; /* 화면 기준 위치 고정 */
+  width: 100vw; /* 화면 너비 전체 */
+  height: 100vh; /* 화면 높이 전체 */
+  background-color: rgba(0, 0, 0, 0.7); /* 반투명 검은색 배경 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100; /* 다른 요소들보다 위에 보이도록 설정 */
+}
+
+.enlarged-card-container {
+  position: relative;
+  width: 138px;  
+  height: 228px; 
+  animation: zoomIn 0.3s ease-out;
+}
+
+
+
+/* 확대된 카드 컨테이너 */
+.enlarged-card-container .card-image {
+  width: 120px;     
+  height: 210px;   
+  border-width: 6px;
+  border-radius: 15px; /* 5px * 3 */
+  top: 6px;        
+  left: 3px;      
+}
+.enlarged-card-container .icon {
+  width: 54px;     
+  height: 54px;    
+}
+
+.enlarged-card-container .icon-text {
+  font-size: 30px;  
+}
+
+.enlarged-card-container .card-name {
+  width: 120px;     
+  height: 60px;     
+  font-size: 36px;  
+  display: flex; /* 세로 중앙 정렬을 위해 추가 */
+  align-items: center;
+  justify-content: center;
+}
+
+/* 확대된 카드 위에 표시될 설명 텍스트 스타일 */
+.enlarged-card-container .card-desc {
+  width: 250px;
+  height: 37px;
+}
+/* 간단한 줌인 애니메이션 효과 */
+@keyframes zoomIn {
+  from {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
