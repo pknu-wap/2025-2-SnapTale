@@ -1,7 +1,7 @@
 import React from 'react';
 import "./Card.css";
-import costIcon from "../../assets/cost.png";
-import powerIcon from "../../assets/power.png";
+import costIcon from "../../assets/cost.svg";
+import powerIcon from "../../assets/power.svg";
 
 /**
  * 게임 카드 정보를 표시하는 컴포넌트입니다.

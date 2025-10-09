@@ -1,7 +1,7 @@
 // src/Components/GamePlay/GameLayout.jsx
 import "./GameLayout.css";
 import Card from "./Card";
-import hong from "../../assets/hong.png";
+import DCI from "../../assets/defaultCardImg.svg";
 
 export default function GameLayout() {
   const lanes = 3;                 // 왼/중/오
@@ -13,7 +13,7 @@ export default function GameLayout() {
   const sampleCards = Array.from({ length: handCount }).map((_, i) => ({
     cardId: `card-${i}`,
     name: `Card ${i + 1}`,
-    imageUrl: hong,
+    imageUrl: DCI,
     cost: Math.floor(Math.random() * 10) + 1,    // 1~10 랜덤
     power: Math.floor(Math.random() * 10) + 1,   // 1~10 랜덤
     faction: ["korea", "china", "japan"][i % 3], // 번갈아 korea, china, japan
