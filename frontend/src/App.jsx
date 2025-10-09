@@ -2,6 +2,7 @@ import './App.css'
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import  Init  from "./Components/Init";
 import  Home  from "./Components/Home/Home";
+import  GameLoading from "./Components/Home/GameLoading";
 import  GamePlay  from "./Components/GamePlay/Index";
 import  GameResult  from "./Components/GameResult";
 
@@ -14,6 +15,8 @@ function App() {
         <Route path="/" element={<Init />} />
         {/* 메인 홈 화면*/}
         <Route path="/home" element={<Home />} />
+        {/* 게임 로딩 화면*/}
+        <Route path="/gameloading" element={<GameLoading />} />
         {/* 게임 플레이 화면 */}
         <Route path="/gameplay" element={<GamePlay />} />
         {/* 게임 결과 확인 화면*/}
