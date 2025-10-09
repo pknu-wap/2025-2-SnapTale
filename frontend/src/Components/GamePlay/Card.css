@@ -1,22 +1,82 @@
- .card-container {
-          position: relative;
-          width: 40px;
-          height: 70px;
-          border-radius: 10px;
-          overflow: hidden;
-          box-shadow: 0 8px 16px rgba(0,0,0,0.3);
-        }
+.card-container {
+  position: relative;
+  width: 46px;
+  height: 76px; 
+}
 
- .stat-badge {
-          position: absolute;
-          width: 18px;
-          height: 18px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-          border: 2px solid white;
-          font-size: 12px;
-          font-weight: bold;
-          z-index: 10;
-        }
+.card-image {
+  width: 40px;
+  height: 70px; 
+  border: 2px solid transparent;
+  border-radius: 5px;
+  object-fit: cover;
+  position: absolute;
+  top: 2px;
+  left: 1px;
+  z-index: 1;
+}
+.card-border-korea { border-color: #26437B; }
+.card-border-china { border-color: #329A88; }
+.card-border-japan { border-color: #C4512F; }
+.card-border-default { border-color: transparent }
+
+
+/* 아이콘 공통 스타일 */
+.icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+  position: relative;
+  z-index: 3;
+}
+
+/* cost, power 컨테이너 공통 */
+.card-cost-container, .card-power-container {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 18px;
+  height: 18px;
+  z-index: 5;
+}
+
+/* cost: 우측 상단 위치 조절 */
+.card-cost-container {
+  top: 0px;
+  right: 0px;
+}
+
+/* power: 좌측 상단 위치 조절*/
+.card-power-container {
+  top: 0px;
+  left: 0px;
+}
+
+/* cost, power 텍스트 (아이콘 중앙에 위치) */
+.icon-text {
+  position: absolute;
+  font-size: 12px;
+  color: #FFFFFF;
+  user-select: none;
+  pointer-events: none;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}
+
+/* name 하단 중앙 고정 */
+.card-name {
+  position: absolute;
+  width: 40px;
+  height: 20px;
+  left: 50%;
+  bottom: 0px;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: #FFFFFF;
+  z-index: 6;
+  text-align: center;
+  white-space: nowrap;
+}
