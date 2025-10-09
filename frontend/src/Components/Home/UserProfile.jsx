@@ -1,4 +1,4 @@
-import './userProfile.css';
+import './UserProfile.css';
 import defaultUserProfile from "../../assets/userProfile.png";
 /*유저 닉네임, 선택한 덱을 객체로 받아와서 반영할 생각중 */
 const UserProfile = ({userName, profileImage}) => {
