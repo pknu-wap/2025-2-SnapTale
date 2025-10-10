@@ -1,0 +1,22 @@
+.exit-icon-container {
+  position: relative;
+  width: 55px; 
+  height: 55px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.exit-icon-container img {
+  display: block;
+}
+
+.exit-icon-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); 
+  font-size: 12px;
+  color: #581D19;
+  pointer-events: none; 
+  white-space: nowrap;
+}

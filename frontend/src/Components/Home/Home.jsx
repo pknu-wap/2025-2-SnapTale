@@ -1,6 +1,6 @@
 import './Home.css'
 import Button from "./Button"
-import Profile from "./Profile";
+import DeckIcon from "./DeckIcon";
 import SoundIcon from "./SoundIcon";
 import RDModal from "./RDModal";
 import PWModal from "./PWModal";
@@ -20,7 +20,7 @@ const Home = () => {
       {/* 상단 메뉴 (사운드바, 프로필) */}
       <header className="top-menu">
         <SoundIcon />
-        <Profile />
+        <DeckIcon />
       </header>
 
       {/* 메인 버튼 영역 */}
