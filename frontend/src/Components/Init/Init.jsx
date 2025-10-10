@@ -1,16 +1,17 @@
 import "./Init.css";
+import { createUser } from "./api/user";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import logo from "../assets/logo.png";
-import diceIcon from "../assets/dice.png";
-import uiBtn from "../assets/uiBtn.png";
+import logo from "../../assets/logo.png";
+import diceIcon from "../../assets/dice.png";
+import uiBtn from "../../assets/uiBtn.png";
 
 const NICK_RULE = /^[가-힣a-zA-Z0-9]{2,8}$/;
 
 const Init = () => {
   const navigate = useNavigate();
-  const [nick, setNick] = useState(""); //닉네임 초기값은 빈 문자열
-  const isNickValid = NICK_RULE.test(nick.trim()); //trim: 닉네임 앞 뒤 공백 제거
+  const [nick, setNick] = useState("");
+  const isNickValid = NICK_RULE.test(nick.trim());
 
   const randomNicks = {
     adj: ["푸른","적막한","고요한","은밀한","묘한","허망한","달빛의","안개낀","그윽한","광포한","옹졸한","이상한","천진한","괴상한","비밀스런"],
@@ -23,11 +24,29 @@ const Init = () => {
     setNick(a + n);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (isNickValid) navigate("/home");
-  };
+  // const handleSubmit = (e) => {
+  //   e.preventDefault();
+  //   if (isNickValid) navigate("/home");
+  // };
   // const goToHome = () => { // navigate('/home'); // };
+  
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!isNickValid || loading) return;
+
+  try {
+    setLoading(true);
+    await createUser(nick);
+    navigate("/home");
+  } catch (err) {
+    alert(err.message);
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <main className="init-wrap">
@@ -62,11 +81,11 @@ const Init = () => {
 
         <button
           type="submit"
-          disabled={!nick || !isNickValid}
+          disabled={!nick || !isNickValid || loading}
           className="init-btn-image"
           aria-label="시작하기"
           style={{ backgroundImage: `url(${uiBtn})` }}
-        >시작하기</button>
+        >{loading ? "생성 중..." : "시작하기"}</button>
       </form>
     </main>
   );
