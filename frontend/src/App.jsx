@@ -1,6 +1,6 @@
 import './App.css'
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import  Init  from "./Components/Init";
+import  Init  from "./Components/Init/Init";
 import  Home  from "./Components/Home/Home";
 import  GameLoading from "./Components/Home/GameLoading";
 import  GamePlay  from "./Components/GamePlay/Index";

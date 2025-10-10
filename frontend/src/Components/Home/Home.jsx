@@ -59,9 +59,9 @@ const Home = () => {
             setMatchCode={setMatchCode} />} 
         {/* state가 true면 패스워드 입력 모달창 표시 */}
         
-        <button
+        {/* <button
           onClick={() => navigate('/gameplay')}>
-        </button>
+        </button> */}
       </main>
     </div>
   );
