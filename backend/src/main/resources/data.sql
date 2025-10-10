@@ -15,7 +15,7 @@ INSERT INTO cards (name, image_url, cost, power, faction, effect_desc, is_active
 ('을지문덕', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_dhw31q.png', 3, 1, '한국', '모든 지역 +1 파워', true, NOW(), NOW()),
 ('이순신', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_cgrdlb.png', 3, 6, '한국', '상대 지역의 모든 중국, 일본 카드의 파워 -1', true, NOW(), NOW()),
 ('주몽', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_bhd60l.png', 2, 2, '한국', '해당 지역 제외 모든 지역 +1 파워', true, NOW(), NOW()),
-('선턱여왕', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_mlxezs.png', 3, 3, '한국', '해당 지역 +3 파워', true, NOW(), NOW()),
+('선덕여왕', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_mlxezs.png', 3, 3, '한국', '해당 지역 +3 파워', true, NOW(), NOW()),
 ('강감찬', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_tz0724.png', 4, 4, '한국', '해당 지역의 상대 지역 -5 파워', true, NOW(), NOW()),
 ('연개소문', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_vz9wus.png', 6, 5, '한국', '해당 지역 제외 모든 지역 x2 파워', true, NOW(), NOW()),
 ('관우', 'https://res.cloudinary.com/dj5q9i82i/image/upload/unnamed_fjzmsx.png', 4, 1, '중국', '해당 지역 +1 파워', true, NOW(), NOW()),
