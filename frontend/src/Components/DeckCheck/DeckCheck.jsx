@@ -1,34 +1,44 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
+import { fetchDeckPresetCards } from "./api/DeckPresetCard.js";
 import Card from "../GamePlay/Card";
 import EnlargedCard from "../GamePlay/EnlargedCard";
 import ExitIcon from "./Exit";
 import FactionIcon from "./FactionIcon"
-import DCI from "../../assets/defaultCardImg.svg";
+//import DCI from "../../assets/defaultCardImg.svg";
 import koreaIcon from "../../assets/koreaIcon.png";
 import chinaIcon from "../../assets/chinaIcon.png";
 import japanIcon from "../../assets/japanIcon.png";
 import './DeckCheck.css';
 
+const factionToDeckPresetId = {
+  korea: 1,
+  china: 2,
+  japan: 3,
+};
+
 
 //덱 확인 페이지
 const DeckCheck = () => {
     const [selectedFaction, setSelectedFaction] = useState("korea");
-     const handCount = 12;
-    const sampleCards = useMemo(() => {
-        return Array.from({ length: handCount }).map((_, i) => ({
-            cardId: `card-${i}`,
-            name: `Card ${i + 1}`,
-            imageUrl: DCI,
-            cost: Math.floor(Math.random() * 10) + 1,
-            power: Math.floor(Math.random() * 10) + 1,
-            faction: selectedFaction,
-            effectDesc: "Sample effect description",
-            active: true,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        }));
+    const [cards, setCards] = useState([]);
+    const [selectedCard, setSelectedCard] = useState(null);
+
+    useEffect(() => {
+    const loadCards = async () => {
+        try {
+            const deckPresetId = factionToDeckPresetId[selectedFaction];
+            const fetchedCards = await fetchDeckPresetCards(deckPresetId);
+            setCards(fetchedCards);
+            if (fetchedCards.length > 0) {
+                setSelectedCard(fetchedCards[0]);
+            }
+        } catch (err) {
+            console.error("덱 카드 불러오기 실패:", err);
+            }
+        };
+        loadCards();
     }, [selectedFaction]);
-    const [selectedCard, setSelectedCard] = useState(sampleCards[0]);
+    
     
     const handleCardClick = (cardData) => {
         setSelectedCard(cardData);
@@ -75,28 +85,32 @@ const DeckCheck = () => {
         </div>
         {/* 덱 카드 전체 보기*/}
         <section className="deck-section">
-        {sampleCards.map(card => (
-            <Card
-                key={card.cardId}
-                cardId={card.cardId}
-                name={card.name}
-                imageUrl={card.imageUrl}
-                cost={card.cost}
-                power={card.power}
-                faction={card.faction}
-                effectDesc={card.effectDesc}
-                active={card.active}
-                createdAt={card.createdAt}
-                updatedAt={card.updatedAt}
-                onCardClick={() => handleCardClick(card)}
+        {cards.length > 0 ? (
+            cards.map((card) => (
+                <Card
+                    key={card.cardId}
+                    cardId={card.cardId}
+                    name={card.name}
+                    imageUrl={card.imageUrl}
+                    cost={card.cost}
+                    power={card.power}
+                    faction={card.faction}
+                    effectDesc={card.effectDesc}
+                    active={card.active}
+                    createdAt={card.createdAt}
+                    updatedAt={card.updatedAt}
+                    onCardClick={() => handleCardClick(card)} // ✅ 클릭 이벤트 연결
             />
-        ))}
+            ))
+        ) : (
+            <p className="loading-text">카드를 불러오는 중...</p>
+        )}
         </section>
         {/* 선택된 카드 자세히 보기*/}
         <div className="selected-card">
             <EnlargedCard card={selectedCard} onClose={null} />
         </div>
     </div>
-  );
+    );
 };
 export default DeckCheck;
