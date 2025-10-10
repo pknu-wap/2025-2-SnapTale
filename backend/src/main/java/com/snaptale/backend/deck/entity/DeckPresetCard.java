@@ -2,11 +2,12 @@ package com.snaptale.backend.deck.entity;
 
 import com.snaptale.backend.card.entity.Card;
 import com.snaptale.backend.common.entity.BaseEntity;
+
 import jakarta.persistence.*;
 import lombok.*;
 
 @Getter
-@Setter
+// @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -29,6 +30,19 @@ public class DeckPresetCard extends BaseEntity {
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
 
-    @Column(name = "position", nullable = false)
-    private Integer position;
+    // sort_order는 프엔에서 하는 거 => 삭제
+
+    // 연관관계 설정을 위한 메서드
+    public void setDeckPreset(DeckPreset deckPreset) {
+        this.deckPreset = deckPreset;
+    }
+
+    public void setCard(Card card) {
+        this.card = card;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
+
 }

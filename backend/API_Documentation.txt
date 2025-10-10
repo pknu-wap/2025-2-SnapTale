@@ -1,0 +1,791 @@
+1. Card API
+
+1.1 모든 카드 조회
+URL: GET /api/cards
+요청 바디: 없음
+응답: List<CardRes>
+응답 형식:
+[
+  {
+    "cardId": long,
+    "name": string,
+    "cost": integer,
+    "power": integer,
+    "active": boolean
+  }
+]
+
+1.2 특정 카드 조회
+URL: GET /api/cards/{cardId}
+경로 변수: cardId (Long)
+요청 바디: 없음
+응답: CardDetailRes
+응답 형식:
+{
+  "cardId": long,
+  "name": string,
+  "imageUrl": string,
+  "cost": integer,
+  "power": integer,
+  "faction": string,
+  "effectDesc": string,
+  "active": boolean,
+  "createdAt": LocalDateTime,
+  "updatedAt": LocalDateTime
+}
+
+1.3 카드 생성
+URL: POST /api/cards
+요청 바디: CardCreateReq
+요청 형식:
+{
+  "name": string (필수, 최대 80자),
+  "imageUrl": string (최대 255자),
+  "cost": integer (필수),
+  "power": integer (필수),
+  "faction": string,
+  "effectDesc": string,
+  "active": boolean
+}
+응답: CardDetailRes
+응답 형식:
+{
+  "cardId": long,
+  "name": string,
+  "imageUrl": string,
+  "cost": integer,
+  "power": integer,
+  "faction": string,
+  "effectDesc": string,
+  "active": boolean,
+  "createdAt": LocalDateTime,
+  "updatedAt": LocalDateTime
+}
+
+1.4 카드 수정
+URL: PATCH /api/cards/{cardId}
+경로 변수: cardId (Long)
+요청 바디: CardUpdateReq
+요청 형식:
+{
+  "name": string (선택, 최대 80자),
+  "imageUrl": string (선택),
+  "cost": integer (선택),
+  "power": integer (선택),
+  "faction": string (선택),
+  "effectDesc": string (선택),
+  "active": boolean (선택)
+}
+응답: CardDetailRes
+응답 형식:
+{
+  "cardId": long,
+  "name": string,
+  "imageUrl": string,
+  "cost": integer,
+  "power": integer,
+  "faction": string,
+  "effectDesc": string,
+  "active": boolean,
+  "createdAt": LocalDateTime,
+  "updatedAt": LocalDateTime
+}
+
+1.5 카드 삭제
+URL: DELETE /api/cards/{cardId}
+경로 변수: cardId (Long)
+요청 바디: 없음
+응답: Void
+
+
+2. User API
+
+2.1 유저 생성
+URL: POST /api/users
+요청 바디: UserCreateReq
+요청 형식:
+{
+  "nickname": string,
+  "rankPoint": int,
+  "matchesPlayed": int,
+  "wins": int,
+  "lastSeen": LocalDateTime
+}
+응답: UserRes
+응답 형식:
+{
+  "guestId": long,
+  "nickname": string,
+  "rankPoint": int,
+  "matchesPlayed": int,
+  "wins": int,
+  "lastSeen": LocalDateTime
+}
+
+2.2 유저 조회
+URL: GET /api/users/{userId}
+경로 변수: userId (Long)
+요청 바디: 없음
+응답: UserRes
+응답 형식:
+{
+  "guestId": long,
+  "nickname": string,
+  "rankPoint": int,
+  "matchesPlayed": int,
+  "wins": int,
+  "lastSeen": LocalDateTime
+}
+
+2.3 유저 목록 조회
+URL: GET /api/users
+요청 바디: 없음
+응답: List<UserRes>
+응답 형식:
+[
+  {
+    "guestId": long,
+    "nickname": string,
+    "rankPoint": int,
+    "matchesPlayed": int,
+    "wins": int,
+    "lastSeen": LocalDateTime
+  }
+]
+
+2.4 유저 수정
+URL: PATCH /api/users/{userId}
+경로 변수: userId (Long)
+요청 바디: UserUpdateReq
+요청 형식:
+{
+  "nickname": string (선택),
+  "rankPoint": integer (선택),
+  "matchesPlayed": integer (선택),
+  "wins": integer (선택),
+  "lastSeen": LocalDateTime (선택)
+}
+응답: UserRes
+응답 형식:
+{
+  "guestId": long,
+  "nickname": string,
+  "rankPoint": int,
+  "matchesPlayed": int,
+  "wins": int,
+  "lastSeen": LocalDateTime
+}
+
+2.5 유저 삭제
+URL: DELETE /api/users/{userId}
+경로 변수: userId (Long)
+요청 바디: 없음
+응답: Void
+
+
+3. Location API
+
+3.1 지역 생성
+URL: POST /api/locations
+요청 바디: LocationCreateReq
+요청 형식:
+{
+  "name": string (필수, 최대 80자),
+  "imageUrl": string (최대 255자),
+  "effectDesc": string,
+  "active": boolean
+}
+응답: LocationRes
+응답 형식:
+{
+  "locationId": long,
+  "name": string,
+  "imageUrl": string,
+  "effectDesc": string,
+  "active": boolean
+}
+
+3.2 지역 목록 조회
+URL: GET /api/locations
+요청 바디: 없음
+응답: List<LocationRes>
+응답 형식:
+[
+  {
+    "locationId": long,
+    "name": string,
+    "imageUrl": string,
+    "effectDesc": string,
+    "active": boolean
+  }
+]
+
+3.3 지역 하나 조회
+URL: GET /api/locations/{locationId}
+경로 변수: locationId (Long)
+요청 바디: 없음
+응답: LocationRes
+응답 형식:
+{
+  "locationId": long,
+  "name": string,
+  "imageUrl": string,
+  "effectDesc": string,
+  "active": boolean
+}
+
+3.4 지역 수정
+URL: PATCH /api/locations/{locationId}
+경로 변수: locationId (Long)
+요청 바디: LocationUpdateReq
+요청 형식:
+{
+  "name": string (선택, 최대 80자),
+  "imageUrl": string (선택, 최대 255자),
+  "effectDesc": string (선택),
+  "active": boolean (선택)
+}
+응답: LocationRes
+응답 형식:
+{
+  "locationId": long,
+  "name": string,
+  "imageUrl": string,
+  "effectDesc": string,
+  "active": boolean
+}
+
+3.5 지역 삭제
+URL: DELETE /api/locations/{locationId}
+경로 변수: locationId (Long)
+요청 바디: 없음
+응답: Void
+
+
+4. Deck Preset API
+
+4.1 덱 프리셋 생성
+URL: POST /api/deck-presets
+요청 바디: DeckPresetCreateReq
+요청 형식:
+{
+  "name": string (필수, 최대 80자),
+  "active": integer,
+  "datetime": LocalDateTime
+}
+응답: DeckPresetRes
+응답 형식:
+{
+  "deckPresetId": long,
+  "name": string,
+  "active": integer,
+  "createdAt": LocalDateTime,
+  "cards": [
+    {
+      "deckPresetCardId": long,
+      "cardId": long,
+      "quantity": integer
+    }
+  ]
+}
+
+4.2 덱 프리셋 목록 조회
+URL: GET /api/deck-presets
+요청 바디: 없음
+응답: List<DeckPresetRes>
+응답 형식:
+[
+  {
+    "deckPresetId": long,
+    "name": string,
+    "active": integer,
+    "createdAt": LocalDateTime,
+    "cards": [
+      {
+        "deckPresetCardId": long,
+        "cardId": long,
+        "quantity": integer
+      }
+    ]
+  }
+]
+
+4.3 덱 프리셋 하나 조회
+URL: GET /api/deck-presets/{deckPresetId}
+경로 변수: deckPresetId (Long)
+요청 바디: 없음
+응답: DeckPresetRes
+응답 형식:
+{
+  "deckPresetId": long,
+  "name": string,
+  "active": integer,
+  "createdAt": LocalDateTime,
+  "cards": [
+    {
+      "deckPresetCardId": long,
+      "cardId": long,
+      "quantity": integer
+    }
+  ]
+}
+
+4.4 덱 프리셋 수정
+URL: PATCH /api/deck-presets/{deckPresetId}
+경로 변수: deckPresetId (Long)
+요청 바디: DeckPresetUpdateReq
+요청 형식:
+{
+  "name": string (선택),
+  "active": integer (선택),
+  "created_at": LocalDateTime (선택)
+}
+응답: DeckPresetRes
+응답 형식:
+{
+  "deckPresetId": long,
+  "name": string,
+  "active": integer,
+  "createdAt": LocalDateTime,
+  "cards": [
+    {
+      "deckPresetCardId": long,
+      "cardId": long,
+      "quantity": integer
+    }
+  ]
+}
+
+4.5 덱 프리셋 삭제
+URL: DELETE /api/deck-presets/{deckPresetId}
+경로 변수: deckPresetId (Long)
+요청 바디: 없음
+응답: Void
+
+
+5. Deck Preset Card API
+
+5.1 덱 프리셋 카드 생성
+URL: POST /api/deck-preset-cards
+요청 바디: DeckPresetCardCreateReq
+요청 형식:
+{
+  "deckPresetId": long,
+  "cardId": long,
+  "quantity": integer
+}
+응답: DeckPresetCardRes
+응답 형식:
+{
+  "deckPresetCardId": long,
+  "cardId": long,
+  "quantity": integer
+}
+
+5.2 덱 프리셋 카드 목록 조회
+URL: GET /api/deck-preset-cards
+요청 바디: 없음
+응답: List<DeckPresetCardRes>
+응답 형식:
+[
+  {
+    "deckPresetCardId": long,
+    "cardId": long,
+    "quantity": integer
+  }
+]
+
+5.3 덱 프리셋 카드 조회
+URL: GET /api/deck-preset-cards/{deckPresetCardId}
+경로 변수: deckPresetCardId (Long)
+요청 바디: 없음
+응답: CardRes
+응답 형식:
+{
+  "cardId": long,
+  "name": string,
+  "cost": integer,
+  "power": integer,
+  "active": boolean
+}
+
+5.4 덱 프리셋 카드 수정
+URL: PATCH /api/deck-preset-cards/{deckPresetCardId}
+경로 변수: deckPresetCardId (Long)
+요청 바디: DeckPresetCardUpdateReq
+요청 형식:
+{
+  "deckPresetId": long (선택),
+  "cardId": long (선택),
+  "quantity": integer (선택)
+}
+응답: DeckPresetCardRes
+응답 형식:
+{
+  "deckPresetCardId": long,
+  "cardId": long,
+  "quantity": integer
+}
+
+5.5 덱 프리셋 카드 삭제
+URL: DELETE /api/deck-preset-cards/{deckPresetCardId}
+경로 변수: deckPresetCardId (Long)
+요청 바디: 없음
+응답: Void
+
+
+6. Match API
+
+6.1 매치 생성
+URL: POST /api/matches
+요청 바디: MatchCreateReq
+요청 형식:
+{
+  "status": MatchStatus (필수, IN_PROGRESS 또는 COMPLETED 또는 CANCELLED),
+  "winnerId": long,
+  "turnCount": integer (필수),
+  "endedAt": LocalDateTime
+}
+응답: MatchRes
+응답 형식:
+{
+  "matchId": long,
+  "status": MatchStatus,
+  "winnerId": long,
+  "turnCount": integer,
+  "endedAt": LocalDateTime
+}
+
+6.2 매치 조회
+URL: GET /api/matches/{matchId}
+경로 변수: matchId (Long)
+요청 바디: 없음
+응답: MatchRes
+응답 형식:
+{
+  "matchId": long,
+  "status": MatchStatus,
+  "winnerId": long,
+  "turnCount": integer,
+  "endedAt": LocalDateTime
+}
+
+6.3 매치 전체 조회
+URL: GET /api/matches
+요청 바디: 없음
+응답: List<MatchRes>
+응답 형식:
+[
+  {
+    "matchId": long,
+    "status": MatchStatus,
+    "winnerId": long,
+    "turnCount": integer,
+    "endedAt": LocalDateTime
+  }
+]
+
+6.4 매치 수정
+URL: PATCH /api/matches/{matchId}
+경로 변수: matchId (Long)
+요청 바디: MatchUpdateReq
+요청 형식:
+{
+  "status": MatchStatus (선택),
+  "winnerId": long (선택),
+  "turnCount": integer (선택),
+  "endedAt": LocalDateTime (선택)
+}
+응답: MatchRes
+응답 형식:
+{
+  "matchId": long,
+  "status": MatchStatus,
+  "winnerId": long,
+  "turnCount": integer,
+  "endedAt": LocalDateTime
+}
+
+6.5 매치 삭제
+URL: DELETE /api/matches/{matchId}
+경로 변수: matchId (Long)
+요청 바디: 없음
+응답: Void
+
+
+7. Match Participant API
+
+7.1 매치 참가자 생성
+URL: POST /api/match-participants
+요청 바디: MatchParticipantCreateReq
+요청 형식:
+{
+  "finalScore": integer,
+  "playerIndex": integer,
+  "deckPresetId": long,
+  "matchId": long,
+  "guestId": long
+}
+응답: MatchParticipantRes
+응답 형식:
+{
+  "matchParticipantId": long,
+  "finalScore": integer,
+  "playerIndex": integer,
+  "deckPresetId": long,
+  "matchId": long,
+  "guestId": long
+}
+
+7.2 매치 참가자 조회
+URL: GET /api/match-participants/{matchParticipantId}
+경로 변수: matchParticipantId (Long)
+요청 바디: 없음
+응답: MatchParticipantRes
+응답 형식:
+{
+  "matchParticipantId": long,
+  "finalScore": integer,
+  "playerIndex": integer,
+  "deckPresetId": long,
+  "matchId": long,
+  "guestId": long
+}
+
+7.3 매치 참가자 전체 조회
+URL: GET /api/match-participants
+요청 바디: 없음
+응답: List<MatchParticipantRes>
+응답 형식:
+[
+  {
+    "matchParticipantId": long,
+    "finalScore": integer,
+    "playerIndex": integer,
+    "deckPresetId": long,
+    "matchId": long,
+    "guestId": long
+  }
+]
+
+7.4 매치 참가자 수정
+URL: PATCH /api/match-participants/{matchParticipantId}
+경로 변수: matchParticipantId (Long)
+요청 바디: MatchParticipantUpdateReq
+요청 형식:
+{
+  "finalScore": integer (선택),
+  "playerIndex": integer (선택),
+  "deckPresetId": long (선택),
+  "matchId": long (선택),
+  "guestId": long (선택)
+}
+응답: MatchParticipantRes
+응답 형식:
+{
+  "matchParticipantId": long,
+  "finalScore": integer,
+  "playerIndex": integer,
+  "deckPresetId": long,
+  "matchId": long,
+  "guestId": long
+}
+
+7.5 매치 참가자 삭제
+URL: DELETE /api/match-participants/{matchParticipantId}
+경로 변수: matchParticipantId (Long)
+요청 바디: 없음
+응답: Void
+
+
+8. Match Location API
+
+8.1 매치 지역 생성
+URL: POST /api/match-locations
+요청 바디: MatchLocationCreateReq
+요청 형식:
+{
+  "matchId": long,
+  "slotIndex": integer,
+  "locationId": long,
+  "revealedTurn": integer
+}
+응답: MatchLocationRes
+응답 형식:
+{
+  "matchLocationId": long,
+  "matchId": long,
+  "slotIndex": integer,
+  "location": {
+    "locationId": long,
+    "name": string,
+    "imageUrl": string,
+    "effectDesc": string,
+    "isActive": boolean
+  },
+  "revealedTurn": integer
+}
+
+8.2 매치 지역 전체 조회
+URL: GET /api/match-locations
+요청 바디: 없음
+응답: List<MatchLocationRes>
+응답 형식:
+[
+  {
+    "matchLocationId": long,
+    "matchId": long,
+    "slotIndex": integer,
+    "location": {
+      "locationId": long,
+      "name": string,
+      "imageUrl": string,
+      "effectDesc": string,
+      "isActive": boolean
+    },
+    "revealedTurn": integer
+  }
+]
+
+8.3 특정 매치 지역 하나 조회
+URL: GET /api/match-locations/{matchLocationId}
+경로 변수: matchLocationId (Long)
+요청 바디: 없음
+응답: MatchLocationRes
+응답 형식:
+{
+  "matchLocationId": long,
+  "matchId": long,
+  "slotIndex": integer,
+  "location": {
+    "locationId": long,
+    "name": string,
+    "imageUrl": string,
+    "effectDesc": string,
+    "isActive": boolean
+  },
+  "revealedTurn": integer
+}
+
+8.4 매치 지역 수정
+URL: PATCH /api/match-locations/{matchLocationId}
+경로 변수: matchLocationId (Long)
+요청 바디: MatchLocationUpdateReq
+요청 형식:
+{
+  "slotIndex": integer (선택),
+  "location": Location 객체 (선택),
+  "revealedTurn": integer (선택)
+}
+응답: MatchLocationRes
+응답 형식:
+{
+  "matchLocationId": long,
+  "matchId": long,
+  "slotIndex": integer,
+  "location": {
+    "locationId": long,
+    "name": string,
+    "imageUrl": string,
+    "effectDesc": string,
+    "isActive": boolean
+  },
+  "revealedTurn": integer
+}
+
+8.5 매치 지역 삭제
+URL: DELETE /api/match-locations/{matchLocationId}
+경로 변수: matchLocationId (Long)
+요청 바디: 없음
+응답: Void
+
+
+9. Play API
+
+9.1 플레이 생성
+URL: POST /api/plays
+요청 바디: PlayCreateReq
+요청 형식:
+{
+  "matchId": long,
+  "turnCount": integer,
+  "guestId": long,
+  "cardId": long,
+  "slotIndex": integer,
+  "powerSnapshot": integer
+}
+응답: PlayRes
+응답 형식:
+{
+  "id": long,
+  "matchId": long,
+  "turnCount": integer,
+  "guestId": long,
+  "cardId": long,
+  "slotIndex": integer,
+  "powerSnapshot": integer
+}
+
+9.2 플레이 조회
+URL: GET /api/plays/{playId}
+경로 변수: playId (Long)
+요청 바디: 없음
+응답: PlayRes
+응답 형식:
+{
+  "id": long,
+  "matchId": long,
+  "turnCount": integer,
+  "guestId": long,
+  "cardId": long,
+  "slotIndex": integer,
+  "powerSnapshot": integer
+}
+
+9.3 플레이 전체 조회
+URL: GET /api/plays
+요청 바디: 없음
+응답: List<PlayRes>
+응답 형식:
+[
+  {
+    "id": long,
+    "matchId": long,
+    "turnCount": integer,
+    "guestId": long,
+    "cardId": long,
+    "slotIndex": integer,
+    "powerSnapshot": integer
+  }
+]
+
+9.4 플레이 수정
+URL: PATCH /api/plays/{playId}
+경로 변수: playId (Long)
+요청 바디: PlayUpdateReq
+요청 형식:
+{
+  "turnCount": integer (선택),
+  "guestId": long (선택),
+  "cardId": long (선택),
+  "slotIndex": integer (선택),
+  "powerSnapshot": integer (선택),
+  "matchId": long (선택)
+}
+응답: PlayRes
+응답 형식:
+{
+  "id": long,
+  "matchId": long,
+  "turnCount": integer,
+  "guestId": long,
+  "cardId": long,
+  "slotIndex": integer,
+  "powerSnapshot": integer
+}
+
+9.5 플레이 삭제
+URL: DELETE /api/plays/{playId}
+경로 변수: playId (Long)
+요청 바디: 없음
+응답: Void

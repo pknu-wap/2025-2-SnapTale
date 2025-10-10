@@ -1,35 +1,33 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import  Init  from "./Components/Init/Init";
+import  Home  from "./Components/Home/Home";
+import  DeckCheck from "./Components/DeckCheck/DeckCheck";
+import  GameLoading from "./Components/Home/GameLoading";
+import  GamePlay  from "./Components/GamePlay/Index";
+import  GameResult  from "./Components/GameResult";
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <div className='app-bg'>
+    <Router>
+      <Routes>
+        {/* 초기 화면 */}
+        <Route path="/" element={<Init />} />
+        {/* 메인 홈 화면*/}
+        <Route path="/home" element={<Home />} />
+        {/* 덱 확인 화면*/}
+        <Route path="/deck" element={<DeckCheck />} />
+        {/* 게임 로딩 화면*/}
+        <Route path="/gameloading" element={<GameLoading />} />
+        {/* 게임 플레이 화면 */}
+        <Route path="/gameplay" element={<GamePlay />} />
+        {/* 게임 결과 확인 화면*/}
+        <Route path="/gameresult" element={<GameResult />} />
+      </Routes>
+    </Router>
+    </div>
   )
 }
 
-export default App
+export default App;

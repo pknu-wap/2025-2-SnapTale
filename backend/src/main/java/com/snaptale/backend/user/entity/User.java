@@ -1,9 +1,10 @@
 package com.snaptale.backend.user.entity;
 
 import com.snaptale.backend.common.entity.BaseEntity;
+import com.snaptale.backend.user.model.UserUpdateReq;
+
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -23,23 +24,23 @@ public class User extends BaseEntity {
 
     @Id
     @Column(name = "guest_id")
+    // String은 @GeneratedValue(strategy = GenerationType.IDENTITY) 이걸 쓸 수 없다.
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String guestId;
+    private Long guestId;
 
     @Column(name = "nickname", length = 50, nullable = false)
     private String nickname;
 
     @Column(name = "rank_point", nullable = false)
-    private int rankPoint;
+    private Integer rankPoint;
 
     @Column(name = "matches_played", nullable = false)
-    private int matchesPlayed;
+    private Integer matchesPlayed;
 
     @Column(name = "wins", nullable = false)
-    private int wins;
+    private Integer wins;
 
     @Column(name = "last_seen")
-    @UpdateTimestamp
     private LocalDateTime lastSeen;
 
     @Column(name = "linked_account_id")
@@ -49,7 +50,35 @@ public class User extends BaseEntity {
         this.nickname = nickname;
     }
 
+    /**
+     * 유저의 마지막 접속 시간을 현재 시간으로 업데이트
+     */
+    public void touchLastSeen() {
+        this.lastSeen = LocalDateTime.now();
+    }
+
+    /**
+     * 유저의 마지막 접속 시간을 특정 시간으로 업데이트
+     */
     public void touchLastSeen(LocalDateTime timestamp) {
         this.lastSeen = timestamp;
+    }
+
+    public void apply(UserUpdateReq request) {
+        if (request.nickname() != null) {
+            this.nickname = request.nickname();
+        }
+        if (request.rankPoint() != null) {
+            this.rankPoint = request.rankPoint();
+        }
+        if (request.matchesPlayed() != null) {
+            this.matchesPlayed = request.matchesPlayed();
+        }
+        if (request.wins() != null) {
+            this.wins = request.wins();
+        }
+        if (request.lastSeen() != null) {
+            this.lastSeen = request.lastSeen();
+        }
     }
 }

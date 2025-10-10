@@ -2,6 +2,8 @@ package com.snaptale.backend.match.entity;
 
 import com.snaptale.backend.common.entity.BaseEntity;
 import com.snaptale.backend.location.entity.Location;
+import com.snaptale.backend.match.model.request.MatchLocationUpdateReq;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -31,4 +33,16 @@ public class MatchLocation extends BaseEntity {
 
     @Column(name = "revealed_turn")
     private Integer revealedTurn;
+
+    public void apply(MatchLocationUpdateReq request) {
+        if (request.slotIndex() != null) {
+            this.slotIndex = request.slotIndex();
+        }
+        if (request.location() != null) {
+            this.location = request.location();
+        }
+        if (request.revealedTurn() != null) {
+            this.revealedTurn = request.revealedTurn();
+        }
+    }
 }

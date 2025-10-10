@@ -1,0 +1,21 @@
+.Matching {
+  box-sizing: border-box;
+  width: 323px;
+  height: 100px;
+  background: url("../../assets/button.png") center / cover no-repeat;
+  border: none;
+
+  font-style: normal;
+  font-weight: 400;
+  font-size: 45px; 
+  color: #581D19;
+
+  display: flex;
+  align-items: center;
+  justify-content: center; /* 글자를 중앙 정렬 */
+  text-align: center;
+}
+
+.Matching.disabled {
+  opacity: 0.44;        /* 흐릿하게 */
+}
