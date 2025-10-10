@@ -5,6 +5,10 @@ import powerIcon from '../../assets/power.svg';
 const EnlargedCard = ({ card, onClose }) => {
   if (!card) return null; // 혹시 card 데이터가 없으면 아무것도 렌더링하지 않음
 
+   const handleClose = () => {
+    onClose?.(); 
+  };
+
   const factionClasses = {
     korea: "card-border-korea",
     china: "card-border-china",
@@ -13,8 +17,7 @@ const EnlargedCard = ({ card, onClose }) => {
   const borderClass = factionClasses[card.faction] || "card-border-default";
 
   return (
-    // 이제 이 컨테이너를 클릭하면 onClose 함수가 호출됩니다.
-    <div className="enlarged-card-container" onClick={onClose}>
+    <div className="enlarged-card-container" onClick={handleClose}>
       <img
         className={`card-image ${borderClass}`}
         src={card.imageUrl}
