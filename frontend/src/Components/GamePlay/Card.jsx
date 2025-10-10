@@ -1,3 +1,4 @@
+import React from "react"; 
 import "./Card.css";
 import costIcon from "../../assets/cost.svg";
 import powerIcon from "../../assets/power.svg";
@@ -68,4 +69,4 @@ const Card = ({
   );
 };
 
-export default Card;
+export default React.memo(Card);;

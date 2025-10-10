@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Card from "../GamePlay/Card";
 import EnlargedCard from "../GamePlay/EnlargedCard";
 import ExitIcon from "./Exit";
@@ -13,19 +13,21 @@ import './DeckCheck.css';
 //덱 확인 페이지
 const DeckCheck = () => {
     const [selectedFaction, setSelectedFaction] = useState("korea");
-    const handCount = 12;
-    const sampleCards = Array.from({ length: handCount }).map((_, i) => ({
-        cardId: `card-${i}`,
-        name: `Card ${i + 1}`,
-        imageUrl: DCI,
-        cost: Math.floor(Math.random() * 10) + 1,    // 1~10 랜덤
-        power: Math.floor(Math.random() * 10) + 1,   // 1~10 랜덤
-        faction: selectedFaction, 
-        effectDesc: "Sample effect description",
-        active: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-    }));
+     const handCount = 12;
+    const sampleCards = useMemo(() => {
+        return Array.from({ length: handCount }).map((_, i) => ({
+            cardId: `card-${i}`,
+            name: `Card ${i + 1}`,
+            imageUrl: DCI,
+            cost: Math.floor(Math.random() * 10) + 1,
+            power: Math.floor(Math.random() * 10) + 1,
+            faction: selectedFaction,
+            effectDesc: "Sample effect description",
+            active: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        }));
+    }, [selectedFaction]);
     const [selectedCard, setSelectedCard] = useState(sampleCards[0]);
     
     const handleCardClick = (cardData) => {
