@@ -1,34 +1,51 @@
 .Overlay{
-    position: fixed; 
+    width: 302px;
+    height: 191px;
+
+     /* 화면 중앙에 모달창 고정 */
+    position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 302px;
-    height: 191px;
+
     background: url("../../assets/modal.png") center / cover no-repeat;
 }
+/* RD모달창 내부 중앙에 텍스트 고정 */
+.modal-main{
+    font-size: 24px;
+    position: absolute;  
+    top: 50%;          
+    left: 50%;         
+    transform: translate(-50%, -50%);
+    text-align: center; /*텍스트 중앙 정렬 */
+}
 
-.modal-title, .modal-main {
+.extra-text {
+    position: absolute;
+    top: calc(50% + 191px/2 + 20.5px); /* modal-main 높이 기준으로 아래 */
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.explain-text{
+    font-size: 35px;
+    color: #F4B033;
+}
+.alert-text{
+    font-size: 24px;
+    color: #D21515;
+    margin-top: -15px;
+}
+
+/* 흰 글씨에 갈색 stroke 넣기 */
+.modal-title, .modal-text {
     font-style: normal;
     font-weight: 400;
     text-shadow: -1px 0 #5B1B17, 0 1px #5B1B17, 1px 0 #5B1B17, 0 -1px #5B1B17;
-    display: flex;
-    align-items: center;
-    text-align: center;
     color: #FFFFFF;
 }
 
-.modal-code {
-    display: flex;
-    align-items: center;
-    text-align: center;
-    
-
-    color: #000000;    
-    text-shadow: none;   
-    font-size: 24px; 
-    margin-bottom: 9px; 
-}
 .modal-title
 {
     font-size: 28px;
@@ -36,22 +53,19 @@
     margin-top: 36px;
     margin-left: 36px;
 }
-.modal-main{
-    font-size: 24px;
-    position: absolute;  
-    top: 50%;          
-    left: 50%;         
-    transform: translate(-50%, -50%);
-    
-    flex-direction: column; 
-    justify-content: center; 
-}
 
+.matchcode {
+    width: 247px;
+    white-space: nowrap;   /* 줄바꿈 방지 */
+    color: #000000;     
+    margin-bottom: 9px; 
+}
 
 .modal-input, .cancel, .accept{
     border: 2px solid #5B1B17;
     border-radius: 5px;
 }
+
 .modal-input{
     box-sizing: border-box;
     position: absolute;
@@ -61,6 +75,7 @@
     margin-top: 19px;
     margin-left: 36px;
 }
+
 .cancelIcon {
     position: absolute;
     top: 25px;   
@@ -71,18 +86,14 @@
     border: none;
     cursor: pointer;
 }
+
 .cancel, .accept{
     position: absolute;
     width: 108px;
     height: 32px;
-
-    font-family: 'Song Myung';
     font-style: normal;
     font-weight: 400;
     font-size: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     text-align: center;
     color: #FFFFFF;
 }

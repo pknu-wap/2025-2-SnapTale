@@ -1,0 +1,14 @@
+.userProfile {
+  width: 200px;
+  height: 56px;
+  display: flex;
+  align-items: center; /* 수직 중앙 정렬 */
+}
+
+.userName {
+  flex: 1;               /* 남은 공간 차지 */
+  text-align: center;    /* 가운데 정렬 */
+  white-space: nowrap;   /* 한 줄로 유지 */
+  overflow: hidden;      /* 닉네임 길면 잘림 */
+  text-overflow: ellipsis; /* ... 처리 */
+}

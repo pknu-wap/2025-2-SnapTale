@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import GameLayout from "./GameLayout";
-import Soundbar from "../Home/Soundbar";
+import Soundbar from "../Home/SoundIcon";
 
 const GamePlay = () => {
   const navigate = useNavigate();
