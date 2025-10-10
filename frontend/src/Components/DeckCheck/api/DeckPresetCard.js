@@ -19,3 +19,25 @@ export async function fetchDeckPresetCards(deckPresetId) {
 
   return result;
 }
+
+export async function fetchCardsAll() {
+  const res = await fetch(
+    `${import.meta.env.VITE_API_BASE}/api/cards`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`HTTP ${res.status}: ${body}`);
+  }
+
+  const data = await res.json();
+  const result = data.result;
+
+  return result;
+}

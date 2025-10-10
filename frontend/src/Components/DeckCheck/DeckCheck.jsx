@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { fetchDeckPresetCards } from "./api/DeckPresetCard.js";
+//import { fetchDeckPresetCards } from "./api/DeckPresetCard.js";
+import { fetchCardsAll} from "./api/DeckPresetCard.js";
 import Card from "../GamePlay/Card";
 import EnlargedCard from "../GamePlay/EnlargedCard";
 import ExitIcon from "./Exit";
@@ -10,11 +11,11 @@ import chinaIcon from "../../assets/chinaIcon.png";
 import japanIcon from "../../assets/japanIcon.png";
 import './DeckCheck.css';
 
-const factionToDeckPresetId = {
-  korea: 1,
-  china: 2,
-  japan: 3,
-};
+// const factionToDeckPresetId = {
+//   korea: 1,
+//   china: 2,
+//   japan: 3,
+// };
 
 
 //덱 확인 페이지
@@ -26,11 +27,17 @@ const DeckCheck = () => {
     useEffect(() => {
     const loadCards = async () => {
         try {
-            const deckPresetId = factionToDeckPresetId[selectedFaction];
-            const fetchedCards = await fetchDeckPresetCards(deckPresetId);
-            setCards(fetchedCards);
-            if (fetchedCards.length > 0) {
-                setSelectedCard(fetchedCards[0]);
+            // const deckPresetId = factionToDeckPresetId[selectedFaction];
+            // const fetchedCards = await fetchDeckPresetCards(deckPresetId);
+            // setCards(fetchedCards);
+            // if (fetchedCards.length > 0) {
+            //     setSelectedCard(fetchedCards[0]);
+            // }
+            const Cards = await fetchCardsAll();
+            setCards(Cards);
+            if(Cards.length > 0)
+            {
+                setSelectedCard(Cards[0]);
             }
         } catch (err) {
             console.error("덱 카드 불러오기 실패:", err);
@@ -99,7 +106,7 @@ const DeckCheck = () => {
                     active={card.active}
                     createdAt={card.createdAt}
                     updatedAt={card.updatedAt}
-                    onCardClick={() => handleCardClick(card)} // ✅ 클릭 이벤트 연결
+                    onCardClick={() => handleCardClick(card)}
             />
             ))
         ) : (

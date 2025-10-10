@@ -1,4 +1,5 @@
 import React from "react"; 
+import { useEffect, useRef } from "react";
 import "./Card.css";
 import costIcon from "../../assets/cost.svg";
 import powerIcon from "../../assets/power.svg";
@@ -49,6 +50,25 @@ const Card = ({
     createdAt,
     updatedAt
   });
+    const ref = useRef(null);
+    useEffect(() => {
+      const el = ref.current;
+      if (!el) return;
+      
+      // 초기 폰트 스타일
+      el.style.fontSize = "12px";
+      el.style.whiteSpace = "nowrap";
+  
+      const tooLong = el.scrollWidth > el.clientWidth; // 내용이 card-name div박스를 넘으면 2줄로 표시 허용
+
+      if (tooLong) {
+        el.style.fontSize = "10px";
+        el.style.whiteSpace = "normal"; // 줄바꿈 허용
+        el.style.wordBreak = "keep-all";  //한글 공백 단위로 줄바꿈
+        el.style.overflowWrap = "break-word";
+        el.style.lineHeight = "1.1";    // 줄 간격 살짝 조정
+    }
+    }, [name]);
   const borderClass = factionClasses[faction] || "card-border-default";
   return (
     <div className="card-container" onClick={onCardClick}>
@@ -64,7 +84,7 @@ const Card = ({
         <span className="icon-text">{power}</span>
       </div>
 
-      <div className="card-name">{name}</div>
+      <div className="card-name" ref={ref}>{name}</div>
     </div>
   );
 };
