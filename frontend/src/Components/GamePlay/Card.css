@@ -150,6 +150,7 @@
   width: 120px;     
   height: 60px;     
   font-size: 36px;  
+  white-space: nowrap;
   display: flex; /* 세로 중앙 정렬을 위해 추가 */
   align-items: center;
   justify-content: center;

@@ -65,7 +65,6 @@ const Card = ({
         el.style.fontSize = "10px";
         el.style.whiteSpace = "normal"; // 줄바꿈 허용
         el.style.wordBreak = "keep-all";  //한글 공백 단위로 줄바꿈
-        el.style.overflowWrap = "break-word";
         el.style.lineHeight = "1.1";    // 줄 간격 살짝 조정
     }
     }, [name]);
