@@ -15,3 +15,7 @@
   justify-content: center; /* 글자를 중앙 정렬 */
   text-align: center;
 }
+
+.Matching.disabled {
+  opacity: 0.44;        /* 흐릿하게 */
+}

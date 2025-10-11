@@ -1,0 +1,57 @@
+.DeckCheck-container {
+  display: flex;
+  flex-direction: column; 
+  align-items: center; 
+  justify-content: flex-start; 
+  height: 100vh;
+  width: 100vw;
+}
+
+/* 상단 메뉴 (나가기 버튼) */
+.deck-top-menu {
+  display: flex;
+  align-self: flex-end;
+  justify-content: flex-end; /* 오른쪽 정렬 */
+  margin-top: 24px;
+  margin-right: 24px;
+}
+
+/* 지역 선택 영역 */
+.deck-select {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.faction-icons {
+  display: flex;
+  justify-content: center;
+  gap: 25px;
+  margin-bottom: 10px;
+}
+
+.faction-text {
+  font-size: 36px;
+  line-height: 40px;
+  text-align: center;
+  color: #fff;
+}
+
+/* 카드 섹션 */
+.deck-section {
+  display: flex;
+  flex-wrap: wrap; /* 여러 줄 정렬 */
+  justify-content: center;
+  gap: 10px;
+  margin-top: 15px;
+  max-width: 326px;
+}
+
+/* 카드 자세히 보기 */
+.selected-card {
+  margin-top: 75px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}

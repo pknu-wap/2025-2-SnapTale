@@ -6,20 +6,16 @@
   
   /* Flexbox를 사용한 레이아웃 설정 */
   display: flex;
-  flex-direction: column;    
+  flex-direction: column; 
   align-items: center;       
-  justify-content: space-between; 
-
   box-sizing: border-box;
   padding: 20px 0;
 }
-
 /* top-menu: 상단 아이콘 배치 */
 .top-menu {
   width: 90%; /* 화면 양 옆에 약간의 여백을 줌 */
   display: flex;
   justify-content: space-between; /* 사운드바와 프로필 아이콘을 양 끝으로 보냄 */
-  align-items: center;
 }
 
 /* matching-buttons: 항상 화면 중앙 버튼 배치 */
@@ -28,7 +24,6 @@
   height: 100%;
   display: flex;
   flex-direction: column; 
-  
   align-items: center;    
   justify-content: center;
   gap: 11px; 

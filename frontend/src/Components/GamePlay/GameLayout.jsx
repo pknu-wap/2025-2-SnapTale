@@ -1,13 +1,41 @@
 // src/Components/GamePlay/GameLayout.jsx
+import { useState } from "react";
 import "./GameLayout.css";
+import Card from "./Card";
+import EnlargedCard from "./EnlargedCard";
+import DCI from "../../assets/defaultCardImg.svg";
 
 export default function GameLayout() {
   const lanes = 3;                 // 왼/중/오
   const topCountPerLane = 4;       // 위 4장
   const botCountPerLane = 4;       // 아래 4장
   const handCount = 12;            // 6x2
+  const [selectedCard, setSelectedCard] = useState(null);
+
+  const handleCardClick = (cardData) => {
+    setSelectedCard(cardData);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedCard(null);
+  };
+
+  // 샘플 카드 데이터 12장 (임의 생성)
+  const sampleCards = Array.from({ length: handCount }).map((_, i) => ({
+    cardId: `card-${i}`,
+    name: `Card ${i + 1}`,
+    imageUrl: DCI,
+    cost: Math.floor(Math.random() * 10) + 1,    // 1~10 랜덤
+    power: Math.floor(Math.random() * 10) + 1,   // 1~10 랜덤
+    faction: ["korea", "china", "japan"][i % 3], // 번갈아 korea, china, japan
+    effectDesc: "Sample effect description",
+    active: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }));
 
   return (
+  <div>
     <div className="gl-wrap">
       <div className="gl-oppo-chip">상대닉네임</div>
 
@@ -44,14 +72,32 @@ export default function GameLayout() {
 
       {/* 손패 6x2 = 12 */}
       <section className="gl-hand12">
-        {Array.from({ length: handCount }).map((_, i) => (
-          <div className="gl-card gl-handCard" key={`h-${i}`} />
+        {sampleCards.map(card => (
+          <Card
+            key={card.cardId}
+            cardId={card.cardId}
+            name={card.name}
+            imageUrl={card.imageUrl}
+            cost={card.cost}
+            power={card.power}
+            faction={card.faction}
+            effectDesc={card.effectDesc}
+            active={card.active}
+            createdAt={card.createdAt}
+            updatedAt={card.updatedAt}
+            onCardClick={() => handleCardClick(card)}
+          />
         ))}
       </section>
-
       <footer className="gl-footer">
         <button className="gl-endBtn">턴 종료 (1/6)</button>
       </footer>
     </div>
+      {selectedCard && (
+        <div className="modal-backdrop">
+          <EnlargedCard card={selectedCard} onClose={handleCloseModal} />
+        </div>
+      )}
+  </div>
   );
 }

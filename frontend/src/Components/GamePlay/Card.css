@@ -1,0 +1,180 @@
+.card-container {
+  position: relative;
+  width: 46px;
+  height: 76px; 
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+/* 마우스를 올렸을 때 약간 확대되는 효과 추가 */
+.card-container:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+.card-image {
+  width: 40px;
+  height: 70px; 
+  border: 2px solid transparent;
+  border-radius: 5px;
+  object-fit: cover;
+  position: absolute;
+  top: 2px;
+  left: 1px;
+  z-index: 1;
+}
+.card-border-korea { border-color: #26437B; }
+.card-border-china { border-color: #329A88; }
+.card-border-japan { border-color: #C4512F; }
+.card-border-default { border-color: transparent }
+
+
+/* 아이콘 공통 스타일 */
+.icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+  position: relative;
+  z-index: 3;
+}
+
+/* cost, power 컨테이너 공통 */
+.card-cost-container, .card-power-container {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 18px;
+  height: 18px;
+  z-index: 5;
+}
+
+/* cost: 우측 상단 위치 조절 */
+.card-cost-container {
+  top: 0px;
+  right: 0px;
+}
+
+/* power: 좌측 상단 위치 조절*/
+.card-power-container {
+  top: 0px;
+  left: 0px;
+}
+
+/* cost, power 텍스트 (아이콘 중앙에 위치) */
+.icon-text {
+  position: absolute;
+  font-size: 12px;
+  color: #FFFFFF;
+  user-select: none;
+  pointer-events: none;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}
+
+/* name 하단 중앙 고정 */
+.card-name {
+  position: absolute;
+  width: 40px;
+  height: 20px;
+  left: 50%;
+  bottom: 0px;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: #FFFFFF;
+  z-index: 6;
+  text-align: center;
+  white-space: nowrap;
+}
+
+
+.enlarged-card-container {
+  position: relative;
+  width: 138px;  
+  height: 228px; 
+  animation: zoomIn 0.3s ease-out;
+}
+
+.modal-backdrop {
+  position: absolute; 
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* 확대된 카드 컨테이너 */
+.enlarged-card-container .card-image {
+  width: 120px;     
+  height: 210px;   
+  border-width: 6px;
+  border-radius: 15px; 
+  top: 6px;        
+  left: 3px;      
+}
+
+/* cost: 우측 상단 위치 조절 */
+.enlarged-card-container .card-cost-container {
+  top: -3px;
+  right: -3px;
+}
+
+/* power: 좌측 상단 위치 조절*/
+.enlarged-card-container .card-power-container {
+  top: -3px;
+  left: -3px;
+}
+.enlarged-card-container .card-cost-container, 
+.enlarged-card-container .card-power-container,
+.enlarged-card-container .icon
+{
+  width: 54px;     
+  height: 54px; 
+}
+
+.enlarged-card-container .icon-text {
+  font-size: 30px;  
+}
+
+.enlarged-card-container .card-name {
+  width: 120px;     
+  height: 60px;     
+  font-size: 36px;  
+  display: flex; /* 세로 중앙 정렬을 위해 추가 */
+  align-items: center;
+  justify-content: center;
+}
+
+/* 확대된 카드 위에 표시될 설명 텍스트 스타일 */
+.enlarged-card-container .card-desc {
+  position: absolute;
+  width: 250px;
+  height: 37px;
+  left: 50%;
+  bottom: -61px;
+  transform: translateX(-50%);
+  font-size: 24px;
+  color: #FFECDE;
+  z-index: 6;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* 간단한 줌인 애니메이션 효과 */
+@keyframes zoomIn {
+  from {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
