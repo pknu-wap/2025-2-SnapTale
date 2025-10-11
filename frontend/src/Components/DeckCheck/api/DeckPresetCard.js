@@ -38,6 +38,7 @@ export async function fetchCardsAll() {
 
   const data = await res.json();
   const result = data.result;
+  console.log(result.length)
 
   return result;
 }
