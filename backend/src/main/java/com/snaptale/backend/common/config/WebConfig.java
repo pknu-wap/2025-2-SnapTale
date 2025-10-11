@@ -29,11 +29,13 @@ public class WebConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOrigins(
+                        "http://localhost:3000",
+                        "http://localhost:5173",
+                        "http://localhost:8080",
                         "https://snaptale.p-e.kr",
                         "https://www.snaptale.p-e.kr",
-                        "https://snap-tale.netlify.app"
-                        )
-                .allowedMethods("GET", "POST", "PATCH", "DELETE", "OPTIONS")
+                        "https://snap-tale.netlify.app")
+                .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(false);
     }
