@@ -16,6 +16,7 @@ export async function fetchDeckPresetCards(deckPresetId) {
 
   const data = await res.json();
   const result = [data.result]; //배열로 주고 있다면 [] 빼야함
+  console.log(result);
 
   return result;
 }

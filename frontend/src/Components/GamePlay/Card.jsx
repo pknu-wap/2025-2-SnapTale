@@ -13,7 +13,7 @@ import powerIcon from "../../assets/power.svg";
  * @param {number} props.cost - 카드 코스트 (UI 표시)
  * @param {number} props.power - 카드 파워 (UI 표시)
  * @param {string} props.faction - 카드 진영 (테두리 색상에 사용)
- * @param {string} props.effectiveDesc - 카드 효과 설명 (카드 클릭 시 UI 표시)
+ * @param {string} props.effectDesc - 카드 효과 설명 (카드 클릭 시 UI 표시)
  * @param {boolean} props.active - 사용 가능 여부 ? (UI 미표시)
  * @param {string} props.createdAt - 생성일시 (UI 미표시)
  * @param {string} props.updatedAt - 수정일시 (UI 미표시)
@@ -32,7 +32,7 @@ const Card = ({
   cost,
   power,
   faction,
-  effectiveDesc,
+  effectDesc,
   active,
   createdAt,
   updatedAt,
@@ -45,7 +45,7 @@ const Card = ({
     cost,
     power,
     faction,
-    effectiveDesc,
+    effectDesc,
     active,
     createdAt,
     updatedAt
