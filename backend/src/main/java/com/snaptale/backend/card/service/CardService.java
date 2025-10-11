@@ -13,11 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-/**
- * 참고: CardService를 인터페이스로 설계하고 실제 구현은 CardServiceImpl에서 하는 방식을 고려했었는데
- * 그냥 CardService에 비즈니스 로직을 바로 포함하는 방식으로 설계해주세요
- * 다른 Service도 마찬가지입니다.
- */
+// 참고: CardService를 인터페이스로 설계하고 실제 구현은 CardServiceImpl에서 하는 방식을 고려했었는데
+// 그냥 CardService에 비즈니스 로직을 바로 포함하는 방식으로 설계해주세요
+// 다른 Service도 마찬가지입니다.
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true) // 조회 성능을 위한
@@ -25,9 +23,7 @@ public class CardService {
 
     private final CardRepository cardRepository;
 
-    /**
-     * 모든 카드를 조회 (관리자용 목록)
-     */
+    // 모든 카드를 조회 (관리자용 목록)
     public List<CardRes> getCards() {
         List<Card> cards = cardRepository.findAll();
         if (cards.isEmpty()) {
@@ -38,18 +34,14 @@ public class CardService {
                 .toList();
     }
 
-    /**
-     * 특정 카드 조회
-     */
+    // 특정 카드 조회
     public CardRes getCard(Long cardId) {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.CARD_NOT_FOUND));
         return CardRes.from(card);
     };
 
-    /**
-     * 새로운 카드를 등록
-     */
+    // 새로운 카드를 등록
     @Transactional
     public CardRes createCard(CardCreateReq request) {
         Card card = Card.builder()
@@ -65,9 +57,7 @@ public class CardService {
         return CardRes.from(card);
     };
 
-    /**
-     * 카드의 메타데이터(코스트/파워 등)를 수정
-     */
+    // 카드의 메타데이터(코스트/파워 등)를 수정
     @Transactional
     public CardRes updateCard(Long cardId, CardUpdateReq request) {
         Card card = cardRepository.findById(cardId)
@@ -77,9 +67,7 @@ public class CardService {
         return CardRes.from(card);
     };
 
-    /**
-     * 카드를 삭제(뭐 삭제했는지 알려주기 위해 아이디 반환)
-     */
+    // 카드를 삭제(뭐 삭제했는지 알려주기 위해 아이디 반환)
     @Transactional
     public Long deleteCard(Long cardId) {
         Card card = cardRepository.findById(cardId)

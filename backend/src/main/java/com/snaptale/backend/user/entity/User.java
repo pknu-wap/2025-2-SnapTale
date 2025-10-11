@@ -15,11 +15,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Entity
 @Table(name = "users")
-/**
- * 참고 : 지금은 따로 유저를 식별하지 않고 그냥 닉네임만 매번 입력해서 플레이하도록 합니다.
- * 따라서 guest_id는 GeneratedValue로 설정하였고 실제로 사용하는 필드는 guestId, nickname 뿐입니다.
- * 추후 쿠키 기반 사용자 식별 또는 로그인 도입 시 나머지 필드를 사용할 예정입니다.
- */
+// 참고 : 지금은 따로 유저를 식별하지 않고 그냥 닉네임만 매번 입력해서 플레이하도록 합니다.
+// 따라서 guest_id는 GeneratedValue로 설정하였고 실제로 사용하는 필드는 guestId, nickname 뿐입니다.
+// 추후 쿠키 기반 사용자 식별 또는 로그인 도입 시 나머지 필드를 사용할 예정입니다.
 public class User extends BaseEntity {
 
     @Id
@@ -50,16 +48,12 @@ public class User extends BaseEntity {
         this.nickname = nickname;
     }
 
-    /**
-     * 유저의 마지막 접속 시간을 현재 시간으로 업데이트
-     */
+    // 유저의 마지막 접속 시간을 현재 시간으로 업데이트
     public void touchLastSeen() {
         this.lastSeen = LocalDateTime.now();
     }
 
-    /**
-     * 유저의 마지막 접속 시간을 특정 시간으로 업데이트
-     */
+    // 유저의 마지막 접속 시간을 특정 시간으로 업데이트
     public void touchLastSeen(LocalDateTime timestamp) {
         this.lastSeen = timestamp;
     }

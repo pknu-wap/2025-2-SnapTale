@@ -27,10 +27,8 @@ public class DeckPresetCard extends BaseEntity {
     @JoinColumn(name = "card_id", nullable = false)
     private Card card;
 
-    @Column(name = "quantity", nullable = false)
-    private Integer quantity;
-
-    // sort_order는 프엔에서 하는 거 => 삭제
+    // 각 카드는 한 덱에 1장씩만 들어갈 수 있음 (중복 불가)
+    // 따라서 quantity 필드는 제거됨
 
     // 연관관계 설정을 위한 메서드
     public void setDeckPreset(DeckPreset deckPreset) {
@@ -39,10 +37,6 @@ public class DeckPresetCard extends BaseEntity {
 
     public void setCard(Card card) {
         this.card = card;
-    }
-
-    public void setQuantity(Integer quantity) {
-        this.quantity = quantity;
     }
 
 }
