@@ -26,9 +26,9 @@ const EnlargedCard = ({ card, onClose }) => {
       }, [card]);
   if (!card) return null; // 혹시 card 데이터가 없으면 아무것도 렌더링하지 않음
   const factionClasses = {
-    korea: "card-border-korea",
-    china: "card-border-china",
-    japan: "card-border-japan"
+    한국: "card-border-korea",
+    중국: "card-border-china",
+    일본: "card-border-japan"
   };
   const borderClass = factionClasses[card.faction] || "card-border-default";
   return (

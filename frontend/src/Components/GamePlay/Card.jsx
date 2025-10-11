@@ -20,9 +20,9 @@ import powerIcon from "../../assets/power.svg";
  */
 
 const factionClasses = {
-  korea: "card-border-korea",
-  china: "card-border-china",
-  japan: "card-border-japan"
+  한국: "card-border-korea",
+  중국: "card-border-china",
+  일본: "card-border-japan"
 };
 
 const Card = ({
