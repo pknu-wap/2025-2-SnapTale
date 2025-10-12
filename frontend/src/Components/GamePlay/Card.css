@@ -82,6 +82,9 @@
   left: 50%;
   bottom: 0px;
   transform: translateX(-50%);
+  display: flex;               
+  align-items: center;         
+  justify-content: center;    
   font-size: 12px;
   color: #FFFFFF;
   z-index: 6;
@@ -147,6 +150,7 @@
   width: 120px;     
   height: 60px;     
   font-size: 36px;  
+  white-space: nowrap;
   display: flex; /* 세로 중앙 정렬을 위해 추가 */
   align-items: center;
   justify-content: center;
