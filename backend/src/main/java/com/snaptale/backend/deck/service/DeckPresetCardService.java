@@ -30,7 +30,7 @@ public class DeckPresetCardService {
     private final DeckPresetCardRepository deckPresetCardRepository;
     private final CardRepository cardRepository;
 
-    // 덱 프리셋 카드 생성
+    // 덱 프리셋 카드 생성 (한 덱에 같은 카드 중복 불가)
     @Transactional
     public DeckPresetCardRes createDeckPresetCard(DeckPresetCardCreateReq request) {
         // DeckPreset 조회
@@ -44,7 +44,6 @@ public class DeckPresetCardService {
         DeckPresetCard deckPresetCard = DeckPresetCard.builder()
                 .deckPreset(deckPreset)
                 .card(card)
-                .quantity(request.quantity())
                 .build();
         deckPresetCardRepository.save(deckPresetCard);
         return DeckPresetCardRes.from(deckPresetCard);
@@ -80,11 +79,6 @@ public class DeckPresetCardService {
             Card card = cardRepository.findById(request.cardId())
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.CARD_NOT_FOUND));
             deckPresetCard.setCard(card);
-        }
-
-        // Quantity가 제공되면 설정
-        if (request.quantity() != null) {
-            deckPresetCard.setQuantity(request.quantity());
         }
 
         deckPresetCardRepository.save(deckPresetCard);

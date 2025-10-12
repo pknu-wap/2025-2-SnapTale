@@ -31,6 +31,7 @@ public class DeckPreset extends BaseEntity {
     private Integer isActive;
 
     @Builder.Default
+    @Column(name = "deck_preset_cards_info", length = 255, nullable = true)
     @OneToMany(mappedBy = "deckPreset", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<DeckPresetCard> deckPresetcards = new ArrayList<>();
 
