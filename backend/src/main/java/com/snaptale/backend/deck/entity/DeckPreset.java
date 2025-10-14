@@ -30,6 +30,10 @@ public class DeckPreset extends BaseEntity {
     @Column(name = "is_active", nullable = false)
     private Integer isActive;
 
+    @Builder.Default
+    @OneToMany(mappedBy = "deckPreset", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<DeckPresetCard> deckPresetcards = new ArrayList<>();
+
     // 정보 바꿀 때
     public void apply(DeckPresetUpdateReq req) {
         if (req.name() != null) {
