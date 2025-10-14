@@ -31,7 +31,6 @@ public class DeckPreset extends BaseEntity {
     private Integer isActive;
 
     @Builder.Default
-    @Column(name = "deck_preset_cards_info", length = 255, nullable = true)
     @OneToMany(mappedBy = "deckPreset", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<DeckPresetCard> deckPresetcards = new ArrayList<>();
 
@@ -43,15 +42,5 @@ public class DeckPreset extends BaseEntity {
         if (req.active() != null) {
             this.isActive = req.active();
         }
-    }
-
-    public void addCard(DeckPresetCard deckPresetCard) {
-        deckPresetcards.add(deckPresetCard);
-        deckPresetCard.setDeckPreset(this);
-    }
-
-    public void removeCard(DeckPresetCard deckPresetCard) {
-        deckPresetcards.remove(deckPresetCard);
-        deckPresetCard.setDeckPreset(this);
     }
 }

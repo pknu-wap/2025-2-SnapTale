@@ -61,6 +61,7 @@ public class DeckPresetCardController {
                                 deckPresetCardService.getDeckPresetCards());
         }
 
+
         // 테스트 완
         @Operation(summary = "덱 프리셋 카드 조회", description = "덱 프리셋 카드를 조회합니다.")
         @ApiResponses({
@@ -71,6 +72,16 @@ public class DeckPresetCardController {
         public BaseResponse<CardRes> getDeckPresetCard(@PathVariable Long deckPresetCardId) {
                 return new BaseResponse<>(BaseResponseStatus.SUCCESS,
                                 deckPresetCardService.getDeckPresetCard(deckPresetCardId));
+        }
+
+        @Operation(summary = "덱 프리셋 카드 목록 조회 (덱 기준)", description = "덱 프리셋 ID로 해당 덱의 카드 목록을 조회합니다.")
+        @ApiResponses({
+                @ApiResponse(responseCode = "200", description = "덱 프리셋 카드 목록 조회 성공"),
+                @ApiResponse(responseCode = "404", description = "덱 프리셋을 찾을 수 없음"),
+        })
+        @GetMapping("/deck/{deckPresetId}")
+        public List<CardRes> getDeckCardsByDeckPresetId(@PathVariable Long deckPresetId) {
+                return deckPresetCardService.getCardsByDeckPresetId(deckPresetId);
         }
 
         // 테스트 완

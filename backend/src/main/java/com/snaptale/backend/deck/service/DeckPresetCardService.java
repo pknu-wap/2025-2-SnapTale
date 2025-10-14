@@ -54,6 +54,16 @@ public class DeckPresetCardService {
         return CardRes.from(deckPresetCardRepository.findById(deckPresetCardId).get().getCard());
     }
 
+    public List<CardRes> getCardsByDeckPresetId(Long deckPresetId) {
+        deckPresetRepository.findById(deckPresetId)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.DECK_PRESET_NOT_FOUND));
+
+        return deckPresetCardRepository.findByDeckPresetDeckPresetId(deckPresetId).stream()
+                .map(DeckPresetCard::getCard)
+                .map(CardRes::from)
+                .toList();
+    }
+
     // 덱 프리셋 카드 목록 조회
     public List<DeckPresetCardRes> getDeckPresetCards() {
         return deckPresetCardRepository.findAll().stream()
