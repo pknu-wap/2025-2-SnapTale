@@ -38,6 +38,8 @@ const DeckCheck = () => {
             setCards(fetchedCards);
             if (fetchedCards.length > 0) {
                 setSelectedCard(fetchedCards[0]);
+            } else {
+                setSelectedCard(null);
             }
 
             // const allCards = await fetchCardsAll();

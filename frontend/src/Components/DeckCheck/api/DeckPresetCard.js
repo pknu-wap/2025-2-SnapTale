@@ -1,6 +1,6 @@
 export async function fetchDeckPresetCards(deckPresetId) {
   const res = await fetch(
-    `${import.meta.env.VITE_API_BASE}/api/deck-preset-cards/${deckPresetId}`,
+    `${import.meta.env.VITE_API_BASE}/api/deck-preset-cards/deck/${deckPresetId}`,
     {
       method: "GET",
       headers: {
@@ -14,11 +14,7 @@ export async function fetchDeckPresetCards(deckPresetId) {
     throw new Error(`HTTP ${res.status}: ${body}`);
   }
 
-  const data = await res.json();
-  const result = [data.result]; //배열로 주고 있다면 [] 빼야함
-  console.log(result);
-
-  return result;
+  return res.json();
 }
 
 export async function fetchCardsAll() {
@@ -39,7 +35,6 @@ export async function fetchCardsAll() {
 
   const data = await res.json();
   const result = data.result;
-  console.log(result.length)
-
+  
   return result;
 }
