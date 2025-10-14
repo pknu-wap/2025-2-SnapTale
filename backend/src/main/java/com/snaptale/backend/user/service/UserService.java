@@ -12,7 +12,7 @@ import com.snaptale.backend.user.entity.User;
 import com.snaptale.backend.user.model.UserCreateReq;
 import com.snaptale.backend.user.model.UserRes;
 import com.snaptale.backend.user.model.UserUpdateReq;
-
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -40,10 +40,10 @@ public class UserService {
     public UserRes createUser(UserCreateReq request) {
         User user = User.builder()
                 .nickname(request.nickname())
-                .rankPoint(request.rankPoint())
-                .matchesPlayed(request.matchesPlayed())
-                .wins(request.wins())
-                .lastSeen(request.lastSeen())
+                .rankPoint(0)
+                .matchesPlayed(0)
+                .wins(0)
+                .lastSeen(LocalDateTime.now())
                 .build();
         userRepository.save(user);
         return UserRes.from(user);
