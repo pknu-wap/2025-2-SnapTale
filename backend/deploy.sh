@@ -56,9 +56,23 @@ JAR_PATH="$REMOTE_DIR/$JAR_BASENAME"
 [ -f "$JAR_PATH" ] || die "JAR가 없습니다: $JAR_PATH"
 [ -r "$JAR_PATH" ] || die "JAR 읽기 권한이 없습니다: $JAR_PATH"
 
-# 3) 기존 프로세스 종료 (절대경로 기준)
-pkill -f "$JAR_PATH" || true
+PORT="${SERVER_PORT:-8080}"
+# 3) 기존 프로세스 종료
+# 3-1) 동일 JAR로 띄운 프로세스 종료
+pkill -f "java .*${JAR_BASENAME}" || true
 sleep 1
+
+# 3-2) 여전히 포트 점유 중이면(이전 버전/다른 경로/다른 앱) 포트 기준으로 종료
+if sudo lsof -t -i:"$PORT" >/dev/null 2>&1; then
+  echo "Port $PORT in use. Killing holder..."
+  sudo kill -9 $(sudo lsof -t -i:"$PORT") || true
+  sleep 1
+fi
+
+# 3-3) 최종 확인
+if sudo lsof -t -i:"$PORT" >/dev/null 2>&1; then
+  die "포트 $PORT를 비울 수 없습니다."
+fi
 
 mkdir -p "$REMOTE_DIR/logs"
 cd "$REMOTE_DIR"
