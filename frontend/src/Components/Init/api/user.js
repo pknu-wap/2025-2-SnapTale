@@ -2,12 +2,8 @@ export async function createUser(nickname) {
   const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/users`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-     body: JSON.stringify({
+    body: JSON.stringify({
       nickname,
-      rankPoint: 0,
-      matchesPlayed: 0,
-      wins: 0,
-      lastSeen: new Date().toISOString()
     }),
   });
 
