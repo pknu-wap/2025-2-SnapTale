@@ -43,7 +43,7 @@ public class WebSocketEventHandler {
 
         sessionInfo.ifPresent(info -> {
             log.info("사용자 매치 퇴장 처리: userId={}, matchId={}",
-                    info.getUserId(), info.getMatchId());
+                    info.userId(), info.matchId());
             // TODO: 필요시 자동으로 매치 퇴장 처리를 여기서 할 수도 있음
             // matchWebSocketService.handleAutoLeave(info);
         });

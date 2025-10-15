@@ -78,7 +78,7 @@ public class MatchWebSocketService {
 
         // 세션 제거
         sessionManager.getSessionByUserId(message.getUserId())
-                .ifPresent(sessionInfo -> sessionManager.removeSession(sessionInfo.getSessionId()));
+                .ifPresent(sessionInfo -> sessionManager.removeSession(sessionInfo.sessionId()));
 
         broadcastToMatch(message.getMatchId(), "LEAVE", message,
                 "참가자가 퇴장했습니다.");
