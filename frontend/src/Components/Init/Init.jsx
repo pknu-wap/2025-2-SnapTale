@@ -11,11 +11,10 @@ const NICK_RULE = /^[가-힣a-zA-Z0-9]{2,8}$/;
 
 const Init = () => {
   const navigate = useNavigate();
+  // 1. 상태 단순화: 전역 user 상태와 로컬 nick 상태만 사용합니다.
   const { user, setUser, clearUser } = useUser();
-  const [nick, setNick] = useState(user?.nickname ?? "");
-  const [validatedGuest, setValidatedGuest] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [hasAttemptedRestore, setHasAttemptedRestore] = useState(false);
+  const [nick, setNick] = useState("");
+  const [loading, setLoading] = useState(true); // 처음엔 로딩 상태로 시작
   const isNickValid = NICK_RULE.test(nick.trim());
 
   const randomNicks = {
@@ -29,70 +28,37 @@ const Init = () => {
     setNick(a + n);
   };
 
+  // 2. useEffect 역할 변경:
+  // 컴포넌트가 처음 마운트될 때 딱 한 번만 실행되어
+  // localStorage의 사용자 정보가 유효한지 '검증'하고 '전역 상태'를 업데이트하는 역할만 합니다.
   useEffect(() => {
-    if (hasAttemptedRestore) {
-      return;
-    }
-
     let isMounted = true;
 
     const restoreGuest = async () => {
-      setHasAttemptedRestore(true);
+      const storedGuestId = localStorage.getItem("guestId");
 
-      if (!user?.guestId || !user?.nickname) {
+      if (!storedGuestId) {
         clearUser();
-        if (isMounted) {
-          setValidatedGuest(null);
-          setNick("");
-        }
+        if (isMounted) setLoading(false);
         return;
       }
 
-      if (isMounted) {
-        setLoading(true);
-      }
-
       try {
-        const fetchedUser = await getUser(user.guestId);
-
-        if (!isMounted) {
-          return;
-        }
-
-        if (fetchedUser) {
-          const normalizedUser = {
-            ...fetchedUser,
-            guestId: fetchedUser.guestId ?? user.guestId,
-            nickname: fetchedUser.nickname ?? user.nickname,
-          };
-
-          setUser(normalizedUser);
-          setValidatedGuest(normalizedUser);
-          setNick(normalizedUser.nickname ?? "");
-
-          try {
-            await updateLastSeen(normalizedUser.guestId);
-          } catch (err) {
-            console.error(err);
+        const fetchedUser = await getUser(storedGuestId);
+        if (isMounted) {
+          if (fetchedUser) {
+            setUser(fetchedUser); // 검증 성공 시 전역 user 상태 업데이트
+            updateLastSeen(fetchedUser.guestId).catch(console.error);
+          } else {
+            // 서버에 해당 유저가 없으면 로컬 정보도 삭제
+            clearUser();
           }
-
-          navigate("/home");
-        } else {
-          clearUser();
-          setValidatedGuest(null);
-          setNick("");
         }
       } catch (err) {
-        console.error(err);
-        clearUser();
-        if (isMounted) {
-          setValidatedGuest(null);
-          setNick("");
-        }
+        console.error("세션 복원 실패:", err);
+        if (isMounted) clearUser();
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        if (isMounted) setLoading(false);
       }
     };
 
@@ -101,39 +67,18 @@ const Init = () => {
     return () => {
       isMounted = false;
     };
-  }, [user, clearUser, setUser, navigate, hasAttemptedRestore]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 빈 배열로 설정하여 최초 1회만 실행
 
-  // const handleSubmit = (e) => {
-  //   e.preventDefault();
-  //   if (isNickValid) navigate("/home");
-  // };
-  // const goToHome = () => { // navigate('/home'); // };
-  
+  // 3. handleSubmit 역할 명확화: 오직 '새로운 사용자 생성'만 담당합니다.
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (loading) return;
-
-    if (validatedGuest) {
-      setNick(validatedGuest.nickname ?? nick);
-      navigate("/home");
-      return;
-    }
-
-    if (!isNickValid) return;
+    if (loading || !isNickValid) return;
 
     try {
       setLoading(true);
       const createdUser = await createUser(nick.trim());
-      setUser(createdUser);
-      setValidatedGuest(createdUser);
-      setNick(createdUser.nickname ?? nick.trim());
-
-      try {
-        await updateLastSeen(createdUser.guestId);
-      } catch (err) {
-        console.error(err);
-      }
-
+      setUser(createdUser); // 생성 성공 시 전역 user 상태 업데이트
       navigate("/home");
     } catch (err) {
       alert(err.message);
@@ -143,48 +88,75 @@ const Init = () => {
     }
   };
 
+  // 4. handleGoHome: '게임 시작' 버튼을 위한 함수
+  const handleGoHome = () => {
+    if (loading) return;
+    navigate("/home");
+  };
+
+  // 로딩 중일 때는 아무것도 보여주지 않거나 로딩 스피너를 보여줄 수 있습니다.
+  if (loading) {
+    return <main className="init-wrap">... 로딩 중 ...</main>;
+  }
 
   return (
     <main className="init-wrap">
-      <img src={logo} className="init-logo" />
-      <form className="init-form" onSubmit={handleSubmit}>
-        <div className="init-input-wrap">
-          <input
-            className="init-input"
-            id="nick"
-            value={nick}
-            onChange={(e) => setNick(e.target.value)}
-            placeholder="닉네임 입력"
-            maxLength={8}
-            aria-invalid={!!(nick && !isNickValid)}
-          />
+      <img src={logo} className="init-logo" alt="logo" />
+      {/* 5. UI 렌더링 로직 변경: 전역 user 상태에 따라 UI를 결정합니다. */}
+      {user ? (
+        <section className="init-welcome" aria-live="polite">
+          <p className="init-welcome-text">{`${user.nickname}님 환영합니다!`}</p>
+          <div className="init-actions">
+            <button
+              type="button"
+              className="init-btn-image"
+              onClick={handleGoHome}
+              aria-label="게임 시작"
+              style={{ backgroundImage: `url(${uiBtn})` }}
+            >
+              게임 시작!
+            </button>
+          </div>
+        </section>
+      ) : (
+        <form className="init-form" onSubmit={handleSubmit}>
+          {/* ... (닉네임 입력 폼 UI는 동일) ... */}
+          <div className="init-input-wrap">
+            <input
+              className="init-input"
+              id="nick"
+              value={nick}
+              onChange={(e) => setNick(e.target.value)}
+              placeholder="닉네임 입력"
+              maxLength={8}
+              aria-invalid={!!(nick && !isNickValid)}
+            />
+            <button
+              type="button"
+              className="init-dice"
+              onClick={rollNicks}
+              aria-label="랜덤 닉네임 생성"
+              title="랜덤 닉네임"
+            >
+              <img src={diceIcon} alt="주사위" className="dice-img" />
+            </button>
+          </div>
+          {nick && !isNickValid && (
+            <p className="init-error" role="alert" aria-live="assertive">
+              한글/영문/숫자, 2~8자
+            </p>
+          )}
           <button
-            type="button"
-            className="init-dice"
-            onClick={rollNicks}
-            aria-label="랜덤 닉네임 생성"
-            title="랜덤 닉네임"
+            type="submit"
+            disabled={loading || !isNickValid}
+            className="init-btn-image"
+            aria-label="시작하기"
+            style={{ backgroundImage: `url(${uiBtn})` }}
           >
-            <img src={diceIcon} alt="주사위" className="dice-img" />
+            {loading ? "생성 중..." : "시작하기"}
           </button>
-        </div>
-
-        {nick && !isNickValid && (
-          <p className="init-error" role="alert" aria-live="assertive">
-            한글/영문/숫자, 2~8자
-          </p>
-        )}
-
-        <button
-          type="submit"
-          disabled={
-            loading || (!validatedGuest && (!nick || !isNickValid))
-          }
-          className="init-btn-image"
-          aria-label="시작하기"
-          style={{ backgroundImage: `url(${uiBtn})` }}
-        >{loading ? "생성 중..." : "시작하기"}</button>
-      </form>
+        </form>
+      )}
     </main>
   );
 };
