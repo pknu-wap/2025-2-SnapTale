@@ -67,8 +67,5 @@ public class WebSocketSessionManager {
     }
 
     // 세션 정보 클래스
-        @Getter
-        public record SessionInfo(String sessionId, Long userId, Long matchId) {
-
-    }
+        public record SessionInfo(String sessionId, Long userId, Long matchId) {}
 }
