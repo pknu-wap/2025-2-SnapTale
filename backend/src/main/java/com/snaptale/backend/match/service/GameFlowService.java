@@ -40,15 +40,18 @@ public class GameFlowService {
     private final DeckPresetRepository deckPresetRepository;
     private final LocationRepository locationRepository;
     private static final int NUM_LOCATIONS = 3;
+    private static final int INITIAL_HAND_SIZE = 3;
+    private static final Set<String> ALLOWED_DECK_FACTIONS =
+            Set.of("한국", "중국", "일본");
 
     // 게임 초기화
     // - Match 생성
     // - 두 플레이어의 MatchParticipant 생성
     // - 3개의 Location 할당
-    // - 각 플레이어의 덱에서 초기 카드 드로우 (각 12장)
+    // - 각 플레이어의 덱에서 초기 카드 드로우 (각 3장)
     //
     // 중요: 같은 덱을 두 플레이어가 사용하면 안 됨 (카드 중복 방지)
-    // 사용 가능한 덱: 1~6번 (각 12장씩, 한국/중국/일본 카드 혼합)
+    // 사용 가능한 덱: 1~6번 한국/중국/일본 단일 진영 덱
     @Transactional
     public GameInitializationResult initializeGame(Long player1Id, Long player2Id,
             Long deck1Id, Long deck2Id) {
@@ -72,7 +75,7 @@ public class GameFlowService {
             throw new BaseException(BaseResponseStatus.DUPLICATE_DECK_USAGE);
         }
 
-        // 덱 카드 수 검증 (각 12장)
+        // 덱 카드 수 및 진영 검증
         validateDeckSize(deck1);
         validateDeckSize(deck2);
 
@@ -122,7 +125,7 @@ public class GameFlowService {
             match.addLocation(matchLocation);
         }
 
-        // 6. 각 플레이어의 초기 핸드 드로우
+        // 6. 각 플레이어의 초기 핸드 드로우  (3장)
         List<Card> player1Hand = drawInitialHand(deck1);
         List<Card> player2Hand = drawInitialHand(deck2);
 
@@ -148,16 +151,16 @@ public class GameFlowService {
     }
 
     // 덱에서 초기 카드 드로우
-    // 각 덱은 정확히 12장으로 구성되어 있으며, 한국/중국/일본 카드가 혼합되어 있음
-    // 각 카드는 중복 없이 1장씩만 포함됨
+    // 각 덱은 정확히 12장으로 구성되어 있으며, 단일 진영 카드만 포함됨
+    // 초기 핸드는 3장으로 제한되며, 이후 턴마다 1장씩 드로우한다
     private List<Card> drawInitialHand(DeckPreset deck) {
         List<Card> allCards = deck.getDeckPresetcards().stream()
                 .map(DeckPresetCard::getCard)
-                .collect(java.util.stream.Collectors.toList());
+                .collect(Collectors.toList());
 
         Collections.shuffle(allCards);
-        // 전체 덱(12장)을 핸드로 제공
-        return allCards;
+        int handSize = Math.min(INITIAL_HAND_SIZE, allCards.size());
+        return new ArrayList<>(allCards.subList(0, handSize));
     }
 
     // --------------------------------------------------------------------------------------------------------
@@ -185,7 +188,7 @@ public class GameFlowService {
     }
 
     // 다음 카드 드로우 (턴 시작 시)
-    // 참고: 현재 게임에서는 처음에 12장을 모두 받으므로 이 메서드는 사용되지 않음
+    // 참고: 플레이어는 초기 3장을 받은 뒤, 매 턴마다 이 메서드를 통해 1장을 드로우한다고 가정
     public Card drawNextCard(Long matchId, Long participantId, int currentTurn) {
         MatchParticipant participant = matchParticipantRepository.findById(participantId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.PARTICIPANT_NOT_FOUND));
