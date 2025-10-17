@@ -9,6 +9,7 @@ import com.snaptale.backend.deck.repository.DeckPresetRepository;
 import com.snaptale.backend.location.entity.Location;
 import com.snaptale.backend.location.repository.LocationRepository;
 import com.snaptale.backend.match.entity.*;
+import com.snaptale.backend.match.model.request.MatchUpdateReq;
 import com.snaptale.backend.match.repository.MatchLocationRepository;
 import com.snaptale.backend.match.repository.MatchParticipantRepository;
 import com.snaptale.backend.match.repository.MatchRepository;
@@ -35,20 +36,21 @@ public class GameFlowService {
     private final MatchRepository matchRepository;
     private final MatchParticipantRepository matchParticipantRepository;
     private final MatchLocationRepository matchLocationRepository;
-    private final PlayRepository playRepository;
     private final UserRepository userRepository;
     private final DeckPresetRepository deckPresetRepository;
     private final LocationRepository locationRepository;
     private static final int NUM_LOCATIONS = 3;
+    private static final int INITIAL_HAND_SIZE = 3;
+    private static final int DECK_SIZE = 12;
 
     // 게임 초기화
     // - Match 생성
     // - 두 플레이어의 MatchParticipant 생성
     // - 3개의 Location 할당
-    // - 각 플레이어의 덱에서 초기 카드 드로우 (각 12장)
+    // - 각 플레이어의 덱에서 초기 카드 드로우 (각 3장)
     //
     // 중요: 같은 덱을 두 플레이어가 사용하면 안 됨 (카드 중복 방지)
-    // 사용 가능한 덱: 1~6번 (각 12장씩, 한국/중국/일본 카드 혼합)
+    // 사용 가능한 덱: 1~6번 한국/중국/일본 단일 진영 덱
     @Transactional
     public GameInitializationResult initializeGame(Long player1Id, Long player2Id,
             Long deck1Id, Long deck2Id) {
@@ -72,7 +74,7 @@ public class GameFlowService {
             throw new BaseException(BaseResponseStatus.DUPLICATE_DECK_USAGE);
         }
 
-        // 덱 카드 수 검증 (각 12장)
+        // 덱 카드 수 및 진영 검증
         validateDeckSize(deck1);
         validateDeckSize(deck2);
 
@@ -90,6 +92,12 @@ public class GameFlowService {
                 .playerIndex(0)
                 .deckPreset(deck1)
                 .build();
+
+        List<Long> deckOrder1 = createShuffledDeckOrder(deck1);
+        participant1.setDeckOrder(deckOrder1);
+        participant1.setDrawIndex(0);
+        List<Card> player1Hand = extractInitialHand(deck1, deckOrder1);
+        participant1.setDrawIndex(INITIAL_HAND_SIZE);
         matchParticipantRepository.save(participant1);
         match.addParticipant(participant1);
 
@@ -99,6 +107,12 @@ public class GameFlowService {
                 .playerIndex(1)
                 .deckPreset(deck2)
                 .build();
+
+        List<Long> deckOrder2 = createShuffledDeckOrder(deck2);
+        participant2.setDeckOrder(deckOrder2);
+        participant2.setDrawIndex(0);
+        List<Card> player2Hand = extractInitialHand(deck2, deckOrder2);
+        participant2.setDrawIndex(INITIAL_HAND_SIZE);
         matchParticipantRepository.save(participant2);
         match.addParticipant(participant2);
 
@@ -122,9 +136,6 @@ public class GameFlowService {
             match.addLocation(matchLocation);
         }
 
-        // 6. 각 플레이어의 초기 핸드 드로우
-        List<Card> player1Hand = drawInitialHand(deck1);
-        List<Card> player2Hand = drawInitialHand(deck2);
 
         log.info("게임 초기화 완료: matchId={}", match.getMatchId());
 
@@ -142,25 +153,65 @@ public class GameFlowService {
     private void validateDeckSize(DeckPreset deck) {
         int totalCards = deck.getDeckPresetcards().size();
 
-        if (totalCards != 12) {
+        if (totalCards != DECK_SIZE) {
             throw new BaseException(BaseResponseStatus.INVALID_DECK_SIZE);
         }
     }
 
-    // 덱에서 초기 카드 드로우
-    // 각 덱은 정확히 12장으로 구성되어 있으며, 한국/중국/일본 카드가 혼합되어 있음
-    // 각 카드는 중복 없이 1장씩만 포함됨
-    private List<Card> drawInitialHand(DeckPreset deck) {
-        List<Card> allCards = deck.getDeckPresetcards().stream()
+    private List<Long> createShuffledDeckOrder(DeckPreset deck) {
+        List<Long> deckOrder = deck.getDeckPresetcards().stream()
                 .map(DeckPresetCard::getCard)
-                .collect(java.util.stream.Collectors.toList());
+                .map(Card::getCardId)
+                .collect(Collectors.toCollection(ArrayList::new));
 
-        Collections.shuffle(allCards);
-        // 전체 덱(12장)을 핸드로 제공
-        return allCards;
+        Collections.shuffle(deckOrder);
+        return deckOrder;
     }
 
+    private List<Card> extractInitialHand(DeckPreset deck, List<Long> deckOrder) {
+        return deckOrder.stream()
+                .limit(INITIAL_HAND_SIZE)
+                .map(cardId -> resolveCardFromDeck(deck, cardId))
+                .collect(Collectors.toList());
+    }
+
+    // 특정 덱(DeckPreset) 안에서 주어진 카드 ID(cardId)에 해당하는 Card 객체를 찾음
+    private Card resolveCardFromDeck(DeckPreset deck, Long cardId) {
+        return deck.getDeckPresetcards().stream()
+                .map(DeckPresetCard::getCard)
+                .filter(card -> card.getCardId().equals(cardId))
+                .findFirst()
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.CARD_NOT_FOUND));
+    }
+
+    private Optional<Card> drawCardFromDeck(MatchParticipant participant) {
+        List<Long> deckOrder = participant.getDeckOrder();
+        if (deckOrder.isEmpty()) {
+            return Optional.empty();
+        }
+
+        int drawIndex = participant.getDrawIndex();
+        if (drawIndex >= deckOrder.size()) {
+            return Optional.empty();
+        }
+
+        Long cardId = deckOrder.get(drawIndex);
+        Card card = resolveCardFromDeck(participant.getDeckPreset(), cardId);
+        participant.incrementDrawIndex();
+        matchParticipantRepository.save(participant);
+        return Optional.of(card);
+    }
     // --------------------------------------------------------------------------------------------------------
+
+    private Map<Long, Card> performTurnDraw(Match match) {
+        List<MatchParticipant> participants =
+                matchParticipantRepository.findByMatch_MatchId(match.getMatchId());
+        Map<Long, Card> drawn = new LinkedHashMap<>();
+        for (MatchParticipant participant : participants) {
+            drawCardFromDeck(participant).ifPresent(card -> drawn.put(participant.getId(), card));
+        }
+        return drawn;
+       }
 
     // 게임 시작 (턴 카운트를 1로 설정하고 상태를 PLAYING으로 변경)
     @Transactional
@@ -174,48 +225,64 @@ public class GameFlowService {
             throw new BaseException(BaseResponseStatus.INVALID_MATCH_STATUS);
         }
 
-        match.apply(new com.snaptale.backend.match.model.request.MatchUpdateReq(
+        match.apply(new MatchUpdateReq(
                 MatchStatus.PLAYING,
                 null,
                 1,
                 null));
-
         matchRepository.save(match);
-        log.info("게임 시작 완료: matchId={}, turnCount={}", matchId, match.getTurnCount());
+
+        // 첫 턴 시작 드로우 수행
+        Map<Long, Card> firstTurnDrawn = performTurnDraw(match);
+        log.info("게임 시작 완료: matchId={}, turnCount={}, firstTurnDrawnParticipants={}",
+                matchId, match.getTurnCount(), firstTurnDrawn.keySet());
+
+        // 클라이언트에 브로드캐스트 하는 로직이 여기에 들어가야 함
     }
 
-    // 다음 카드 드로우 (턴 시작 시)
-    // 참고: 현재 게임에서는 처음에 12장을 모두 받으므로 이 메서드는 사용되지 않음
-    public Card drawNextCard(Long matchId, Long participantId, int currentTurn) {
-        MatchParticipant participant = matchParticipantRepository.findById(participantId)
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.PARTICIPANT_NOT_FOUND));
+    @Transactional
+    public TurnStartResult startNextTurn(Long matchId) {
+        log.info("다음 턴 시작: matchId={}", matchId);
 
-        DeckPreset deck = participant.getDeckPreset();
+        Match match = matchRepository.findById(matchId)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_NOT_FOUND));
 
-        // 덱의 모든 카드 리스트 생성 (각 카드는 1장씩만 있음)
-        List<Card> allCards = deck.getDeckPresetcards().stream()
-                .map(DeckPresetCard::getCard)
-                .collect(Collectors.toList());
-
-        // 이미 플레이한 카드 제외
-        List<Play> playedCards = playRepository.findByMatch_MatchIdAndGuestId(
-                matchId, participant.getGuestId());
-        Set<Long> playedCardIds = playedCards.stream()
-                .map(play -> play.getCard().getCardId())
-                .collect(Collectors.toSet());
-
-        List<Card> remainingCards = allCards.stream()
-                .filter(card -> !playedCardIds.contains(card.getCardId()))
-                .collect(Collectors.toList());
-
-        if (remainingCards.isEmpty()) {
-            return null; // 더 이상 드로우할 카드 없음
+        if (match.getStatus() != MatchStatus.PLAYING) {
+            throw new BaseException(BaseResponseStatus.INVALID_MATCH_STATUS);
         }
 
-        // 랜덤으로 1장 선택
-        Collections.shuffle(remainingCards);
-        return remainingCards.get(0);
+        // 턴을 먼저 증가시키고
+        int currentTurnCount = Optional.ofNullable(match.getTurnCount()).orElse(0);
+        int nextTurn = currentTurnCount + 1;
+        match.apply(new MatchUpdateReq(null, null, nextTurn, null));
+        matchRepository.save(match);
+
+        // 이번 턴 드로우 수행
+        Map<Long, Card> drawnCards = performTurnDraw(match);
+        log.info("턴 시작 완료: matchId={}, turn={}, drawnParticipants={}",
+                matchId, nextTurn, drawnCards.keySet());
+
+        return new TurnStartResult(nextTurn, drawnCards);
     }
+
+    public static class TurnStartResult {
+        private final int turn;
+        private final Map<Long, Card> drawnCards;
+
+        public TurnStartResult(int turn, Map<Long, Card> drawnCards) {
+            this.turn = turn;
+            this.drawnCards = Collections.unmodifiableMap(new LinkedHashMap<>(drawnCards));
+        }
+
+        public int getTurn() {
+            return turn;
+        }
+
+        public Map<Long, Card> getDrawnCards() {
+            return drawnCards;
+        }
+    }
+
 
     // 게임 초기화 결과 DTO
     public static class GameInitializationResult {

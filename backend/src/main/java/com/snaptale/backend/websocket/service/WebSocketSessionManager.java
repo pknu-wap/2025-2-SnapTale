@@ -1,5 +1,6 @@
 package com.snaptale.backend.websocket.service;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -47,9 +48,9 @@ public class WebSocketSessionManager {
     public Optional<SessionInfo> removeSession(String sessionId) {
         SessionInfo sessionInfo = sessions.remove(sessionId);
         if (sessionInfo != null) {
-            userSessions.remove(sessionInfo.getUserId());
+            userSessions.remove(sessionInfo.userId());
             log.info("세션 제거: sessionId={}, userId={}, matchId={}",
-                    sessionId, sessionInfo.getUserId(), sessionInfo.getMatchId());
+                    sessionId, sessionInfo.userId(), sessionInfo.matchId());
         }
         return Optional.ofNullable(sessionInfo);
     }
@@ -58,7 +59,7 @@ public class WebSocketSessionManager {
     public Map<String, SessionInfo> getSessionsByMatchId(Long matchId) {
         Map<String, SessionInfo> matchSessions = new ConcurrentHashMap<>();
         sessions.forEach((sessionId, sessionInfo) -> {
-            if (sessionInfo.getMatchId() != null && sessionInfo.getMatchId().equals(matchId)) {
+            if (sessionInfo.matchId() != null && sessionInfo.matchId().equals(matchId)) {
                 matchSessions.put(sessionId, sessionInfo);
             }
         });
@@ -66,27 +67,8 @@ public class WebSocketSessionManager {
     }
 
     // 세션 정보 클래스
-    public static class SessionInfo {
-        private final String sessionId;
-        private final Long userId;
-        private final Long matchId;
+        @Getter
+        public record SessionInfo(String sessionId, Long userId, Long matchId) {
 
-        public SessionInfo(String sessionId, Long userId, Long matchId) {
-            this.sessionId = sessionId;
-            this.userId = userId;
-            this.matchId = matchId;
-        }
-
-        public String getSessionId() {
-            return sessionId;
-        }
-
-        public Long getUserId() {
-            return userId;
-        }
-
-        public Long getMatchId() {
-            return matchId;
-        }
     }
 }

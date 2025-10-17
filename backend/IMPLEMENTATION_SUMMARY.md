@@ -8,7 +8,7 @@
 - **주요 메서드**:
   - `initializeGame()`: 두 플레이어를 매칭하고 게임 초기화
   - `validateDeckSize()`: 덱이 정확히 12장인지 검증
-  - `drawInitialHand()`: 각 플레이어의 덱에서 전체 12장을 핸드로 제공
+  - `drawInitialHand()`: 각 플레이어의 덱에서 무작위로 3장을 초기 핸드로 제공
   - `startGame()`: 게임 시작 (상태를 PLAYING으로 변경)
   - `drawNextCard()`: 다음 카드 드로우 (현재 미사용)
 

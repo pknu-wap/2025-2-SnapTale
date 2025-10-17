@@ -1,16 +1,21 @@
 import "./Init.css";
-import { createUser } from "./api/user";
+import { createUser, getUser, updateLastSeen } from "./api/user";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import logo from "../../assets/logo.png";
 import diceIcon from "../../assets/dice.png";
 import uiBtn from "../../assets/uiBtn.png";
+import { useUser } from "../../contexts/UserContext.jsx";
 
 const NICK_RULE = /^[가-힣a-zA-Z0-9]{2,8}$/;
 
 const Init = () => {
   const navigate = useNavigate();
-  const [nick, setNick] = useState("");
+  const { user, setUser, clearUser } = useUser();
+  const [nick, setNick] = useState(user?.nickname ?? "");
+  const [validatedGuest, setValidatedGuest] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [hasAttemptedRestore, setHasAttemptedRestore] = useState(false);
   const isNickValid = NICK_RULE.test(nick.trim());
 
   const randomNicks = {
@@ -24,29 +29,120 @@ const Init = () => {
     setNick(a + n);
   };
 
+  useEffect(() => {
+    if (hasAttemptedRestore) {
+      return;
+    }
+
+    let isMounted = true;
+
+    const restoreGuest = async () => {
+      setHasAttemptedRestore(true);
+
+      if (!user?.guestId || !user?.nickname) {
+        clearUser();
+        if (isMounted) {
+          setValidatedGuest(null);
+          setNick("");
+        }
+        return;
+      }
+
+      if (isMounted) {
+        setLoading(true);
+      }
+
+      try {
+        const fetchedUser = await getUser(user.guestId);
+
+        if (!isMounted) {
+          return;
+        }
+
+        if (fetchedUser) {
+          const normalizedUser = {
+            ...fetchedUser,
+            guestId: fetchedUser.guestId ?? user.guestId,
+            nickname: fetchedUser.nickname ?? user.nickname,
+          };
+
+          setUser(normalizedUser);
+          setValidatedGuest(normalizedUser);
+          setNick(normalizedUser.nickname ?? "");
+
+          try {
+            await updateLastSeen(normalizedUser.guestId);
+          } catch (err) {
+            console.error(err);
+          }
+
+          navigate("/home");
+        } else {
+          clearUser();
+          setValidatedGuest(null);
+          setNick("");
+        }
+      } catch (err) {
+        console.error(err);
+        clearUser();
+        if (isMounted) {
+          setValidatedGuest(null);
+          setNick("");
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    restoreGuest();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user, clearUser, setUser, navigate, hasAttemptedRestore]);
+
   // const handleSubmit = (e) => {
   //   e.preventDefault();
   //   if (isNickValid) navigate("/home");
   // };
   // const goToHome = () => { // navigate('/home'); // };
   
-  const [loading, setLoading] = useState(false);
-
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  if (!isNickValid || loading) return;
+    e.preventDefault();
+    if (loading) return;
 
-  try {
-    setLoading(true);
-    await createUser(nick);
-    navigate("/home");
-  } catch (err) {
-    alert(err.message);
-    console.error(err);
-  } finally {
-    setLoading(false);
-  }
-};
+    if (validatedGuest) {
+      setNick(validatedGuest.nickname ?? nick);
+      navigate("/home");
+      return;
+    }
+
+    if (!isNickValid) return;
+
+    try {
+      setLoading(true);
+      const createdUser = await createUser(nick.trim());
+      setUser(createdUser);
+      setValidatedGuest(createdUser);
+      setNick(createdUser.nickname ?? nick.trim());
+
+      try {
+        await updateLastSeen(createdUser.guestId);
+      } catch (err) {
+        console.error(err);
+      }
+
+      navigate("/home");
+    } catch (err) {
+      alert(err.message);
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   return (
     <main className="init-wrap">
@@ -81,7 +177,9 @@ const Init = () => {
 
         <button
           type="submit"
-          disabled={!nick || !isNickValid || loading}
+          disabled={
+            loading || (!validatedGuest && (!nick || !isNickValid))
+          }
           className="init-btn-image"
           aria-label="시작하기"
           style={{ backgroundImage: `url(${uiBtn})` }}
