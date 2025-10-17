@@ -47,36 +47,3 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
-
-// frontend 빌드 결과물을 포함
-def isWindows = System.properties['os.name'].toLowerCase().contains('win')
-
-def npmPath = isWindows ? "C:/nodejs/npm.cmd" : "npm"
-def npmCmd = isWindows ? ["cmd", "/c", npmPath] : ["bash", "-lc", "npm"]
-
-tasks.register('npmInstall', Exec) {
-	workingDir = file("$projectDir/../frontend")
-	commandLine = npmCmd + ['ci']
-}
-
-tasks.register('npmBuild', Exec) {
-	dependsOn 'npmInstall'
-	workingDir = file("$projectDir/../frontend")
-	commandLine = npmCmd + ['run', 'build']
-}
-
-tasks.register('copyFront', Copy) {
-	dependsOn 'npmBuild'
-	from("$projectDir/../frontend/dist")
-	into("$projectDir/src/main/resources/static")
-}
-
-tasks.named('processResources') {
-	dependsOn 'copyFront'
-}
-
-tasks.named('clean') {
-	doFirst {
-		delete "$projectDir/src/main/resources/static"
-	}
-}
