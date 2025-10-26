@@ -78,6 +78,7 @@ public class MatchParticipant extends BaseEntity {
         }
     }
 
+    //"[5, 12, 8, 1, 15, 23, 7, 30, 4, 18, 9, 27]" 형식의 문자열을 List<Long>로 변환
     public List<Long> getDeckOrder() {
         if (deckOrderJson == null || deckOrderJson.isBlank()) {
             return Collections.emptyList();

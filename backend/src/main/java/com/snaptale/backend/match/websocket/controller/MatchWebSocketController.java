@@ -103,6 +103,7 @@ public class MatchWebSocketController {
 
             log.info("매치 시작 요청: matchId={}", matchId);
 
+            //게임 시작 턴 후 다음 턴 시작은 매치 턴 컨트롤러에서 관리함.
             matchWebSocketService.handleStart(message);
 
             return WebSocketResponse.success(message, "게임이 시작되었습니다!");

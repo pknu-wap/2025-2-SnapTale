@@ -13,7 +13,6 @@ import com.snaptale.backend.match.model.request.MatchUpdateReq;
 import com.snaptale.backend.match.repository.MatchLocationRepository;
 import com.snaptale.backend.match.repository.MatchParticipantRepository;
 import com.snaptale.backend.match.repository.MatchRepository;
-import com.snaptale.backend.match.repository.PlayRepository;
 import com.snaptale.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -201,8 +200,8 @@ public class GameFlowService {
         matchParticipantRepository.save(participant);
         return Optional.of(card);
     }
-    // --------------------------------------------------------------------------------------------------------
 
+    //플레이어의 카드 드로우
     private Map<Long, Card> performTurnDraw(Match match) {
         List<MatchParticipant> participants =
                 matchParticipantRepository.findByMatch_MatchId(match.getMatchId());
@@ -211,7 +210,9 @@ public class GameFlowService {
             drawCardFromDeck(participant).ifPresent(card -> drawn.put(participant.getId(), card));
         }
         return drawn;
-       }
+    }
+
+    // --------------------------------------------------------------------------------------------------------
 
     // 게임 시작 (턴 카운트를 1로 설정하고 상태를 PLAYING으로 변경)
     @Transactional
