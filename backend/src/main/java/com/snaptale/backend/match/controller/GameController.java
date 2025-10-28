@@ -35,7 +35,7 @@ public class GameController {
                 request.player1Id(),
                 request.player2Id(),
                 request.deck1Id(),
-                request.deck2Id());// 클라이언트에서 덱 아이디 전달인데 서버에서 덱 아이디 목록 조회해서 랜덤으로 선택으로 바꿀까..
+                request.deck2Id());
 
         GameInitRes response = GameInitRes.from(result);
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, response);
