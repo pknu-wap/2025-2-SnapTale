@@ -5,12 +5,40 @@ import SoundIcon from "./SoundIcon";
 import RDModal from "./RDModal";
 import PWModal from "./PWModal";
 import { useState } from "react";
+import { createMatch, joinMatch } from "./api/match";
+import { useUser } from "../../contexts/UserContext";
 
 
 const Home = () => {
   const [openPWModal, setOpenPWModal] = useState(false);
   const [openRDModal, setOpenRDModal] = useState(false);
   const [matchCode, setMatchCode] = useState(""); // 매치코드 값 저장
+  const { user } = useUser();
+
+  // 랜덤 매치 버튼 클릭 핸들러
+  const handleRandomMatch = async () => {
+    try {
+      if (!user) {
+        alert("로그인이 필요합니다.");
+        return;
+      }
+
+      // 매치 생성
+      const matchData = await createMatch("QUEUED", 0);
+      console.log("랜덤 매치 생성 완료:", matchData);
+      
+      // 생성된 매치에 참가
+      const joinResponse = await joinMatch(matchData.matchId, user.guestId, user.nickname);
+      console.log("랜덤 매치 참가 완료:", joinResponse);
+      
+      // 매치 코드 설정하고 모달 열기
+      setMatchCode("");
+      setOpenRDModal(true);
+    } catch (error) {
+      console.error("랜덤 매치 실패:", error);
+      alert("매치 생성에 실패했습니다.");
+    }
+  };
   return (
     <div className="home-container">
       
@@ -24,10 +52,7 @@ const Home = () => {
       <main className= "matching-buttons">
           <Button 
             text={"랜덤 매치"} 
-            onClick={() => {
-              setMatchCode("");
-              setOpenRDModal(true);
-            }}
+            onClick={handleRandomMatch}
             disabled={openRDModal || openPWModal} 
           />
           <Button 

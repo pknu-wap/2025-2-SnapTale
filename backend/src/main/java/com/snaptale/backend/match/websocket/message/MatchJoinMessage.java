@@ -21,6 +21,6 @@ public class MatchJoinMessage {
     // 참가자 닉네임
     private String nickname;
 
-    // 세션 ID
+    // 세션 ID (서버에서 생성)
     private String sessionId;
 }
