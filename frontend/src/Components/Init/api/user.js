@@ -2,7 +2,7 @@ const API_BASE = import.meta.env.VITE_API_BASE;
 
 async function parseJsonResponse(res) {
   if (!res.ok) {
-    const body = await res.text();
+    await res.text().catch(() => {});
     throw new Error(`HTTP ${res.status}`);
   }
 

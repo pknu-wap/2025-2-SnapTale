@@ -5,6 +5,7 @@ import  Home  from "./Components/Home/Home";
 import  DeckCheck from "./Components/DeckCheck/DeckCheck";
 import  GameLoading from "./Components/Home/GameLoading";
 import  GamePlay  from "./Components/GamePlay/Index";
+import { Navigate } from "react-router-dom";
 import  GameResult  from "./Components/GameResult";
 
 function App() {
@@ -21,7 +22,8 @@ function App() {
         {/* 게임 로딩 화면*/}
         <Route path="/gameloading" element={<GameLoading />} />
         {/* 게임 플레이 화면 */}
-        <Route path="/gameplay" element={<GamePlay />} />
+        <Route path="/gameplay" element={<Navigate to="/home" replace />} />
+        <Route path="/gameplay/:matchId" element={<GamePlay />} />
         {/* 게임 결과 확인 화면*/}
         <Route path="/gameresult" element={<GameResult />} />
       </Routes>

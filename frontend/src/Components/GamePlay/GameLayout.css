@@ -16,6 +16,20 @@
   align-items:center;
   padding: clamp(8px, 1.6vh, 12px) 0;
 }
+.connection-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  color: #2d3748;
+  font-weight: 600;
+  font-size: clamp(12px, 2vw, 14px);
+}
+
+.connection-error {
+  color: #c62828;
+  font-size: clamp(11px, 1.8vw, 13px);
+}
 .exit-btn{
   background:#444;
   color:#fff;
@@ -37,13 +51,40 @@
   padding: 0 clamp(8px, 2vw, 12px) clamp(12px, 2vh, 16px);
 }
 
-.gl-oppo-chip{
-  padding:.35rem .9rem;
-  border-radius:10px;
-  background:#e7d9c4;
-  border:2px solid #7a4d2f;
-  font-weight:800;
-  box-shadow: inset 0 -2px #d3c4aa;
+.gl-scoreboard {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(8px, 1.6vw, 16px);
+}
+
+.gl-score {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: clamp(10px, 1.8vw, 14px) clamp(12px, 2vw, 18px);
+  border-radius: 12px;
+  box-shadow: inset 0 -2px rgba(0,0,0,0.08);
+}
+
+.gl-score-opponent {
+  background: #f6e8da;
+  border: 2px solid #c49a71;
+}
+
+.gl-score-self {
+  background: #dbe8ff;
+  border: 2px solid #7aa0d6;
+}
+
+.gl-score-name {
+  font-weight: 700;
+  font-size: clamp(13px, 2.4vw, 16px);
+}
+
+.gl-score-value {
+  font-weight: 800;
+  font-size: clamp(16px, 2.8vw, 20px);
 }
 
 .gl-wrap .gl-lanes3{

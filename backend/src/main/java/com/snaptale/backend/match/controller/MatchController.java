@@ -2,7 +2,6 @@ package com.snaptale.backend.match.controller;
 
 import java.util.List;
 
-import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,7 +12,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.util.StringUtils;
 import jakarta.validation.Valid;
+import com.snaptale.backend.common.exceptions.BaseException;
 import com.snaptale.backend.common.response.BaseResponse;
 import com.snaptale.backend.common.response.BaseResponseStatus;
 import com.snaptale.backend.match.model.request.MatchCreateReq;
@@ -107,9 +108,17 @@ public class MatchController {
     @PostMapping("/{matchId}/join")
     public BaseResponse<MatchJoinRes> joinMatch(
             @PathVariable Long matchId,
-            @Payload MatchJoinMessage message,
+            @RequestBody MatchJoinMessage message,
             SimpMessageHeaderAccessor headerAccessor) {
-        String sessionId = headerAccessor.getSessionId();
+        String sessionId = message.getSessionId();
+        if (!StringUtils.hasText(sessionId) && headerAccessor != null) {
+            sessionId = headerAccessor.getSessionId();
+        }
+
+        if (!StringUtils.hasText(sessionId)) {
+            throw new BaseException(BaseResponseStatus.BAD_REQUEST);
+        }
+
         message.setSessionId(sessionId);
         message.setMatchId(matchId);
         MatchJoinRes response = matchRESTService.joinMatch(message);

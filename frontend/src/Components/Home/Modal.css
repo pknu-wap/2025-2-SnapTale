@@ -97,7 +97,7 @@
     text-align: center;
     color: #FFFFFF;
 }
-.cancel{
+.cancel{ 
     background: #800000;
     margin-top: 71px;
     margin-left: 37px;
@@ -106,4 +106,41 @@
     background: #228B22;
     margin-top: 71px;
     margin-left: 157px;
+}
+
+.matched-player {
+    margin-top: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.matched-player-avatar {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    border: 2px solid rgba(0, 0, 0, 0.15);
+    object-fit: cover;
+}
+
+.matched-player-name {
+    font-size: 18px;
+    color: #ffffff;
+    text-shadow: -1px 0 #5B1B17, 0 1px #5B1B17, 1px 0 #5B1B17, 0 -1px #5B1B17;
+}
+
+.retry-button {
+    margin-top: 16px;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    background: #f4b033;
+    color: #5b1b17;
+}
+
+.retry-button:hover {
+    background: #f7c45f;
 }

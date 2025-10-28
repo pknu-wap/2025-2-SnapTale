@@ -26,30 +26,13 @@ const factionClasses = {
 };
 
 const Card = ({
-  cardId,
   name,
   imageUrl,
   cost,
   power,
   faction,
-  effectDesc,
-  active,
-  createdAt,
-  updatedAt,
-  onCardClick 
+  onCardClick
 }) => {
-  console.log({
-    cardId,
-    name,
-    imageUrl,
-    cost,
-    power,
-    faction,
-    effectDesc,
-    active,
-    createdAt,
-    updatedAt
-  });
     const ref = useRef(null);
     useEffect(() => {
       const el = ref.current;
