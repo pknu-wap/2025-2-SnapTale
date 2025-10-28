@@ -2,8 +2,6 @@ package com.snaptale.backend.match.controller;
 
 import java.util.List;
 
-import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -107,10 +105,7 @@ public class MatchController {
     @PostMapping("/{matchId}/join")
     public BaseResponse<MatchJoinRes> joinMatch(
             @PathVariable Long matchId,
-            @Payload MatchJoinMessage message,
-            SimpMessageHeaderAccessor headerAccessor) {
-        String sessionId = headerAccessor.getSessionId();
-        message.setSessionId(sessionId);
+            @RequestBody MatchJoinMessage message) {
         message.setMatchId(matchId);
         MatchJoinRes response = matchRESTService.joinMatch(message);
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, response);
