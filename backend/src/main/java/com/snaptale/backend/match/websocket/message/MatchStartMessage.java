@@ -23,7 +23,6 @@ public class MatchStartMessage {
 
     // 참가자 수
     private Integer participantCount;
-    // todo: 이건 굳이..?
 
     // 게임 설정 정보
     private String gameSettings;

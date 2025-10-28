@@ -45,6 +45,7 @@ public class MatchWebSocketService {
 	private final TurnService turnService;
 	private final GameCalculationService gameCalculationService;
 
+	//api로 대체됨.
 	// 매치 참가 처리
 	@Transactional
 	public void handleJoin(MatchJoinMessage message) {
@@ -71,19 +72,7 @@ public class MatchWebSocketService {
 				message.getNickname() + "님이 입장했습니다.");
 	}
 
-	// 매치 퇴장 처리
-	@Transactional
-	public void handleLeave(MatchLeaveMessage message) {
-		log.info("매치 퇴장 처리: matchId={}, userId={}", message.getMatchId(), message.getUserId());
-
-		// 세션 제거
-		sessionManager.getSessionByUserId(message.getUserId())
-				.ifPresent(sessionInfo -> sessionManager.removeSession(sessionInfo.sessionId()));
-
-		broadcastToMatch(message.getMatchId(), "LEAVE", message,
-				"참가자가 퇴장했습니다.");
-	}
-
+	//api로 대체됨.
 	// 매치 시작 처리
 	@Transactional
 	public void handleStart(MatchStartMessage message) {
@@ -101,6 +90,19 @@ public class MatchWebSocketService {
 		GameStateMessage gameState = createGameStateMessage(match, participants);
 		broadcastToMatch(message.getMatchId(), "START", gameState,
 				"게임이 시작되었습니다!");
+	}
+
+	// 매치 퇴장 처리
+	@Transactional
+	public void handleLeave(MatchLeaveMessage message) {
+		log.info("매치 퇴장 처리: matchId={}, userId={}", message.getMatchId(), message.getUserId());
+
+		// 세션 제거
+		sessionManager.getSessionByUserId(message.getUserId())
+				.ifPresent(sessionInfo -> sessionManager.removeSession(sessionInfo.sessionId()));
+
+		broadcastToMatch(message.getMatchId(), "LEAVE", message,
+				"참가자가 퇴장했습니다.");
 	}
 
 	// 플레이 액션 처리
