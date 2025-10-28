@@ -42,8 +42,10 @@ public class MatchWebSocketController {
     // 서버 응답:
     // - destination: /topic/match/{matchId}
 
-    @MessageMapping("/match/{matchId}/join")
-    @SendTo("/topic/match/{matchId}")
+    // REST API로 대체됨 (POST /api/matches/{matchId}/join)
+    // @MessageMapping("/match/{matchId}/join")
+    // @SendTo("/topic/match/{matchId}")
+    // @Deprecated
     public WebSocketResponse<String> joinMatch(
             @DestinationVariable Long matchId,
             @Payload MatchJoinMessage message,
@@ -69,6 +71,31 @@ public class MatchWebSocketController {
         }
     }
 
+    // REST API로 대체됨 (POST /api/matches/{matchId}/start)
+    // 매치 시작
+    // @MessageMapping("/match/{matchId}/start")
+    // @SendTo("/topic/match/{matchId}")
+    // @Deprecated
+    public WebSocketResponse<MatchStartMessage> startMatch(
+            @DestinationVariable Long matchId,
+            @Payload MatchStartMessage message) {
+
+        try {
+            message.setMatchId(matchId);
+
+            log.info("매치 시작 요청: matchId={}", matchId);
+
+            // 게임 시작 턴 후 다음 턴 시작은 매치 턴 컨트롤러에서 관리함.
+            matchWebSocketService.handleStart(message);
+
+            return WebSocketResponse.success(message, "게임이 시작되었습니다!");
+
+        } catch (Exception e) {
+            log.error("매치 시작 실패: matchId={}, error={}", matchId, e.getMessage());
+            return WebSocketResponse.error("매치 시작에 실패했습니다: " + e.getMessage());
+        }
+    }
+
     // 매치 퇴장
     @MessageMapping("/match/{matchId}/leave")
     @SendTo("/topic/match/{matchId}")
@@ -88,29 +115,6 @@ public class MatchWebSocketController {
         } catch (Exception e) {
             log.error("매치 퇴장 실패: matchId={}, error={}", matchId, e.getMessage());
             return WebSocketResponse.error("매치 퇴장에 실패했습니다: " + e.getMessage());
-        }
-    }
-
-    // 매치 시작
-    @MessageMapping("/match/{matchId}/start")
-    @SendTo("/topic/match/{matchId}")
-    public WebSocketResponse<MatchStartMessage> startMatch(
-            @DestinationVariable Long matchId,
-            @Payload MatchStartMessage message) {
-
-        try {
-            message.setMatchId(matchId);
-
-            log.info("매치 시작 요청: matchId={}", matchId);
-
-            //게임 시작 턴 후 다음 턴 시작은 매치 턴 컨트롤러에서 관리함.
-            matchWebSocketService.handleStart(message);
-
-            return WebSocketResponse.success(message, "게임이 시작되었습니다!");
-
-        } catch (Exception e) {
-            log.error("매치 시작 실패: matchId={}, error={}", matchId, e.getMessage());
-            return WebSocketResponse.error("매치 시작에 실패했습니다: " + e.getMessage());
         }
     }
 

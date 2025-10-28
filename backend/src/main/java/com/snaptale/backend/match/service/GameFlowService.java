@@ -135,7 +135,6 @@ public class GameFlowService {
             match.addLocation(matchLocation);
         }
 
-
         log.info("게임 초기화 완료: matchId={}", match.getMatchId());
 
         return GameInitializationResult.builder()
@@ -283,7 +282,6 @@ public class GameFlowService {
             return drawnCards;
         }
     }
-
 
     // 게임 초기화 결과 DTO
     public static class GameInitializationResult {
