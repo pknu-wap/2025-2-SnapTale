@@ -3,8 +3,8 @@
   flex-direction: column; 
   align-items: center; 
   justify-content: flex-start; 
-  height: 100vh;
-  width: 100vw;
+  height: 100%;
+  width: 100%;
 }
 
 /* 상단 메뉴 (나가기 버튼) */
@@ -21,14 +21,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 6px;
 }
 
 .faction-icons {
   display: flex;
   justify-content: center;
   gap: 25px;
-  margin-bottom: 10px;
 }
 
 .faction-text {
@@ -44,13 +42,13 @@
   flex-wrap: wrap; /* 여러 줄 정렬 */
   justify-content: center;
   gap: 10px;
-  margin-top: 15px;
+  margin-top: 10px;
   max-width: 326px;
 }
 
 /* 카드 자세히 보기 */
 .selected-card {
-  margin-top: 75px;
+  margin-top: 15px;
   display: flex;
   flex-direction: column;
   align-items: center;

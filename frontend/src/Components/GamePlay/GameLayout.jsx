@@ -35,7 +35,7 @@ export default function GameLayout() {
   }));
 
   return (
-  <div>
+  <div className="game-container">
     <div className="gl-wrap">
       <div className="gl-oppo-chip">상대닉네임</div>
 
@@ -52,8 +52,11 @@ export default function GameLayout() {
 
       {/* 중앙 정육각 3개 */}
       <section className="gl-hexRow">
-        {Array.from({ length: lanes }).map((_, i) => (
-          <div className="gl-hex" key={`hex-${i}`} />
+        {["korea", "china", "japan"].map((nation, i) => (
+          <div
+            className={`gl-hex gl-${nation}`}
+            key={`hex-${nation}`}
+          />
         ))}
       </section>
 

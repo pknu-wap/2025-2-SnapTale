@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import logo from "../../assets/logo.png";
 import diceIcon from "../../assets/dice.png";
-import uiBtn from "../../assets/uiBtn.png";
 import { useUser } from "../../contexts/UserContext.jsx";
 
 const NICK_RULE = /^[가-힣a-zA-Z0-9]{2,8}$/;
@@ -112,7 +111,6 @@ const Init = () => {
               className="init-btn-image"
               onClick={handleGoHome}
               aria-label="게임 시작"
-              style={{ backgroundImage: `url(${uiBtn})` }}
             >
               게임 시작!
             </button>
