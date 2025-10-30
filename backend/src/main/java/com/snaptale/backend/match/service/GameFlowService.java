@@ -41,6 +41,8 @@ public class GameFlowService {
     private static final int NUM_LOCATIONS = 3;
     private static final int INITIAL_HAND_SIZE = 3;
     private static final int DECK_SIZE = 12;
+    private static final int INITIAL_ENERGY = 5;
+    private static final int ENERGY_PER_TURN = 4;
 
     // 게임 초기화
     // - Match 생성
@@ -200,10 +202,9 @@ public class GameFlowService {
         return Optional.of(card);
     }
 
-    //플레이어의 카드 드로우
+    // 플레이어의 카드 드로우
     private Map<Long, Card> performTurnDraw(Match match) {
-        List<MatchParticipant> participants =
-                matchParticipantRepository.findByMatch_MatchId(match.getMatchId());
+        List<MatchParticipant> participants = matchParticipantRepository.findByMatch_MatchId(match.getMatchId());
         Map<Long, Card> drawn = new LinkedHashMap<>();
         for (MatchParticipant participant : participants) {
             drawCardFromDeck(participant).ifPresent(card -> drawn.put(participant.getId(), card));
@@ -232,10 +233,17 @@ public class GameFlowService {
                 null));
         matchRepository.save(match);
 
+        // 모든 플레이어에게 초기 에너지 부여
+        List<MatchParticipant> participants = matchParticipantRepository.findByMatch_MatchId(matchId);
+        for (MatchParticipant participant : participants) {
+            participant.addEnergy(INITIAL_ENERGY);
+            matchParticipantRepository.save(participant);
+        }
+
         // 첫 턴 시작 드로우 수행
         Map<Long, Card> firstTurnDrawn = performTurnDraw(match);
-        log.info("게임 시작 완료: matchId={}, turnCount={}, firstTurnDrawnParticipants={}",
-                matchId, match.getTurnCount(), firstTurnDrawn.keySet());
+        log.info("게임 시작 완료: matchId={}, turnCount={}, firstTurnDrawnParticipants={}, initialEnergy={}",
+                matchId, match.getTurnCount(), firstTurnDrawn.keySet(), INITIAL_ENERGY);
 
         // 클라이언트에 브로드캐스트 하는 로직이 여기에 들어가야 함
     }
@@ -257,10 +265,17 @@ public class GameFlowService {
         match.apply(new MatchUpdateReq(null, null, nextTurn, null));
         matchRepository.save(match);
 
+        // 모든 플레이어에게 턴마다 에너지 추가
+        List<MatchParticipant> participants = matchParticipantRepository.findByMatch_MatchId(matchId);
+        for (MatchParticipant participant : participants) {
+            participant.addEnergy(ENERGY_PER_TURN);
+            matchParticipantRepository.save(participant);
+        }
+
         // 이번 턴 드로우 수행
         Map<Long, Card> drawnCards = performTurnDraw(match);
-        log.info("턴 시작 완료: matchId={}, turn={}, drawnParticipants={}",
-                matchId, nextTurn, drawnCards.keySet());
+        log.info("턴 시작 완료: matchId={}, turn={}, drawnParticipants={}, addedEnergy={}",
+                matchId, nextTurn, drawnCards.keySet(), ENERGY_PER_TURN);
 
         return new TurnStartResult(nextTurn, drawnCards);
     }

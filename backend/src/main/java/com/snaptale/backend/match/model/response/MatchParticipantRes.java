@@ -9,7 +9,8 @@ public record MatchParticipantRes(
         Integer playerIndex,
         Long deckPresetId,
         Long matchId,
-        Long guestId) {
+        Long guestId,
+        Integer energy) {
     public static MatchParticipantRes from(MatchParticipant matchParticipant) {
         return new MatchParticipantRes(
                 matchParticipant.getId(),
@@ -17,6 +18,7 @@ public record MatchParticipantRes(
                 matchParticipant.getPlayerIndex(),
                 matchParticipant.getDeckPreset().getDeckPresetId(),
                 matchParticipant.getMatch().getMatchId(),
-                matchParticipant.getGuestId());
+                matchParticipant.getGuestId(),
+                matchParticipant.getEnergy());
     }
 }

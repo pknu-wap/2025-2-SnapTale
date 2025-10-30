@@ -18,14 +18,21 @@ const RDModal = ({setOpenRDModal, matchCode, currentMatchId: initialMatchId}) =>
         profileImage: ""
     });
 
-    // 매치 참가 처리 (친선전만, 랜덤 매치는 이미 Home에서 처리됨)
+    // 매치 참가 처리
     useEffect(() => {
         if (!user) return;
 
         const handleMatching = async () => {
             try {
+                // currentMatchId가 이미 있으면 Home에서 joinMatch를 호출했으므로 폴링만 시작
+                if (currentMatchId) {
+                    console.log("이미 매치 참가됨, matchId:", currentMatchId);
+                    return;
+                }
+
+                // matchCode가 있고 currentMatchId가 없는 경우에만 joinMatch 호출
+                // (PWModal을 통한 구 방식 - 현재는 사용하지 않음)
                 if (matchCode) {
-                    // 친선전: 패스워드로 매치 조인
                     const matchId = parseInt(matchCode);
                     if (isNaN(matchId)) {
                         alert("잘못된 매치 코드입니다.");
@@ -36,10 +43,6 @@ const RDModal = ({setOpenRDModal, matchCode, currentMatchId: initialMatchId}) =>
                     const response = await joinMatch(matchId, user.guestId, user.nickname);
                     console.log("친선전 매치 참가 성공:", response);
                     setCurrentMatchId(matchId);
-                } else if (currentMatchId) {
-                    // 랜덤 매칭: 이미 Home에서 joinMatch를 호출했으므로 
-                    // 별도 처리 없이 바로 폴링만 시작
-                    console.log("랜덤 매치 이미 참가됨, matchId:", currentMatchId);
                 }
             } catch (error) {
                 console.error("매치 처리 실패:", error);

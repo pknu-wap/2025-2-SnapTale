@@ -1,9 +1,10 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import GameLayout from "./GameLayout";
 import Soundbar from "../Home/SoundIcon";
 
 const GamePlay = () => {
   const navigate = useNavigate();
+  const { matchId } = useParams();
 
   return (
     <div className="gameplay-container">
@@ -15,7 +16,7 @@ const GamePlay = () => {
             나가기
         </button>
       </header>
-      <GameLayout />
+      <GameLayout matchId={matchId} />
     </div>
   );
 };

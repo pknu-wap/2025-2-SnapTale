@@ -6,18 +6,18 @@ import { useEffect } from 'react';
 //게임 로딩 애니메이션 추가 예정
 const GameLoading = () => {
   const { state } = useLocation(); 
-  const { userName1, profileImage1, userName2, profileImage2 } = state;
+  const { userName1, profileImage1, userName2, profileImage2, matchId } = state;
   const navigate = useNavigate();
 
   useEffect(() => {
     // 2초 뒤 /gameplay로 이동
     const timer = setTimeout(() => {
-      navigate('/gameplay');
+      navigate(`/gameplay/${matchId}`);
     }, 2000);
 
     // 컴포넌트 언마운트 시 타이머 정리
     return () => clearTimeout(timer);
-  }, [navigate]);
+  }, [navigate, matchId]);
 
   return (
     <div className="Overlay">

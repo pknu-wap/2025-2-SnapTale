@@ -41,5 +41,6 @@ public class GameStateMessage {
         private String nickname;
         private Integer score;
         private Integer remainingCards;
+        private Integer energy;
     }
 }
