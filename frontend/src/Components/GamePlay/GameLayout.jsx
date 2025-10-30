@@ -17,6 +17,8 @@ export default function GameLayout() {
   const [locations, setLocations] = useState([]); // 서버에서 불러올 위치 데이터
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [opponentPowers, setOpponentPowers] = useState([0, 0, 0]);
+  const [myPowers, setMyPowers] = useState([0, 0, 0]);
 
   useEffect(() => {
     async function loadLocations() {
@@ -42,6 +44,7 @@ export default function GameLayout() {
           // 랜덤으로 3개 선택
           const shuffled = [...formatted].sort(() => Math.random() - 0.5);
           const selected = shuffled.slice(0, 3);
+          console.log("랜덤으로 선택된 지역 ID:", selected[0].locationId, selected[1].locationId, selected[2].locationId);
 
           setLocations(selected);
         } else {
@@ -98,20 +101,54 @@ export default function GameLayout() {
 
       {/* 중앙 정육각 3개 */}
       <section className="gl-hexRow">
-          {loading && <div className="loading">위치 불러오는 중...</div>}
-          {error && <div className="error">⚠ {error}</div>}
-          {!loading &&
-            !error &&
-            locations.map((loc) => (
-              <Location
-                key={loc.locationId}
-                {...loc}
-                onLocationClick={() =>
-                  alert(`${loc.name} 클릭됨! (효과: ${loc.effectDesc})`)
-                }
-              />
-            ))}
-        </section>
+        {loading && <div className="loading">위치 불러오는 중...</div>}
+        {error && <div className="error">⚠ {error}</div>}
+        {!loading && !error && locations.length === 3 && (
+        <>
+          <Location
+            key={locations[0].locationId}
+            locationId={locations[0].locationId}
+            name={locations[0].name}
+            imageUrl={locations[0].imageUrl}
+            effectDesc={locations[0].effectDesc}
+            active={locations[0].active}
+            opponentPower={opponentPowers[0]}
+            myPower={myPowers[0]}
+            onLocationClick={() =>
+              alert(`${locations[0].name} 클릭됨! (효과: ${locations[0].effectDesc})`)
+            }
+          />
+
+          <Location
+            key={locations[1].locationId}
+            locationId={locations[1].locationId}
+            name={locations[1].name}
+            imageUrl={locations[1].imageUrl}
+            effectDesc={locations[1].effectDesc}
+            active={locations[1].active}
+            opponentPower={opponentPowers[1]}
+            myPower={myPowers[1]}
+            onLocationClick={() =>
+              alert(`${locations[1].name} 클릭됨! (효과: ${locations[1].effectDesc})`)
+            }
+          />
+
+          <Location
+            key={locations[2].locationId}
+            locationId={locations[2].locationId}
+            name={locations[2].name}
+            imageUrl={locations[2].imageUrl}
+            effectDesc={locations[2].effectDesc}
+            active={locations[2].active}
+            opponentPower={opponentPowers[2]}
+            myPower={myPowers[2]}
+            onLocationClick={() =>
+              alert(`${locations[2].name} 클릭됨! (효과: ${locations[2].effectDesc})`)
+            }
+          />
+        </>
+      )}
+    </section>
 
       {/* 아래 3레인 × 4장 */}
       <section className="gl-lanes3">
