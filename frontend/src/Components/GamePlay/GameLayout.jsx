@@ -2,6 +2,7 @@
 import { useState } from "react";
 import "./GameLayout.css";
 import Card from "./Card";
+import Energy from "./Energy";
 import EnlargedCard from "./EnlargedCard";
 import DCI from "../../assets/defaultCardImg.svg";
 
@@ -11,6 +12,8 @@ export default function GameLayout() {
   const botCountPerLane = 4;       // 아래 4장
   const handCount = 12;            // 6x2
   const [selectedCard, setSelectedCard] = useState(null);
+
+  const [energy, setEnergy] = useState(3);
 
   const handleCardClick = (cardData) => {
     setSelectedCard(cardData);
@@ -35,10 +38,8 @@ export default function GameLayout() {
   }));
 
   return (
-  <div>
+    <>
     <div className="gl-wrap">
-      <div className="gl-oppo-chip">상대닉네임</div>
-
       {/* 위 3레인 × 4장 */}
       <section className="gl-lanes3">
         {Array.from({ length: lanes }).map((_, laneIdx) => (
@@ -52,8 +53,11 @@ export default function GameLayout() {
 
       {/* 중앙 정육각 3개 */}
       <section className="gl-hexRow">
-        {Array.from({ length: lanes }).map((_, i) => (
-          <div className="gl-hex" key={`hex-${i}`} />
+        {["korea", "china", "japan"].map((nation, i) => (
+          <div
+            className={`gl-hex gl-${nation}`}
+            key={`hex-${nation}`}
+          />
         ))}
       </section>
 
@@ -68,7 +72,7 @@ export default function GameLayout() {
         ))}
       </section>
 
-      <div className="gl-turnOrb">1</div>
+      <Energy value={energy}/>
 
       {/* 손패 6x2 = 12 */}
       <section className="gl-hand12">
@@ -89,15 +93,17 @@ export default function GameLayout() {
           />
         ))}
       </section>
+
       <footer className="gl-footer">
         <button className="gl-endBtn">턴 종료 (1/6)</button>
       </footer>
     </div>
+
       {selectedCard && (
         <div className="modal-backdrop">
           <EnlargedCard card={selectedCard} onClose={handleCloseModal} />
         </div>
       )}
-  </div>
+    </>
   );
 }

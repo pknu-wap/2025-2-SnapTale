@@ -3,8 +3,6 @@ import { createUser, getUser, updateLastSeen } from "./api/user";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import logo from "../../assets/logo.png";
-import diceIcon from "../../assets/dice.png";
-import uiBtn from "../../assets/uiBtn.png";
 import { useUser } from "../../contexts/UserContext.jsx";
 
 const NICK_RULE = /^[가-힣a-zA-Z0-9]{2,8}$/;
@@ -101,7 +99,7 @@ const Init = () => {
 
   return (
     <main className="init-wrap">
-      <img src={logo} className="init-logo" alt="logo" />
+      <div className="init-logo"></div>
       {/* 5. UI 렌더링 로직 변경: 전역 user 상태에 따라 UI를 결정합니다. */}
       {user ? (
         <section className="init-welcome" aria-live="polite">
@@ -112,7 +110,6 @@ const Init = () => {
               className="init-btn-image"
               onClick={handleGoHome}
               aria-label="게임 시작"
-              style={{ backgroundImage: `url(${uiBtn})` }}
             >
               게임 시작!
             </button>
@@ -135,10 +132,8 @@ const Init = () => {
               type="button"
               className="init-dice"
               onClick={rollNicks}
-              aria-label="랜덤 닉네임 생성"
               title="랜덤 닉네임"
             >
-              <img src={diceIcon} alt="주사위" className="dice-img" />
             </button>
           </div>
           {nick && !isNickValid && (
@@ -150,8 +145,6 @@ const Init = () => {
             type="submit"
             disabled={loading || !isNickValid}
             className="init-btn-image"
-            aria-label="시작하기"
-            style={{ backgroundImage: `url(${uiBtn})` }}
           >
             {loading ? "생성 중..." : "시작하기"}
           </button>
