@@ -15,7 +15,7 @@ const PWModal = ({setOpenPWModal, setOpenRDModal, setMatchCode }) => {
     setOpenPWModal(false);
     setOpenRDModal(true);
     };
-
+//그 먼저 방 생성 or 참가 선택지가 있어야 하는데 이건 없어서 새로 만들고 이건 일단 둘게요!
     return (
         <div className = "Overlay">
             <div className = "modal-title"> 

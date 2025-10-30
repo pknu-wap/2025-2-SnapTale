@@ -11,9 +11,14 @@ async function parseJsonResponse(res) {
 }
 
 // 매치 조회
-export async function getMatch(matchId) {
-  const res = await fetch(`${API_BASE}/api/matches/${matchId}`);
-  return parseJsonResponse(res);
+export async function getMatch(matchId) { // 매치 삭제 후 404면 null 반환
+  try {
+    const res = await fetch(`${API_BASE}/api/matches/${matchId}`);
+    return await parseJsonResponse(res);
+  } catch {
+    // 404 등 오류는 null로 처리하여 폴링 루프에서 안전하게 중단 가능
+    return null;
+  }
 }
 
 // 매치 참가 (userId, nickname만 전송)
@@ -29,7 +34,6 @@ export async function joinMatch(matchId, userId, nickname) {
   });
   return parseJsonResponse(res);
 }
-
 // 매치 생성
 // MatchCreateReq: status (필수), winnerId (선택), turnCount (필수), endedAt (선택)
 // MatchStatus: QUEUED, MATCHED, PLAYING, ENDED
@@ -45,4 +49,13 @@ export async function createMatch(status = "QUEUED", turnCount = 0) {
     }),
   });
   return parseJsonResponse(res);
+}
+
+// 매치 삭제
+export async function deleteMatch(matchId) {
+  const res = await fetch(`${API_BASE}/api/matches/${matchId}`, {
+    method: "DELETE",
+  });
+  // 삭제 응답은 result가 없을 수 있으므로 오류만 검사
+  return parseJsonResponse(res).catch(() => null);
 }

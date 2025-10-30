@@ -9,27 +9,26 @@ import  GameResult  from "./Components/GameResult";
 
 function App() {
   return (
-    <div className='app-background'>
-      <div className='app-bg-image'>
+    <div className="app-background app-bg">
+      <div className="app-bg-image">
         <Router>
           <Routes>
             {/* 초기 화면 */}
             <Route path="/" element={<Init />} />
-            {/* 메인 홈 화면*/}
+            {/* 메인 홈 화면 */}
             <Route path="/home" element={<Home />} />
-            {/* 덱 확인 화면*/}
+            {/* 덱 확인 화면 */}
             <Route path="/deck" element={<DeckCheck />} />
-            {/* 게임 로딩 화면*/}
+            {/* 게임 로딩 화면 */}
             <Route path="/gameloading" element={<GameLoading />} />
-            {/* 게임 플레이 화면 */}
-            <Route path="/gameplay" element={<GamePlay />} />
-            {/* 게임 결과 확인 화면*/}
+            {/* 게임 플레이 화면 (matchId 파라미터) */}
+            <Route path="/gameplay/:matchId" element={<GamePlay />} />
+            {/* 게임 결과 확인 화면 */}
             <Route path="/gameresult" element={<GameResult />} />
           </Routes>
         </Router>
       </div>
     </div>
-  )
+  );
 }
-
 export default App;

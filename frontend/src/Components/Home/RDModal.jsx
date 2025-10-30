@@ -4,28 +4,35 @@ import profile1 from '../../assets/userProfile.png';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../contexts/UserContext';
-import { joinMatch, getMatch, createMatch } from './api/match';
+import { joinMatch, getMatch, deleteMatch } from './api/match';
 
 {/* 전투 준비 중 모달창 */}
-const RDModal = ({setOpenRDModal, matchCode}) => {
+const RDModal = ({setOpenRDModal, matchCode, currentMatchId: initialMatchId}) => {
     const navigate = useNavigate();
     const { user } = useUser();
     const [isMatched, setIsMatched] = useState(false);
-    const [currentMatchId, setCurrentMatchId] = useState(null);
+    const [currentMatchId, setCurrentMatchId] = useState(initialMatchId);
 
-     const [enemyPlayer, setEnemyPlayer] = useState({
+    const [enemyPlayer, setEnemyPlayer] = useState({
         userName: "",
         profileImage: ""
     });
 
-    // 매치 참가 또는 생성 처리
+    // 매치 참가 처리
     useEffect(() => {
         if (!user) return;
 
         const handleMatching = async () => {
             try {
+                // currentMatchId가 이미 있으면 Home에서 joinMatch를 호출했으므로 폴링만 시작
+                if (currentMatchId) {
+                    console.log("이미 매치 참가됨, matchId:", currentMatchId);
+                    return;
+                }
+
+                // matchCode가 있고 currentMatchId가 없는 경우에만 joinMatch 호출
+                // (PWModal을 통한 구 방식 - 현재는 사용하지 않음)
                 if (matchCode) {
-                    // 친선전: 패스워드로 매치 조인
                     const matchId = parseInt(matchCode);
                     if (isNaN(matchId)) {
                         alert("잘못된 매치 코드입니다.");
@@ -34,17 +41,8 @@ const RDModal = ({setOpenRDModal, matchCode}) => {
                     }
 
                     const response = await joinMatch(matchId, user.guestId, user.nickname);
-                    console.log("매치 참가 성공:", response);
+                    console.log("친선전 매치 참가 성공:", response);
                     setCurrentMatchId(matchId);
-                } else {
-                    // 랜덤 매칭: 새 매치 생성
-                    const matchData = await createMatch("QUEUED", 0);
-                    console.log("매치 생성 성공:", matchData);
-                    setCurrentMatchId(matchData.matchId);
-                    
-                    // 생성된 매치에 참가
-                    await joinMatch(matchData.matchId, user.guestId, user.nickname);
-                    console.log("생성된 매치에 참가 완료");
                 }
             } catch (error) {
                 console.error("매치 처리 실패:", error);
@@ -54,7 +52,7 @@ const RDModal = ({setOpenRDModal, matchCode}) => {
         };
 
         handleMatching();
-    }, [matchCode, user, setOpenRDModal]);
+    }, [matchCode, currentMatchId, user, setOpenRDModal]);
 
     // 매치 상태 폴링 (상대방 입장 확인)
     useEffect(() => {
@@ -65,21 +63,21 @@ const RDModal = ({setOpenRDModal, matchCode}) => {
                 const matchData = await getMatch(currentMatchId);
                 console.log("매치 상태:", matchData);
 
-                // participants가 2명이면 매칭 완료
-                if (matchData && matchData.participants && matchData.participants.length >= 2) {
+                // 상태 기반 매칭 완료 처리 (권장)
+                if (matchData && (matchData.status === "MATCHED" || matchData.status === "PLAYING")) {
+                    // 상대 정보가 응답에 포함되어 있으면 설정 (선택적)
+                    if (matchData.participants && matchData.participants.length >= 2) {
+                        const other = matchData.participants.find(p => p.guestId !== user.guestId);
+                        if (other) {
+                            setEnemyPlayer({
+                                userName: other.nickname || "상대방",
+                                profileImage: other.profileImage || profile1
+                            });
+                        }
+                    }
                     setIsMatched(true);
                     clearInterval(intervalId);
-
-                    // 상대방 정보 찾기
-                    const otherParticipant = matchData.participants.find(
-                        p => p.guestId !== user.guestId
-                    );
-                    if (otherParticipant) {
-                        setEnemyPlayer({
-                            userName: otherParticipant.nickname || "상대방",
-                            profileImage: profile1
-                        });
-                    }
+                    return;
                 }
             } catch (error) {
                 console.error("매치 상태 조회 실패:", error);
@@ -106,8 +104,17 @@ const RDModal = ({setOpenRDModal, matchCode}) => {
     return (
         <div className = "Overlay">
             <button className = "cancelIcon"
-                onClick={() => {
-                    setOpenRDModal(false); // 클릭하면 모달창 닫기
+                onClick={async () => {
+                    try {
+                        const targetId = currentMatchId || (matchCode ? parseInt(matchCode) : null);
+                        if (targetId) {
+                            await deleteMatch(targetId);
+                        }
+                    } catch (e) {
+                        console.error('매치 삭제 실패:', e);
+                    } finally {
+                        setOpenRDModal(false); // 클릭하면 모달창 닫기
+                    }
                 }}></button>
             <div className = "modal-main">
                 {!isMatched ? (
