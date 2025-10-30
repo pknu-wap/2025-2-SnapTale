@@ -16,9 +16,9 @@
 }
 
 .init-logo {
-  width: clamp(180px, 100%, 360px);
-  height: auto;
-  margin: 0 auto clamp(24px, 6%, 64px);
+  width: clamp(400px, 10vw, 500px);
+  height: clamp(400px, 8vw, 500px);
+  background: url("../../assets/logo.png") center/contain no-repeat;
 }
 
 .init-form {
@@ -70,18 +70,17 @@
   background: transparent;
   border: none;
   border-bottom: 2px solid rgba(255,255,255,0.85);
-  border-radius: 0;
-  outline: none;
   color: #FFECDE;
   font-size: clamp(16px, 1rem + 0.25vw, 18px);
   text-align: left;
+  letter-spacing: 0.05em;
 }
 
 .init-input::placeholder {
   color: #FFECDE;
   font-size: inherit;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   text-align: left;
   text-shadow: 0 1px 0 rgba(0,0,0,0.35);
   transition: color .15s ease, opacity .15s ease;
@@ -94,36 +93,33 @@
 .init-error {
   margin: 8px 0 6px;
   color: #d4220e;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 500;
   text-align: center;
   width: 100%;
 }
 
 .init-dice {
-  position: absolute;
-  top: -8px;
-  padding: 0;
-  border: none;
-  background: transparent;
-  line-height: 0;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));
-}
-
-.init-dice .dice-img {
   width: 70px;
   height: 70px;
   object-fit: contain;
   display: block;
-  pointer-events: none;
+  position:absolute;
+  top: -8px;
+  padding: 0;
+  border: none;
+  line-height: 0;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));
+  background: url("../../assets/dice.png") center/contain no-repeat;
+  margin-left: 90%;
 }
 
 .init-btn-image {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: clamp(260px, 35vw, 420px); /* 버튼 폭 */
-  height: calc(clamp(260px, 35vw, 400px) / 3); /* 비율 유지 */
+  width: clamp(250px, 35vw, 400px);
+  height: calc(clamp(250px, 35vw, 350px) / 3);
   margin: clamp(12px, 2vh, 20px) auto 0;
   border: none;
   background: url("../../assets/uiBtn.png") center/contain no-repeat;

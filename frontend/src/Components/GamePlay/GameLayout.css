@@ -9,6 +9,7 @@
   justify-content: center;
   background: url("../../assets/bg_gamepage.png") center / cover no-repeat;
 }
+
 .gameplay-header{
   width: 90%;
   max-width: 90%;
@@ -17,6 +18,15 @@
   align-items:center;
   padding: clamp(8px, 1.6vh, 12px) 0;
 }
+
+.gl-oppo-chip{
+  padding:.35rem .9rem;
+  background: url("../../assets/uiBtn.png") center/contain no-repeat;
+  font-weight:800;
+  color: #2c1105;
+  letter-spacing: 0.05em;
+}
+
 .exit-btn{
   background:#444;
   color:#fff;
@@ -35,14 +45,6 @@
   align-items:center;
   gap: clamp(8px, 1.6vh, 14px);
   padding: 0 clamp(8px, 2vw, 12px) clamp(12px, 2vh, 16px);
-}
-
-.gl-oppo-chip{
-  padding:.35rem .9rem;
-  background: url("../../assets/uiBtn.png") center/contain no-repeat;
-  font-weight:800;
-  color: #2c1105;
-  letter-spacing: 0.05em;
 }
 
 .gl-wrap .gl-lanes3{
@@ -129,16 +131,6 @@
 
 .gl-japan {
   background-image: url("../../assets/japanIcon.png");
-}
-
-.gl-turnOrb{
-  width: clamp(36px, 6vw, 56px);
-  aspect-ratio:1/1;
-  border-radius:50%;
-  display:grid; place-items:center;
-  font-weight:900;
-  background: radial-gradient(circle, #fff 0%, #d5f1d7 45%, #88c18c 70%, rgba(0,0,0,.15) 100%);
-  border:2px solid #668e6b;
 }
 
 .gl-wrap .gl-hand12{
