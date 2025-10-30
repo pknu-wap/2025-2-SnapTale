@@ -5,7 +5,7 @@ import SoundIcon from "./SoundIcon";
 import RDModal from "./RDModal";
 import PWModal from "./PWModal";
 import { useState } from "react";
-import { createMatch, joinMatch } from "./api/match";
+import { joinMatch } from "./api/match";
 import { useUser } from "../../contexts/UserContext";
 
 
@@ -13,6 +13,7 @@ const Home = () => {
   const [openPWModal, setOpenPWModal] = useState(false);
   const [openRDModal, setOpenRDModal] = useState(false);
   const [matchCode, setMatchCode] = useState(""); // 매치코드 값 저장
+  const [currentMatchId, setCurrentMatchId] = useState(null); // 랜덤 매치의 matchId 저장
   const { user } = useUser();
 
   // 랜덤 매치 버튼 클릭 핸들러
@@ -23,20 +24,25 @@ const Home = () => {
         return;
       }
 
-      // 매치 생성
-      const matchData = await createMatch("QUEUED", 0);
-      console.log("랜덤 매치 생성 완료:", matchData);
-      
-      // 생성된 매치에 참가
-      const joinResponse = await joinMatch(matchData.matchId, user.guestId, user.nickname);
+      //랜덤 매치에서 createMatch 호출 안 하고 백엔드에서 알아서 처리함.
+
+      // 바로 참가 (백엔드가 가장 낮은 대기 매치를 선택/생성)
+      const joinResponse = await joinMatch(0, user.guestId, user.nickname);
       console.log("랜덤 매치 참가 완료:", joinResponse);
       
-      // 매치 코드 설정하고 모달 열기
-      setMatchCode("");
-      setOpenRDModal(true);
+      // 응답에서 matchId 추출 (parseJsonResponse가 result를 반환할 수 있으므로 둘 다 확인)
+      const matchId = joinResponse.matchId || joinResponse.result?.matchId;
+      if (matchId) {
+        setCurrentMatchId(matchId);
+        setMatchCode(""); // 랜덤 매치는 matchCode 없음
+        setOpenRDModal(true);
+      } else {
+        console.error("응답 구조:", joinResponse);
+        throw new Error("매치 ID를 받지 못했습니다.");
+      }
     } catch (error) {
       console.error("랜덤 매치 실패:", error);
-      alert("매치 생성에 실패했습니다.");
+      alert("매치 참가에 실패했습니다.");
     }
   };
   return (
@@ -70,7 +76,8 @@ const Home = () => {
         {openRDModal && 
           <RDModal 
             setOpenRDModal={setOpenRDModal} 
-            matchCode={matchCode} />
+            matchCode={matchCode}
+            currentMatchId={currentMatchId} />
         }
         {/* state가 true면 전투 준비 중 모달창 표시 */}
 
