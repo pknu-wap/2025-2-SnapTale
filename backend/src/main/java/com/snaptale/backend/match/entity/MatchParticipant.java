@@ -50,6 +50,10 @@ public class MatchParticipant extends BaseEntity {
     @Column(name = "draw_index", nullable = false)
     private int drawIndex = 0;
 
+    @Builder.Default
+    @Column(name = "energy", nullable = false)
+    private int energy = 0;
+
     // 동시 수정 시 덮어쓰기 방지를 위한 필드
     @Version
     @Column(name = "version")
@@ -78,7 +82,7 @@ public class MatchParticipant extends BaseEntity {
         }
     }
 
-    //"[5, 12, 8, 1, 15, 23, 7, 30, 4, 18, 9, 27]" 형식의 문자열을 List<Long>로 변환
+    // "[5, 12, 8, 1, 15, 23, 7, 30, 4, 18, 9, 27]" 형식의 문자열을 List<Long>로 변환
     public List<Long> getDeckOrder() {
         if (deckOrderJson == null || deckOrderJson.isBlank()) {
             return Collections.emptyList();
@@ -106,5 +110,16 @@ public class MatchParticipant extends BaseEntity {
 
     public void incrementDrawIndex() {
         this.drawIndex++;
+    }
+
+    public void addEnergy(int amount) {
+        this.energy += amount;
+    }
+
+    public void consumeEnergy(int amount) {
+        if (this.energy < amount) {
+            throw new IllegalStateException("Not enough energy. Current: " + this.energy + ", Required: " + amount);
+        }
+        this.energy -= amount;
     }
 }
