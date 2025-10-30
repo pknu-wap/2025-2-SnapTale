@@ -3,17 +3,21 @@ import Button from "./Button"
 import DeckIcon from "./DeckIcon";
 import SoundIcon from "./SoundIcon";
 import RDModal from "./RDModal";
-import PWModal from "./PWModal";
+import FriendlyMatchModal from "./FriendlyMatchModal";
+import CreateMatchModal from "./CreateMatchModal";
+import JoinMatchModal from "./JoinMatchModal";
 import { useState } from "react";
-import { joinMatch } from "./api/match";
+import { joinMatch, createMatch } from "./api/match";
 import { useUser } from "../../contexts/UserContext";
 
 
 const Home = () => {
-  const [openPWModal, setOpenPWModal] = useState(false);
   const [openRDModal, setOpenRDModal] = useState(false);
+  const [openFriendlyModal, setOpenFriendlyModal] = useState(false);
+  const [openCreateModal, setOpenCreateModal] = useState(false);
+  const [openJoinModal, setOpenJoinModal] = useState(false);
   const [matchCode, setMatchCode] = useState(""); // 매치코드 값 저장
-  const [currentMatchId, setCurrentMatchId] = useState(null); // 랜덤 매치의 matchId 저장
+  const [currentMatchId, setCurrentMatchId] = useState(null); // 매치의 matchId 저장
   const { user } = useUser();
 
   // 랜덤 매치 버튼 클릭 핸들러
@@ -45,6 +49,85 @@ const Home = () => {
       alert("매치 참가에 실패했습니다.");
     }
   };
+
+  // 친선전 매치 생성 핸들러
+  const handleCreateFriendlyMatch = async () => {
+    try {
+      if (!user) {
+        alert("로그인이 필요합니다.");
+        return;
+      }
+
+      // 1. 새로운 매치 생성 (QUEUED 상태)
+      console.log("친선전 매치 생성 시도 - userId:", user.guestId);
+      const createResponse = await createMatch("QUEUED", 0);
+      console.log("친선전 매치 생성 완료 - 전체 응답:", createResponse);
+
+      const matchId = createResponse.matchId || createResponse.result?.matchId;
+      console.log("생성된 matchId:", matchId);
+      
+      if (!matchId) {
+        console.error("응답 구조:", createResponse);
+        throw new Error("매치 ID를 받지 못했습니다.");
+      }
+
+      // 2. 생성한 매치에 자신이 참가
+      console.log("생성한 매치 참가 시도 - matchId:", matchId, "userId:", user.guestId);
+      const joinResponse = await joinMatch(matchId, user.guestId, user.nickname);
+      console.log("친선전 매치 참가 완료 - 응답:", joinResponse);
+
+      // 3. matchId 설정하고 CreateModal 열기
+      setCurrentMatchId(matchId);
+      setMatchCode(matchId.toString());
+      setOpenFriendlyModal(false);
+      setOpenCreateModal(true);
+    } catch (error) {
+      console.error("친선전 매치 생성 실패:", error);
+      alert("매치 생성에 실패했습니다.");
+    }
+  };
+
+  // 친선전 매치 참가 핸들러
+  //todo: 확인 한 번 하기
+  const handleJoinFriendlyMatch = async (matchId) => {
+    try {
+      if (!user) {
+        alert("로그인이 필요합니다.");
+        return;
+      }
+
+      const matchIdNum = parseInt(matchId);
+      if (isNaN(matchIdNum)) {
+        alert("올바른 매치 ID를 입력해주세요.");
+        return;
+      }
+
+      console.log("친선전 매치 참가 시도: 입력 matchId =", matchIdNum, "userId =", user.guestId);
+
+      // 입력받은 매치 ID로 참가
+      const joinResponse = await joinMatch(matchIdNum, user.guestId, user.nickname);
+      console.log("친선전 매치 참가 완료 - 전체 응답:", joinResponse);
+
+      // 응답에서 matchId 확인
+      const responseMatchId = joinResponse.matchId || joinResponse.result?.matchId;
+      console.log("응답에서 추출한 matchId:", responseMatchId);
+      
+      if (responseMatchId) {
+        console.log("매치 참가 성공 - 설정할 matchId:", responseMatchId);
+        setCurrentMatchId(responseMatchId);
+        setMatchCode(matchId);
+        setOpenJoinModal(false);
+        setOpenRDModal(true);
+      } else {
+        console.error("응답 구조:", joinResponse);
+        throw new Error("매치 참가에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("친선전 매치 참가 실패:", error);
+      alert("매치 참가에 실패했습니다. 매치 ID를 확인해주세요.");
+    }
+  };
+
   return (
     <div className="home-container">
       
@@ -59,18 +142,22 @@ const Home = () => {
           <Button 
             text={"랜덤 매치"} 
             onClick={handleRandomMatch}
-            disabled={openRDModal || openPWModal} 
+            disabled={openRDModal || openFriendlyModal || openCreateModal || openJoinModal} 
           />
           <Button 
             text={"친선전"} 
             onClick={() => {
-            setOpenPWModal(true);
+              if (!user) {
+                alert("로그인이 필요합니다.");
+                return;
+              }
+              setOpenFriendlyModal(true);
             }}
-            disabled={openRDModal || openPWModal} 
+            disabled={openRDModal || openFriendlyModal || openCreateModal || openJoinModal} 
           />
           <Button 
             text={"튜토리얼"} 
-            disabled={openRDModal || openPWModal} 
+            disabled={openRDModal || openFriendlyModal || openCreateModal || openJoinModal} 
           />
 
         {openRDModal && 
@@ -79,14 +166,25 @@ const Home = () => {
             matchCode={matchCode}
             currentMatchId={currentMatchId} />
         }
-        {/* state가 true면 전투 준비 중 모달창 표시 */}
 
-        {openPWModal && 
-          <PWModal 
-            setOpenPWModal={setOpenPWModal}
-            setOpenRDModal={setOpenRDModal}
-            setMatchCode={setMatchCode} />} 
-        {/* state가 true면 패스워드 입력 모달창 표시 */}
+        {openFriendlyModal && 
+          <FriendlyMatchModal 
+            setOpenFriendlyModal={setOpenFriendlyModal}
+            setOpenJoinModal={setOpenJoinModal}
+            onCreateMatch={handleCreateFriendlyMatch} />
+        }
+
+        {openCreateModal && 
+          <CreateMatchModal 
+            setOpenCreateModal={setOpenCreateModal}
+            matchId={currentMatchId} />
+        }
+
+        {openJoinModal && 
+          <JoinMatchModal 
+            setOpenJoinModal={setOpenJoinModal}
+            onJoinMatch={handleJoinFriendlyMatch} />
+        }
       </main>
     </div>
   );

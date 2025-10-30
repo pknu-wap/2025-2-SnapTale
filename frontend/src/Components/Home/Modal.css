@@ -76,6 +76,17 @@
     margin-left: 36px;
 }
 
+/* number input 화살표 제거 */
+.match-id-input::-webkit-outer-spin-button,
+.match-id-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.match-id-input[type=number] {
+    -moz-appearance: textfield;
+}
+
 .cancelIcon {
     position: absolute;
     top: 25px;   

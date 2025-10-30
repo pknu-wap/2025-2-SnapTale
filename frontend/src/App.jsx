@@ -21,7 +21,7 @@ function App() {
         {/* 게임 로딩 화면*/}
         <Route path="/gameloading" element={<GameLoading />} />
         {/* 게임 플레이 화면 */}
-        <Route path="/gameplay" element={<GamePlay />} />
+        <Route path="/gameplay/:matchId" element={<GamePlay />} />
         {/* 게임 결과 확인 화면*/}
         <Route path="/gameresult" element={<GameResult />} />
       </Routes>
