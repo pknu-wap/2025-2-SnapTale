@@ -2,7 +2,9 @@
 import { useState } from "react";
 import "./GameLayout.css";
 import Card from "./Card";
+import Location from "./Location";
 import EnlargedCard from "./EnlargedCard";
+import defaultImg from "../../assets/koreaIcon.png";
 import DCI from "../../assets/defaultCardImg.svg";
 
 export default function GameLayout() {
@@ -11,6 +13,36 @@ export default function GameLayout() {
   const botCountPerLane = 4;       // 아래 4장
   const handCount = 12;            // 6x2
   const [selectedCard, setSelectedCard] = useState(null);
+
+   const locations = [
+    {
+      locationId: 1,
+      name: "뉴욕 시티",
+      imageUrl: defaultImg,
+      opponentPower: 5,
+      myPower: 3,
+      effectDesc: "카드 효과 +2",
+      active: true,
+    },
+    {
+      locationId: 2,
+      name: "사하라 사막",
+      imageUrl: defaultImg,
+      opponentPower: 8,
+      myPower: 7,
+      effectDesc: "내 카드 파워 +1",
+      active: true,
+    },
+    {
+      locationId: 3,
+      name: "북극 연구소",
+      imageUrl: defaultImg,
+      opponentPower: 4,
+      myPower: 9,
+      effectDesc: "상대 카드 동결",
+      active: true,
+    },
+  ];
 
   const handleCardClick = (cardData) => {
     setSelectedCard(cardData);
@@ -52,9 +84,18 @@ export default function GameLayout() {
 
       {/* 중앙 정육각 3개 */}
       <section className="gl-hexRow">
-        {Array.from({ length: lanes }).map((_, i) => (
-          <div className="gl-hex" key={`hex-${i}`} />
-        ))}
+        <Location
+          {...locations[0]}
+          onLocationClick={() => alert(`${locations[0].name} 클릭됨!`)}
+        />
+      <Location
+          {...locations[1]}
+          onLocationClick={() => alert(`${locations[1].name} 클릭됨!`)}
+        />
+      <Location
+          {...locations[2]}
+          onLocationClick={() => alert(`${locations[2].name} 클릭됨!`)}
+        />
       </section>
 
       {/* 아래 3레인 × 4장 */}

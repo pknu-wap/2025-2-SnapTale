@@ -81,6 +81,10 @@
   gap: clamp(8px, 1.2vw, 16px);
   justify-items: center;
 }
+.gl-hexRow{
+  height: clamp(130px, 15vh, 160px);
+  align-items: center;
+}
 .gl-hex{
   width: clamp(56px, 9vw, 84px);
   aspect-ratio: 7 / 8;
