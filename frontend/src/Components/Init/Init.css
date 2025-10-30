@@ -5,7 +5,7 @@
 
 .init-wrap {
   width: 100%;
-  min-height: 100dvh;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -16,9 +16,9 @@
 }
 
 .init-logo {
-  width: clamp(180px, 40vw, 360px);
-  height: auto;
-  margin: 0 auto clamp(24px, 6vh, 64px);
+  width: clamp(400px, 10vw, 500px);
+  height: clamp(400px, 8vw, 500px);
+  background: url("../../assets/logo.png") center/contain no-repeat;
 }
 
 .init-form {
@@ -50,9 +50,7 @@
 .init-welcome-text {
   margin: 0;
   color: #ffecde;
-  font-family: "Diphylleia", serif;
   font-size: clamp(20px, 1.5rem + 0.2vw, 28px);
-  font-weight: 700;
   text-align: center;
   letter-spacing: 0.05em;
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
@@ -72,21 +70,17 @@
   background: transparent;
   border: none;
   border-bottom: 2px solid rgba(255,255,255,0.85);
-  border-radius: 0;
-  outline: none;
-
   color: #FFECDE;
-  font-family: "Diphylleia", serif;
   font-size: clamp(16px, 1rem + 0.25vw, 18px);
   text-align: left;
+  letter-spacing: 0.05em;
 }
 
 .init-input::placeholder {
   color: #FFECDE;
-  font-family: "Diphylleia", serif;
   font-size: inherit;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   text-align: left;
   text-shadow: 0 1px 0 rgba(0,0,0,0.35);
   transition: color .15s ease, opacity .15s ease;
@@ -99,48 +93,39 @@
 .init-error {
   margin: 8px 0 6px;
   color: #d4220e;
-  font-family: "Diphylleia", serif;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 500;
   text-align: center;
   width: 100%;
 }
 
 .init-dice {
-  position: absolute;
-  top: -8px;
-  width: 64px;
-  height: 64px;
-  padding: 0;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  line-height: 0;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));
-}
-
-.init-dice .dice-img {
   width: 70px;
   height: 70px;
   object-fit: contain;
   display: block;
-  pointer-events: none;
+  position:absolute;
+  top: -8px;
+  padding: 0;
+  border: none;
+  line-height: 0;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));
+  background: url("../../assets/dice.png") center/contain no-repeat;
+  margin-left: 90%;
 }
 
 .init-btn-image {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: clamp(200px, 40vw, 320px);
-  height: clamp(60px, 10vh, 80px);
+  width: clamp(250px, 35vw, 400px);
+  height: calc(clamp(250px, 35vw, 350px) / 3);
   margin: clamp(12px, 2vh, 20px) auto 0;
   border: none;
-  background: center/contain no-repeat;
-  cursor: pointer;
+  background: url("../../assets/uiBtn.png") center/contain no-repeat;
   color: #2c1105;
-  font-family: "Diphylleia", serif;
-  font-size: clamp(18px, 1.125rem + 0.2vw, 22px);
-  font-weight: 700;
+  font-size: clamp(20px, 25rem + 0.2vw, 25px);
+  font-weight: 600;
   letter-spacing: 0.05em;
   text-shadow: 0 2px 4px rgba(255, 235, 223, 0.55);
 }

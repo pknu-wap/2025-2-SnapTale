@@ -1,7 +1,21 @@
+html, body{
+  background-color: #6D719A;
+}
+
+.app-background{
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
 /* 문서 전체 뼈대, 내용, React가 붙는 최상위 div에 적용 */
-.app-bg {
-  min-height: 100dvh;
+.app-bg-image {
+  width: 960px;
+  height: 720px;
+  
+  transform-origin: center center;
   background: url("./assets/initpageBG.png") center / cover no-repeat;
   overflow: hidden;
 }

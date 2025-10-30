@@ -2,8 +2,6 @@ package com.snaptale.backend.match.controller;
 
 import java.util.List;
 
-import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +18,7 @@ import com.snaptale.backend.match.model.request.MatchCreateReq;
 import com.snaptale.backend.match.model.request.MatchUpdateReq;
 import com.snaptale.backend.match.model.response.MatchJoinRes;
 import com.snaptale.backend.match.model.response.MatchRes;
+import com.snaptale.backend.match.model.response.MatchDetailRes;
 import com.snaptale.backend.match.model.response.MatchStartRes;
 import com.snaptale.backend.match.service.MatchRESTService;
 import com.snaptale.backend.match.service.MatchService;
@@ -59,8 +58,8 @@ public class MatchController {
             @ApiResponse(responseCode = "404", description = "잘못된 요청"),
     })
     @GetMapping("/{matchId}")
-    public BaseResponse<MatchRes> getMatch(@PathVariable Long matchId) {
-        return new BaseResponse<>(BaseResponseStatus.SUCCESS, matchService.getMatch(matchId));
+    public BaseResponse<MatchDetailRes> getMatch(@PathVariable Long matchId) {
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, matchRESTService.getMatchDetail(matchId));
     }
 
     // 테스트 완
@@ -107,10 +106,7 @@ public class MatchController {
     @PostMapping("/{matchId}/join")
     public BaseResponse<MatchJoinRes> joinMatch(
             @PathVariable Long matchId,
-            @Payload MatchJoinMessage message,
-            SimpMessageHeaderAccessor headerAccessor) {
-        String sessionId = headerAccessor.getSessionId();
-        message.setSessionId(sessionId);
+            @RequestBody MatchJoinMessage message) {
         message.setMatchId(matchId);
         MatchJoinRes response = matchRESTService.joinMatch(message);
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, response);

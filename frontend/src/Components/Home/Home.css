@@ -1,8 +1,8 @@
 /* home-container: 전체 배경 및 레이아웃 설정 */
 .home-container {
   /* 화면 전체를 채우도록 설정 */
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   
   /* Flexbox를 사용한 레이아웃 설정 */
   display: flex;
