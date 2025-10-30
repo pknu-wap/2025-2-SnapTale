@@ -18,6 +18,7 @@ import com.snaptale.backend.match.model.request.MatchCreateReq;
 import com.snaptale.backend.match.model.request.MatchUpdateReq;
 import com.snaptale.backend.match.model.response.MatchJoinRes;
 import com.snaptale.backend.match.model.response.MatchRes;
+import com.snaptale.backend.match.model.response.MatchDetailRes;
 import com.snaptale.backend.match.model.response.MatchStartRes;
 import com.snaptale.backend.match.service.MatchRESTService;
 import com.snaptale.backend.match.service.MatchService;
@@ -57,8 +58,8 @@ public class MatchController {
             @ApiResponse(responseCode = "404", description = "잘못된 요청"),
     })
     @GetMapping("/{matchId}")
-    public BaseResponse<MatchRes> getMatch(@PathVariable Long matchId) {
-        return new BaseResponse<>(BaseResponseStatus.SUCCESS, matchService.getMatch(matchId));
+    public BaseResponse<MatchDetailRes> getMatch(@PathVariable Long matchId) {
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, matchRESTService.getMatchDetail(matchId));
     }
 
     // 테스트 완
