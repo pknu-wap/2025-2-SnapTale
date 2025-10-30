@@ -33,27 +33,17 @@ export default function GameLayout() {
             name: item.name,
             imageUrl: item.imageUrl || defaultImg,
             effectDesc: item.effectDesc,
-            isActive: item.isActive,
+            isActive: item.active,
             revealedTurn: item.revealedTurn,
             matchId: item.matchId,
             slotIndex: item.slotIndex,
           }));
 
-          const fixedLocations = formatted.slice(0, 3);
+          // 랜덤으로 3개 선택
+          const shuffled = [...formatted].sort(() => Math.random() - 0.5);
+          const selected = shuffled.slice(0, 3);
 
-          // 만약 서버에서 3개 미만을 보냈다면 기본값으로 채우기
-          while (fixedLocations.length < 3) {
-            fixedLocations.push({
-              locationId: -fixedLocations.length,
-              name: "비공개 지역",
-              imageUrl: defaultImg,
-              effectDesc: "아직 공개되지 않은 장소입니다.",
-              isActive: false,
-              revealedTurn: 0,
-            });
-          }
-
-          setLocations(fixedLocations);
+          setLocations(selected);
         } else {
           throw new Error("서버 응답이 올바르지 않습니다.");
         }
