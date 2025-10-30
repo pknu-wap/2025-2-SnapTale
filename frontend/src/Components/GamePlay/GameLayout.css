@@ -108,6 +108,16 @@
   justify-items:center;
   --hand-w: clamp(50px, 9.2vw, 76px);
 }
+.gl-empty-hand{
+  grid-column: 1 / -1;
+  padding: 18px 12px;
+  background: #fff4df;
+  border-radius: 12px;
+  border: 2px dashed #d1a46f;
+  font-weight: 700;
+  color: #5b3110;
+  text-align: center;
+}
 .gl-handCard{
   width: var(--hand-w, 64px);
   aspect-ratio: 2 / 3;
@@ -127,6 +137,49 @@
   background:#d0d0d0;
   font-weight:900;
   font-size: clamp(14px, 2.4vw, 16px);
+}
+
+.match-banner{
+  width:min(860px, 96vw);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap: clamp(16px, 3vw, 32px);
+  margin: clamp(8px, 2vh, 16px) 0;
+  padding: clamp(12px, 2.4vh, 18px);
+  background: linear-gradient(135deg, #f6ead8, #fef7ec);
+  border: 2px solid #c9a36d;
+  border-radius: 18px;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+}
+
+.match-player{
+  display:flex;
+  align-items:center;
+  gap: 12px;
+}
+
+.match-vs{
+  font-size: clamp(26px, 4vw, 32px);
+  color:#5B1B17;
+  text-shadow: -1px 0 #fbe6c8, 0 1px #fbe6c8, 1px 0 #fbe6c8, 0 -1px #fbe6c8;
+}
+
+.match-player .userName{
+  font-size: clamp(16px, 3vw, 20px);
+  color:#3c2213;
+}
+
+.match-deck-info{
+  width:min(860px, 96vw);
+  margin: 0 auto clamp(12px, 2vh, 18px);
+  padding: 6px 12px;
+  background: rgba(255, 244, 223, 0.85);
+  border: 1px solid #d9b37b;
+  border-radius: 12px;
+  color:#4a2b15;
+  font-weight:600;
+  text-align:center;
 }
 
 .enlarged-card-container {

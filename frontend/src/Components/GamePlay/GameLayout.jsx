@@ -1,16 +1,22 @@
 // src/Components/GamePlay/GameLayout.jsx
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import "./GameLayout.css";
 import Card from "./Card";
 import EnlargedCard from "./EnlargedCard";
+import defaultCardImage from "../../assets/defaultCardImg.svg";
 import DCI from "../../assets/defaultCardImg.svg";
 
-export default function GameLayout() {
-  const lanes = 3;                 // 왼/중/오
-  const topCountPerLane = 4;       // 위 4장
-  const botCountPerLane = 4;       // 아래 4장
-  const handCount = 12;            // 6x2
+export default function GameLayout({
+  cards = [],
+  opponentNickname = "상대방",
+  currentRound = 1,
+}) {
   const [selectedCard, setSelectedCard] = useState(null);
+
+  const playableCards = useMemo(() => cards.map((card) => ({
+    ...card,
+    imageUrl: card.imageUrl || defaultCardImage,
+  })), [cards]);
 
   const handleCardClick = (cardData) => {
     setSelectedCard(cardData);
@@ -35,69 +41,69 @@ export default function GameLayout() {
   }));
 
   return (
-  <div>
     <div className="gl-wrap">
-      <div className="gl-oppo-chip">상대닉네임</div>
+      <div className="gl-oppo-chip">{opponentNickname}</div>
 
-      {/* 위 3레인 × 4장 */}
       <section className="gl-lanes3">
-        {Array.from({ length: lanes }).map((_, laneIdx) => (
+        {Array.from({ length: 3 }).map((_, laneIdx) => (
           <div className="gl-laneCol" key={`top-${laneIdx}`}>
-            {Array.from({ length: topCountPerLane }).map((__, i) => (
+            {Array.from({ length: 4 }).map((__, i) => (
               <div className="gl-card" key={`t-${laneIdx}-${i}`} />
             ))}
           </div>
         ))}
       </section>
 
-      {/* 중앙 정육각 3개 */}
       <section className="gl-hexRow">
-        {Array.from({ length: lanes }).map((_, i) => (
+        {Array.from({ length: 3 }).map((_, i) => (
           <div className="gl-hex" key={`hex-${i}`} />
         ))}
       </section>
 
-      {/* 아래 3레인 × 4장 */}
       <section className="gl-lanes3">
-        {Array.from({ length: lanes }).map((_, laneIdx) => (
+        {Array.from({ length: 3 }).map((_, laneIdx) => (
           <div className="gl-laneCol" key={`bot-${laneIdx}`}>
-            {Array.from({ length: botCountPerLane }).map((__, i) => (
+            {Array.from({ length: 4 }).map((__, i) => (
               <div className="gl-card" key={`b-${laneIdx}-${i}`} />
             ))}
           </div>
         ))}
       </section>
 
-      <div className="gl-turnOrb">1</div>
+      <div className="gl-turnOrb">{currentRound}</div>
 
-      {/* 손패 6x2 = 12 */}
       <section className="gl-hand12">
-        {sampleCards.map(card => (
-          <Card
-            key={card.cardId}
-            cardId={card.cardId}
-            name={card.name}
-            imageUrl={card.imageUrl}
-            cost={card.cost}
-            power={card.power}
-            faction={card.faction}
-            effectDesc={card.effectDesc}
-            active={card.active}
-            createdAt={card.createdAt}
-            updatedAt={card.updatedAt}
-            onCardClick={() => handleCardClick(card)}
-          />
-        ))}
+        {playableCards.length === 0 ? (
+          <div className="gl-empty-hand">덱에서 카드를 불러오는 중...</div>
+        ) : (
+          playableCards.map((card) => (
+            <Card
+              key={card.cardId}
+              cardId={card.cardId}
+              name={card.name}
+              imageUrl={card.imageUrl}
+              cost={card.cost}
+              power={card.power}
+              faction={card.faction}
+              effectDesc={card.effectDesc}
+              active={card.active}
+              createdAt={card.createdAt}
+              updatedAt={card.updatedAt}
+              onCardClick={() => handleCardClick(card)}
+            />
+          ))
+        )}
       </section>
+
       <footer className="gl-footer">
         <button className="gl-endBtn">턴 종료 (1/6)</button>
       </footer>
-    </div>
+
       {selectedCard && (
-        <div className="modal-backdrop">
+        <div className="modal-backdrop" role="dialog" aria-modal="true">
           <EnlargedCard card={selectedCard} onClose={handleCloseModal} />
         </div>
       )}
-  </div>
+    </div>
   );
 }

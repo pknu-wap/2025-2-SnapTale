@@ -1,36 +1,24 @@
-import './Modal.css'
-import UserProfile from './UserProfile';
-import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect } from 'react';
+import "./Modal.css";
 
-//게임 로딩 애니메이션 추가 예정
-const GameLoading = () => {
-  const { state } = useLocation(); 
-  const { userName1, profileImage1, userName2, profileImage2 } = state;
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    // 2초 뒤 /gameplay로 이동
-    const timer = setTimeout(() => {
-      navigate('/gameplay');
-    }, 2000);
-
-    // 컴포넌트 언마운트 시 타이머 정리
-    return () => clearTimeout(timer);
-  }, [navigate]);
+/**
+ * 게임 준비 상태를 표시하는 간단한 오버레이입니다.
+ * 전용 라우트 대신 GamePlay 페이지에서 로딩/대기 상황에 재사용됩니다.
+ */
+const MatchLoadingOverlay = ({ open, primaryText = "전투 준비 중...", secondaryText = "입장 준비 중..." }) => {
+  if (!open) {
+    return null;
+  }
 
   return (
-    <div className="Overlay">
-        <div className="modal-main">
-            <UserProfile userName={userName1} profileImage={profileImage1} />
-            <span className="modal-text">VS</span>
-            <UserProfile userName={userName2} profileImage={profileImage2} />
-        </div>
-        <div className="extra-text">
-            <span className="explain-text">입장 준비 중...</span>
-        </div>
+    <div className="Overlay" role="status" aria-live="polite">
+      <div className="modal-main">
+        <span className="modal-text">{primaryText}</span>
+      </div>
+      <div className="extra-text">
+        <span className="explain-text">{secondaryText}</span>
+      </div>
     </div>
-    
   );
 };
-export default GameLoading;
+
+export default MatchLoadingOverlay;

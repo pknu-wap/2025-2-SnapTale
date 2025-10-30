@@ -85,18 +85,20 @@ const RDModal = ({setOpenRDModal, matchCode, currentMatchId: initialMatchId}) =>
     }, [currentMatchId, user]);
 
     useEffect(() => {
-        if (isMatched) {
-            navigate("/gameloading", {
+        if (isMatched && currentMatchId) {
+            navigate(`/gameplay/${currentMatchId}`, {
                 state: {
-                    userName1: user?.nickname || "내닉네임",
-                    profileImage1: profile1,
-                    userName2: enemyPlayer.userName,
-                    profileImage2: enemyPlayer.profileImage,
-                    matchId: currentMatchId
+                    matchId: currentMatchId,
+                    self: {
+                        nickname: user?.nickname || "내닉네임",
+                        profileImage: profile1
+                    },
+                    opponent: enemyPlayer
                 }
             });
+            setOpenRDModal(false);
         }
-    }, [isMatched, navigate, enemyPlayer, user, currentMatchId]);
+    }, [isMatched, navigate, enemyPlayer, user, currentMatchId, setOpenRDModal]);
 
     return (
         <div className = "Overlay">
