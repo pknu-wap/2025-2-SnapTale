@@ -46,7 +46,7 @@ const Location = ({
       const tooLong = el.scrollWidth > el.clientWidth; // 내용이 card-name div박스를 넘으면 2줄로 표시 허용
 
       if (tooLong) {
-        el.style.fontSize = "12px";
+        el.style.fontSize = "15px";
         el.style.whiteSpace = "normal"; // 줄바꿈 허용
         el.style.wordBreak = "keep-all";  //한글 공백 단위로 줄바꿈
         el.style.lineHeight = "1.1";    // 줄 간격 살짝 조정

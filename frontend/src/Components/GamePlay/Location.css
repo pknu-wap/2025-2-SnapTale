@@ -4,13 +4,7 @@
   cursor: pointer;
   width: 75px;
   height: 130px;
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
   flex: 0 0 130px; /* flexbox 높이 고정 */
-}
-
-.location-container:hover {
-  transform: scale(1.05);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
 }
 
 /* 배경 이미지 */
@@ -22,13 +16,21 @@
   height: 110px;
   object-fit: cover;
   transform: translate(-50%, -50%);
+  clip-path: polygon(
+    50% 0%,
+    100% 25%,
+    100% 75%,
+    50% 100%,
+    0% 75%,
+    0% 25%
+  );
   z-index: 1;
 }
 
 /* 중앙의 텍스트 */
 .location-name {
   position: absolute;
-  bottom: 0px;
+  bottom: 8px;
   left: 50%;
   width: 75px;
   height: 30px;

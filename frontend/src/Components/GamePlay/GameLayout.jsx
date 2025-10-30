@@ -1,11 +1,12 @@
 // src/Components/GamePlay/GameLayout.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./GameLayout.css";
 import Card from "./Card";
 import Location from "./Location";
 import EnlargedCard from "./EnlargedCard";
 import defaultImg from "../../assets/koreaIcon.png";
 import DCI from "../../assets/defaultCardImg.svg";
+import { fetchLocations } from "./api/location";
 
 export default function GameLayout() {
   const lanes = 3;                 // 왼/중/오
@@ -13,36 +14,59 @@ export default function GameLayout() {
   const botCountPerLane = 4;       // 아래 4장
   const handCount = 12;            // 6x2
   const [selectedCard, setSelectedCard] = useState(null);
+  const [locations, setLocations] = useState([]); // 서버에서 불러올 위치 데이터
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-   const locations = [
-    {
-      locationId: 1,
-      name: "뉴욕 시티",
-      imageUrl: defaultImg,
-      opponentPower: 5,
-      myPower: 3,
-      effectDesc: "카드 효과 +2",
-      active: true,
-    },
-    {
-      locationId: 2,
-      name: "사하라 사막",
-      imageUrl: defaultImg,
-      opponentPower: 8,
-      myPower: 7,
-      effectDesc: "내 카드 파워 +1",
-      active: true,
-    },
-    {
-      locationId: 3,
-      name: "북극 연구소",
-      imageUrl: defaultImg,
-      opponentPower: 4,
-      myPower: 9,
-      effectDesc: "상대 카드 동결",
-      active: true,
-    },
-  ];
+  useEffect(() => {
+    async function loadLocations() {
+      try {
+        setLoading(true);
+        const data = await fetchLocations();
+
+        // 서버 응답 구조: { success, code, message, result: [...] }
+        if (data.success && Array.isArray(data.result)) {
+          console.log("서버에서 받은 locations 개수:", data.result.length);
+
+          const formatted = data.result.map((item) => ({
+            locationId: item.locationId,
+            name: item.name,
+            imageUrl: item.imageUrl || defaultImg,
+            effectDesc: item.effectDesc,
+            isActive: item.isActive,
+            revealedTurn: item.revealedTurn,
+            matchId: item.matchId,
+            slotIndex: item.slotIndex,
+          }));
+
+          const fixedLocations = formatted.slice(0, 3);
+
+          // 만약 서버에서 3개 미만을 보냈다면 기본값으로 채우기
+          while (fixedLocations.length < 3) {
+            fixedLocations.push({
+              locationId: -fixedLocations.length,
+              name: "비공개 지역",
+              imageUrl: defaultImg,
+              effectDesc: "아직 공개되지 않은 장소입니다.",
+              isActive: false,
+              revealedTurn: 0,
+            });
+          }
+
+          setLocations(fixedLocations);
+        } else {
+          throw new Error("서버 응답이 올바르지 않습니다.");
+        }
+      } catch (err) {
+        console.error("위치 정보 불러오기 실패:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadLocations();
+  }, []);
 
   const handleCardClick = (cardData) => {
     setSelectedCard(cardData);
@@ -84,19 +108,20 @@ export default function GameLayout() {
 
       {/* 중앙 정육각 3개 */}
       <section className="gl-hexRow">
-        <Location
-          {...locations[0]}
-          onLocationClick={() => alert(`${locations[0].name} 클릭됨!`)}
-        />
-      <Location
-          {...locations[1]}
-          onLocationClick={() => alert(`${locations[1].name} 클릭됨!`)}
-        />
-      <Location
-          {...locations[2]}
-          onLocationClick={() => alert(`${locations[2].name} 클릭됨!`)}
-        />
-      </section>
+          {loading && <div className="loading">위치 불러오는 중...</div>}
+          {error && <div className="error">⚠ {error}</div>}
+          {!loading &&
+            !error &&
+            locations.map((loc) => (
+              <Location
+                key={loc.locationId}
+                {...loc}
+                onLocationClick={() =>
+                  alert(`${loc.name} 클릭됨! (효과: ${loc.effectDesc})`)
+                }
+              />
+            ))}
+        </section>
 
       {/* 아래 3레인 × 4장 */}
       <section className="gl-lanes3">
