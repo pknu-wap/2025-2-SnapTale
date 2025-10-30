@@ -156,4 +156,18 @@ public class MatchWebSocketController {
             return WebSocketResponse.error("게임 상태 조회에 실패했습니다: " + e.getMessage());
         }
     }
+
+    // 매치 채팅 메시지 처리
+    @MessageMapping("/match/{matchId}/chat")
+    public void handleChat(
+            @DestinationVariable Long matchId,
+            @Payload ChatMessage message) {
+        try {
+            message.setMatchId(matchId);
+            matchWebSocketService.handleChat(message);
+        } catch (Exception e) {
+            log.error("채팅 메시지 처리 실패: matchId={}, error={}", matchId, e.getMessage());
+            throw e;
+        }
+    }
 }

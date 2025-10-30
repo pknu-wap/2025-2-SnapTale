@@ -23,7 +23,9 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 // Match 도메인 WebSocket 비즈니스 로직 처리
@@ -304,11 +306,17 @@ public class MatchWebSocketService {
 		return createGameStateMessage(match, participants);
 	}
 
-	// 특정 매치의 모든 참가자에게 메시지 브로드캐스트
+	// 특정 매치의 모든 참가자에게 메시지 브로드캐스트 (Override)
 	public void broadcastToMatch(Long matchId, String type, Object data, String message) {
+		broadcastToMatch(matchId, type, data, message, null);
+	}
+
+	// 특정 매치의 모든 참가자에게 메시지 브로드캐스트 (발신자 포함)
+	public void broadcastToMatch(Long matchId, String type, Object data, String message, Long senderId) {
 		WebSocketMessage<?> wsMessage = WebSocketMessage.builder()
 				.type(type)
 				.data(data)
+				.senderId(senderId)
 				.message(message)
 				.build();
 
@@ -328,5 +336,40 @@ public class MatchWebSocketService {
 		// /queue/participant/{participantId} 구독자에게 전송
 		messagingTemplate.convertAndSend("/queue/participant/" + participantId,
 				WebSocketResponse.success(wsMessage));
+	}
+
+	// 매치 채팅 처리
+	public ChatMessage handleChat(ChatMessage message) {
+		if (message == null || message.getMatchId() == null) {
+			throw new BaseException(BaseResponseStatus.MATCH_NOT_FOUND);
+		}
+
+		String trimmedContent = Optional.ofNullable(message.getContent())
+				.map(String::trim)
+				.orElse("");
+
+		if (trimmedContent.isEmpty()) {
+			throw new BaseException(BaseResponseStatus.INVALID_ACTION_TYPE);
+		}
+
+		Long senderId = message.getSenderId();
+		String resolvedNickname = Optional.ofNullable(message.getSenderNickname())
+				.filter(nick -> !nick.isBlank())
+				.orElseGet(() -> senderId == null ? "익명" : userRepository.findById(senderId)
+						.map(User::getNickname)
+						.orElse("익명"));
+
+		ChatMessage chatPayload = ChatMessage.builder()
+				.matchId(message.getMatchId())
+				.senderId(senderId)
+				.senderNickname(resolvedNickname)
+				.content(trimmedContent)
+				.sentAt(LocalDateTime.now())
+				.build();
+
+		broadcastToMatch(message.getMatchId(), "CHAT", chatPayload,
+				resolvedNickname + ": " + trimmedContent, senderId);
+
+		return chatPayload;
 	}
 }
