@@ -1,6 +1,7 @@
 package com.snaptale.backend.user.entity;
 
 import com.snaptale.backend.common.entity.BaseEntity;
+import com.snaptale.backend.deck.entity.DeckPreset;
 import com.snaptale.backend.user.model.UserUpdateReq;
 
 import jakarta.persistence.*;
@@ -43,6 +44,10 @@ public class User extends BaseEntity {
 
     @Column(name = "linked_account_id")
     private String linkedAccountId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "selected_deck_preset_id")
+    private DeckPreset selectedDeck;
 
     public void updateNickname(String nickname) {
         this.nickname = nickname;
