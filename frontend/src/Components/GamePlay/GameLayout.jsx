@@ -2,12 +2,16 @@
 import { useState, useEffect, useRef } from "react";
 import "./GameLayout.css";
 import Card from "./Card";
+import Location from "./Location";
+import Energy from "./Energy";
 import EnlargedCard from "./EnlargedCard";
+
 import ChatBox from "./ChatBox";
 import DCI from "../../assets/defaultCardImg.svg";
 import { WebSocketClient } from "../../utils/websocket";
 import { useUser } from "../../contexts/UserContext";
-
+import defaultImg from "../../assets/koreaIcon.png";
+import { fetchLocations } from "./api/location";
 export default function GameLayout({ matchId }) {
   const lanes = 3;                 // 왼/중/오
   const topCountPerLane = 4;       // 위 4장
@@ -120,10 +124,8 @@ export default function GameLayout({ matchId }) {
   }));
 
   return (
-  <div>
+    <>
     <div className="gl-wrap">
-      <div className="gl-oppo-chip">상대닉네임</div>
-
       {/* 위 3레인 × 4장 */}
       <section className="gl-lanes3">
         {Array.from({ length: lanes }).map((_, laneIdx) => (
@@ -137,10 +139,54 @@ export default function GameLayout({ matchId }) {
 
       {/* 중앙 정육각 3개 */}
       <section className="gl-hexRow">
-        {Array.from({ length: lanes }).map((_, i) => (
-          <div className="gl-hex" key={`hex-${i}`} />
-        ))}
-      </section>
+        {loading && <div className="loading">위치 불러오는 중...</div>}
+        {error && <div className="error">⚠ {error}</div>}
+        {!loading && !error && locations.length === 3 && (
+        <>
+          <Location
+            key={locations[0].locationId}
+            locationId={locations[0].locationId}
+            name={locations[0].name}
+            imageUrl={locations[0].imageUrl}
+            effectDesc={locations[0].effectDesc}
+            active={locations[0].active}
+            opponentPower={opponentPowers[0]}
+            myPower={myPowers[0]}
+            onLocationClick={() =>
+              alert(`${locations[0].name} 클릭됨! (효과: ${locations[0].effectDesc})`)
+            }
+          />
+
+          <Location
+            key={locations[1].locationId}
+            locationId={locations[1].locationId}
+            name={locations[1].name}
+            imageUrl={locations[1].imageUrl}
+            effectDesc={locations[1].effectDesc}
+            active={locations[1].active}
+            opponentPower={opponentPowers[1]}
+            myPower={myPowers[1]}
+            onLocationClick={() =>
+              alert(`${locations[1].name} 클릭됨! (효과: ${locations[1].effectDesc})`)
+            }
+          />
+
+          <Location
+            key={locations[2].locationId}
+            locationId={locations[2].locationId}
+            name={locations[2].name}
+            imageUrl={locations[2].imageUrl}
+            effectDesc={locations[2].effectDesc}
+            active={locations[2].active}
+            opponentPower={opponentPowers[2]}
+            myPower={myPowers[2]}
+            onLocationClick={() =>
+              alert(`${locations[2].name} 클릭됨! (효과: ${locations[2].effectDesc})`)
+            }
+          />
+        </>
+      )}
+    </section>
 
       {/* 아래 3레인 × 4장 */}
       <section className="gl-lanes3">
@@ -153,7 +199,7 @@ export default function GameLayout({ matchId }) {
         ))}
       </section>
 
-      <div className="gl-turnOrb">1</div>
+      <Energy value={energy}/>
 
       {/* 손패 6x2 = 12 */}
       <section className="gl-hand12">
@@ -174,10 +220,12 @@ export default function GameLayout({ matchId }) {
           />
         ))}
       </section>
+
       <footer className="gl-footer">
         <button className="gl-endBtn">턴 종료 (1/6)</button>
       </footer>
     </div>
+
       {selectedCard && (
         <div className="modal-backdrop">
           <EnlargedCard card={selectedCard} onClose={handleCloseModal} />

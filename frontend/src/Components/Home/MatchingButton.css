@@ -2,7 +2,7 @@
   box-sizing: border-box;
   width: 323px;
   height: 100px;
-  background: url("../../assets/button.png") center / cover no-repeat;
+  background: url("../../assets/uiBtn.png") center / contain no-repeat;
   border: none;
 
   font-style: normal;

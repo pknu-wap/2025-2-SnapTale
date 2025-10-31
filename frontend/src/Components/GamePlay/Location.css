@@ -1,0 +1,88 @@
+/* 각 Location 박스 */
+.location-container {
+  position: relative;
+  cursor: pointer;
+  width: 75px;
+  height: 130px;
+  flex: 0 0 130px; /* flexbox 높이 고정 */
+}
+
+/* 배경 이미지 */
+.location-image {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 75px;
+  height: 110px;
+  object-fit: cover;
+  transform: translate(-50%, -50%);
+  clip-path: polygon(
+    50% 0%,
+    100% 25%,
+    100% 75%,
+    50% 100%,
+    0% 75%,
+    0% 25%
+  );
+  z-index: 1;
+}
+
+/* 중앙의 텍스트 */
+.location-name {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  width: 75px;
+  height: 30px;
+  transform: translate(-50%, -50%);
+  font-size: 24px;
+  color: #fff;
+  text-align: center;
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* 위쪽 파워 (상대방) */
+.opponentPower-container {
+  position: absolute;
+  top: 0px; /* 컨테이너 맨 위 */
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 6;
+}
+
+/* 아래쪽 파워 (내 것) */
+.myPower-container {
+  position: absolute;
+  bottom: 0px; /* 컨테이너 맨 아래 */
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 6;
+}
+
+/* 아이콘 */
+.icon {
+  width: 27px;
+  height: 27px;
+  position: relative;
+  z-index: 3;
+}
+
+/* 아이콘 안 숫자 */
+.icon-text {
+  position: absolute;
+  font-size: 12px;
+  color: #ffffff;
+  user-select: none;
+  pointer-events: none;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}
