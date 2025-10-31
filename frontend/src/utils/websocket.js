@@ -12,36 +12,42 @@ export class WebSocketClient {
     this.stompClient = null;
     this.connected = false;
     this.subscriptions = [];
+    this.reconnectAttempts = 0;
+    this.maxReconnectAttempts = 10;
   }
 
   connect(onConnected, onError) {
     const wsUrl = `${API_BASE}/ws-stomp`;
     console.log('=== WebSocket 연결 시작 ===');
-
-    
     this.stompClient = new Client({
       webSocketFactory: () => {
         console.log('SockJS 인스턴스 생성 중...');
-        const sock = new SockJS(wsUrl);
-        console.log('SockJS 인스턴스 생성 완료'); //잘 됨
+        const sock = new SockJS(wsUrl, null, {
+          transports: ['websocket', 'xhr-polling', 'xhr-streaming'],
+          timeout: 5000
+        });
+        console.log('SockJS 인스턴스 생성 완료');
         return sock;
       },
       
       connectHeaders: {},
       
       debug: (str) => {
-        console.log('[STOMP]', str); //세션 끊김
+        console.log('[STOMP]', str);
       },
       
-      reconnectDelay: 5000,
-      heartbeatIncoming: 4000,
-      heartbeatOutgoing: 4000,
+      reconnectDelay: 3000,
+      heartbeatIncoming: 10000,
+      heartbeatOutgoing: 10000,
+      
+      connectionTimeout: 10000,
       
       onConnect: () => {
         console.log('=== WebSocket 연결 성공! ===');
         console.log('구독 경로:', `/topic/match/${this.matchId}`);
         console.log('발행 경로:', `/app/match/${this.matchId}/chat`);
         this.connected = true;
+        this.reconnectAttempts = 0;
         if (onConnected) onConnected();
       },
       
@@ -64,6 +70,12 @@ export class WebSocketClient {
         console.warn('code:', event.code);
         console.warn('reason:', event.reason);
         this.connected = false;
+        
+        this.reconnectAttempts++;
+        if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+          console.error('최대 재연결 시도 횟수 초과');
+          if (onError) onError(new Error('최대 재연결 시도 횟수 초과'));
+        }
       },
     });
 
@@ -78,6 +90,7 @@ export class WebSocketClient {
       this.stompClient.deactivate();
       console.log('WebSocket 연결 해제');
       this.connected = false;
+      this.reconnectAttempts = 0;
     }
   }
 
@@ -131,25 +144,35 @@ export class WebSocketClient {
   sendChatMessage(message) {
     if (!this.stompClient || !this.stompClient.connected) {
       console.error('WebSocket이 연결되지 않았습니다');
-      return;
+      return false;
     }
 
-    const chatMessage = {
-      userId: this.userId,
-      nickname: this.nickname,
-      message: message,
-    };
+    try {
+      const chatMessage = {
+        userId: this.userId,
+        nickname: this.nickname,
+        message: message,
+      };
 
-    const destination = `/app/match/${this.matchId}/chat`;
-    console.log('💬 채팅 메시지 전송:', destination);
-    console.log('메시지 내용:', chatMessage);
+      const destination = `/app/match/${this.matchId}/chat`;
+      console.log('💬 채팅 메시지 전송:', destination);
+      console.log('메시지 내용:', chatMessage);
 
-    this.stompClient.publish({
-      destination: destination,
-      body: JSON.stringify(chatMessage),
-    });
-    
-    console.log('메시지 전송 완료');
+      this.stompClient.publish({
+        destination: destination,
+        body: JSON.stringify(chatMessage),
+      });
+      
+      console.log('메시지 전송 완료');
+      return true;
+    } catch (error) {
+      console.error('메시지 전송 실패:', error);
+      return false;
+    }
+  }
+  
+  isConnected() {
+    return this.connected && this.stompClient && this.stompClient.connected;
   }
 }
 

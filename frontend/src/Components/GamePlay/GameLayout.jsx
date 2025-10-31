@@ -19,6 +19,7 @@ export default function GameLayout({ matchId }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const { user } = useUser();
   const wsClient = useRef(null);
+  const isChatOpenRef = useRef(false); // 최신 isChatOpen 값을 추적
 
   // WebSocket 연결
   useEffect(() => {
@@ -51,8 +52,8 @@ export default function GameLayout({ matchId }) {
               return [...prev, newMessage];
             });
             
-            // 채팅창이 닫혀있으면 읽지 않은 메시지 카운트 증가
-            if (!isChatOpen && newMessage.nickname !== user.nickname) {
+            // 채팅창이 닫혀있고, 내가 보낸 메시지가 아니면 읽지 않은 메시지 카운트 증가
+            if (!isChatOpenRef.current && newMessage.nickname !== user.nickname) {
               setUnreadCount(prev => prev + 1);
             }
           } else {
@@ -66,12 +67,17 @@ export default function GameLayout({ matchId }) {
     );
 
     return () => {
-      console.log("🔌 GameLayout - WebSocket 연결 해제");
+      console.log("🔌 GameLayout - WebSocket 연결 해제 (컴포넌트 언마운트)");
       if (wsClient.current) {
         wsClient.current.disconnect();
       }
     };
-  }, [matchId, user, isChatOpen]);
+  }, [matchId, user]); // isChatOpen 제거!
+
+  useEffect(() => {
+    isChatOpenRef.current = isChatOpen;
+  }, [isChatOpen]);
+
 
   const handleSendMessage = (message) => {
     if (wsClient.current) {
@@ -80,10 +86,15 @@ export default function GameLayout({ matchId }) {
   };
 
   const handleToggleChat = () => {
-    setIsChatOpen(prev => !prev);
-    if (!isChatOpen) {
-      setUnreadCount(0);
-    }
+    setIsChatOpen(prev => {
+      const newValue = !prev;
+      isChatOpenRef.current = newValue; // ref 업데이트
+      if (newValue) {
+        // 채팅창을 열 때 읽지 않은 메시지 카운트 초기화
+        setUnreadCount(0);
+      }
+      return newValue;
+    });
   };
 
   const handleCardClick = (cardData) => {
