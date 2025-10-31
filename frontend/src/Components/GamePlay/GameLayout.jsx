@@ -133,7 +133,7 @@ export default function GameLayout() {
             opponentPower={opponentPowers[0]}
             myPower={myPowers[0]}
             onLocationClick={() =>
-             handleLocationClick(locations[0], 0)
+            handleLocationClick(locations[0], 0)
             }
           />
 

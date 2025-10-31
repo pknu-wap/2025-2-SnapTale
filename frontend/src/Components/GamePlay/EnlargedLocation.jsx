@@ -25,7 +25,7 @@ const EnlargedLocation = ({ location, onClose }) => {
     }, [location.name]);
   return (
     <div className="enlarged-location-container" onClick={onClose}>
-      <img className="location-image" src={location.imageUrl} alt={location.name} />
+      <img className="location-image" src={location.imageUrl} alt={location.name}/>
 
       <div className="opponentPower-container">
         <img src={powerIcon} alt="opponentPower" className="location-icon" />

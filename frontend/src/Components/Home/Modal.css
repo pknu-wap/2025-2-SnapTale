@@ -10,7 +10,7 @@
 
     background: url("../../assets/modal.png") center / cover no-repeat;
 }
-/* RD모달창 내부 중앙에 텍스트 고정 */
+/* RD모달창, DeckCheck모달창 내부 중앙에 텍스트 고정 */
 .modal-main{
     font-size: 24px;
     position: absolute;  
@@ -18,6 +18,11 @@
     left: 50%;         
     transform: translate(-50%, -50%);
     text-align: center; /*텍스트 중앙 정렬 */
+}
+.modal-text-deckCheck{
+    font-size: 28px;
+    color:#000000;
+    white-space: nowrap;
 }
 
 .extra-text {

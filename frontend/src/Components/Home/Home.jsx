@@ -6,7 +6,8 @@ import RDModal from "./RDModal";
 import FriendlyMatchModal from "./FriendlyMatchModal";
 import CreateMatchModal from "./CreateMatchModal";
 import JoinMatchModal from "./JoinMatchModal";
-import { useState } from "react";
+import DCModal from './DeckCheckModal'; 
+import { useState, useEffect } from "react"; 
 import { joinMatch, createMatch } from "./api/match";
 import { useUser } from "../../contexts/UserContext";
 
@@ -16,9 +17,24 @@ const Home = () => {
   const [openFriendlyModal, setOpenFriendlyModal] = useState(false);
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [openJoinModal, setOpenJoinModal] = useState(false);
+  const [showDeckModal, setShowDeckModal] = useState(false); //덱 설정 정보에 따라 DeckCheck 모달을 보여줄 지 여부 결정
   const [matchCode, setMatchCode] = useState(""); // 매치코드 값 저장
   const [currentMatchId, setCurrentMatchId] = useState(null); // 매치의 matchId 저장
   const { user } = useUser();
+
+  useEffect(() => {
+    if (!user) {
+       alert("로그인이 필요합니다.");
+        return;
+    }
+    else{
+       if (!user.deckId) { // 예: 덱 ID가 없으면
+        setShowDeckModal(true); // 덱 체크 모달 보이기
+      } else {
+        setShowDeckModal(false); // 덱이 있으면 모달 숨기기
+      }
+    }
+  }, [user]); // user 객체가 갱신될 때마다 실행
 
   // 랜덤 매치 버튼 클릭 핸들러
   const handleRandomMatch = async () => {
@@ -142,7 +158,7 @@ const Home = () => {
           <Button 
             text={"랜덤 매치"} 
             onClick={handleRandomMatch}
-            disabled={openRDModal || openFriendlyModal || openCreateModal || openJoinModal} 
+            disabled={showDeckModal || openRDModal || openFriendlyModal || openCreateModal || openJoinModal} 
           />
           <Button 
             text={"친선전"} 
@@ -153,13 +169,14 @@ const Home = () => {
               }
               setOpenFriendlyModal(true);
             }}
-            disabled={openRDModal || openFriendlyModal || openCreateModal || openJoinModal} 
+            disabled={showDeckModal || openRDModal || openFriendlyModal || openCreateModal || openJoinModal} 
           />
           <Button 
             text={"튜토리얼"} 
-            disabled={openRDModal || openFriendlyModal || openCreateModal || openJoinModal} 
+            disabled={showDeckModal || openRDModal || openFriendlyModal || openCreateModal || openJoinModal} 
           />
-
+        {showDeckModal && <DCModal />}
+        
         {openRDModal && 
           <RDModal 
             setOpenRDModal={setOpenRDModal} 
