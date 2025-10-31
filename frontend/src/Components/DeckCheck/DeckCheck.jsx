@@ -46,7 +46,7 @@ const DeckCheck = () => {
         // 서버로부터 받은 최신 유저 정보(response.result)로
         // 전역 UserContext 상태를 업데이트합니다.
         updateUser(response.result);
-        navigate('/');
+        navigate('/home');
       } else {
         // API는 성공했으나, 서버 로직상 실패한 경우 (e.g., response.success === false)
         alert(response.message || "덱 선택에 실패했습니다.");
