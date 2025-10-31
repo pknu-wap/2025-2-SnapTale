@@ -2,5 +2,6 @@ package com.snaptale.backend.user.model;
 
 
 public record UserCreateReq(
-        String nickname) {
+        String nickname,
+        Long selectedDeckPresetId) {
 }

@@ -10,7 +10,8 @@ public record UserRes(
         int rankPoint,
         int matchesPlayed,
         int wins,
-        LocalDateTime lastSeen) {
+        LocalDateTime lastSeen,
+        Long selectedDeckPresetId) {
     public static UserRes from(User user) {
         return new UserRes(
                 user.getGuestId(),
@@ -18,6 +19,7 @@ public record UserRes(
                 user.getRankPoint(),
                 user.getMatchesPlayed(),
                 user.getWins(),
-                user.getLastSeen());
+                user.getLastSeen(),
+                user.getSelectedDeck() != null ? user.getSelectedDeck().getDeckPresetId() : null);
     }
 }

@@ -7,5 +7,6 @@ public record UserUpdateReq(
         Integer rankPoint,
         Integer matchesPlayed,
         Integer wins,
-        LocalDateTime lastSeen) {
+        LocalDateTime lastSeen,
+        Long selectedDeckPresetId) {
 }
