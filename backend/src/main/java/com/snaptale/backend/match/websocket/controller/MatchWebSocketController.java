@@ -156,4 +156,38 @@ public class MatchWebSocketController {
             return WebSocketResponse.error("게임 상태 조회에 실패했습니다: " + e.getMessage());
         }
     }
+
+    // 채팅 메시지
+    @MessageMapping("/match/{matchId}/chat")
+    @SendTo("/topic/match/{matchId}")
+    public WebSocketResponse<ChatMessage> sendChatMessage(
+            @DestinationVariable Long matchId,
+            @Payload ChatMessage message) {
+
+        try {
+            log.info("===== 채팅 메시지 수신 시작 =====");
+            log.info("matchId: {}", matchId);
+            log.info("요청 메시지: {}", message);
+
+            message.setMatchId(matchId);
+            message.setTimestamp(java.time.LocalDateTime.now().toString());
+
+            log.info("처리된 메시지: matchId={}, userId={}, nickname={}, message={}, timestamp={}",
+                    matchId, message.getUserId(), message.getNickname(), message.getMessage(), message.getTimestamp());
+
+            WebSocketResponse<ChatMessage> response = WebSocketResponse.success(message, "CHAT");
+            log.info("응답 성공 여부: {}", response.isSuccess());
+            log.info("응답 메시지: {}", response.getMessage());
+            log.info("응답 데이터: {}", response.getData());
+            log.info("브로드캐스트 경로: /topic/match/{}", matchId);
+            log.info("===== 채팅 메시지 처리 완료 =====");
+
+            return response;
+
+        } catch (Exception e) {
+            log.error("===== 채팅 메시지 전송 실패 =====");
+            log.error("matchId: {}, error: {}", matchId, e.getMessage(), e);
+            return WebSocketResponse.error("채팅 메시지 전송에 실패했습니다: " + e.getMessage());
+        }
+    }
 }
