@@ -13,10 +13,17 @@ spring:
       #// 현재 목데이터 받을 때만 이렇게 하고 원래는 never로 바꾼다.
       mode: never
       continue-on-error: true
+  websocket:
+    message-broker:
+      heartbeat:
+        incoming: 10000
+        outgoing: 10000
 
 logging:
   level:
     org.hibernate.SQL: debug
+    org.springframework.web.socket: debug
+    org.springframework.messaging: debug
 
 # =====================[ dev (local, H2) ]=====================
 ---
