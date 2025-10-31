@@ -1,20 +1,18 @@
-.energy-wrapper {
-  display: flex;
-  justify-content: center;
-}
-
 .energy{
+  position: relative;
   display: grid; 
   place-items: center;
-  width: 80px;
-  height: 80px;
+  width: 100px;
+  height: 100px;
   font-weight: 900;
   background: url("../../assets/energy.png") center/contain no-repeat;
-  position: relative;
+  bottom: 100px;
 }
 
 .energy-value{
+  position: absolute;
   font-size: 20px;
   font-weight: 600;
   color: #2c1105;
+  text-shadow: 0 0 4px #fff;
 }

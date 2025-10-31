@@ -12,8 +12,8 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 75px;
-  height: 110px;
+  width: 150px;
+  height: 200px;
   object-fit: cover;
   transform: translate(-50%, -50%);
   clip-path: polygon(
@@ -30,9 +30,9 @@
 /* 중앙의 텍스트 */
 .location-name {
   position: absolute;
-  bottom: 8px;
+  bottom: -20px;
   left: 50%;
-  width: 75px;
+  width: 150px;
   height: 30px;
   transform: translate(-50%, -50%);
   font-size: 24px;
@@ -45,7 +45,7 @@
 /* 위쪽 파워 (상대방) */
 .opponentPower-container {
   position: absolute;
-  top: 0px; /* 컨테이너 맨 위 */
+  top: -40px; /* 컨테이너 맨 위 */
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -57,7 +57,7 @@
 /* 아래쪽 파워 (내 것) */
 .myPower-container {
   position: absolute;
-  bottom: 0px; /* 컨테이너 맨 아래 */
+  bottom: -40px; /* 컨테이너 맨 아래 */
   left: 50%;
   transform: translateX(-50%);
   display: flex;

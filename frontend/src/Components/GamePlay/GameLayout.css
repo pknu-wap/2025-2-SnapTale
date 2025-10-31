@@ -105,6 +105,7 @@
   grid-template-columns: repeat(3, 1fr);
   gap: clamp(8px, 1.2vw, 16px);
   justify-items: center;
+  
 }
 .gl-hexRow{
   height: clamp(130px, 15vh, 160px);
@@ -125,24 +126,11 @@
   filter: brightness(1.2);
 }
 
-.gl-korea {
-  background-image: url("../../assets/koreaIcon.png");
-}
-
-.gl-china {
-  background-image: url("../../assets/chinaIcon.png");
-}
-
-.gl-japan {
-  background-image: url("../../assets/japanIcon.png");
-}
-
 .gl-wrap .gl-hand12{
   width:100%;
   display:grid !important;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(12, var(--hand-w, 64px));
   gap: clamp(8px, 1.2vw, 14px);
-  justify-items:center;
   --hand-w: clamp(50px, 9.2vw, 76px);
 }
 
@@ -151,22 +139,29 @@
   aspect-ratio: 2 / 3;
 }
 
-/* 푸터 */
-.gl-footer{
+.gl-buttons-wrap{
+  position: relative;
   width:100%;
   display:flex;
   justify-content:center;
-  margin-bottom: 8px;
-}
-.gl-endBtn{
-  border:none;
-  border-radius:10px;
-  padding:.6rem 1.2rem;
-  background:#d0d0d0;
-  font-weight:900;
-  font-size: clamp(14px, 2.4vw, 16px);
+  left: -550px;
 }
 
+/* 턴 종료 버튼 */
+.gl-endBtn{
+  display: grid;
+  position: absolute;
+  margin-top: -50px;
+  padding:.4rem 1rem;
+  background: url("../../assets/uiBtn.png") center/contain no-repeat;
+  font-weight:800;
+  color: #2c1105;
+  letter-spacing: 0.05em;
+  border: none;
+  bottom: 50px;
+}
+
+/* 카드 확대 */
 .enlarged-card-container {
   position: relative;
   width: 138px;  
