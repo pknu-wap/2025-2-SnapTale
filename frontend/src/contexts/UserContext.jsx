@@ -15,6 +15,7 @@ function readInitialUser() {
     const storedGuestId = localStorage.getItem("guestId");
     const storedNickname = localStorage.getItem("nickname");
     const storedPoints = localStorage.getItem("points");
+    const storedDeckId = localStorage.getItem("selectedDeckPresetId");
 
     if (!storedGuestId || !storedNickname) {
         return null;
@@ -22,11 +23,13 @@ function readInitialUser() {
 
     const guestIdNumber = normalizeStoredNumber(storedGuestId);
   const pointsNumber = normalizeStoredNumber(storedPoints);
+  const deckIdNumber = normalizeStoredNumber(storedDeckId);
 
   return {
     guestId: guestIdNumber ?? storedGuestId,
     nickname: storedNickname,
     points: pointsNumber,
+    selectedDeckPresetId: deckIdNumber ?? null,
   };
 }
 
@@ -35,6 +38,7 @@ function persistUser(user) {
     localStorage.removeItem("guestId");
     localStorage.removeItem("nickname");
     localStorage.removeItem("points");
+    localStorage.removeItem("selectedDeckPresetId");
     return;
   }
 
@@ -45,6 +49,11 @@ function persistUser(user) {
     localStorage.setItem("points", String(user.points));
   } else {
     localStorage.removeItem("points");
+  }
+  if (typeof user.selectedDeckPresetId === "number" && !Number.isNaN(user.selectedDeckPresetId)) {
+    localStorage.setItem("selectedDeckPresetId", String(user.selectedDeckPresetId));
+  } else {
+    localStorage.removeItem("selectedDeckPresetId");
   }
 }
 
