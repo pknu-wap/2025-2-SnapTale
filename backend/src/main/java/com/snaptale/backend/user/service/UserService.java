@@ -2,6 +2,8 @@ package com.snaptale.backend.user.service;
 
 import java.util.List;
 
+import com.snaptale.backend.deck.entity.DeckPreset;
+import com.snaptale.backend.deck.repository.DeckPresetRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class UserService {
     private final UserRepository userRepository;
+    private final DeckPresetRepository deckPresetRepository;
 
     // 유저 조회
     public UserRes getUser(Long userId) {
@@ -38,12 +41,14 @@ public class UserService {
     // 유저 생성
     @Transactional
     public UserRes createUser(UserCreateReq request) {
+        DeckPreset selectedDeck = resolveDeckPreset(request.selectedDeckPresetId());
         User user = User.builder()
                 .nickname(request.nickname())
                 .rankPoint(0)
                 .matchesPlayed(0)
                 .wins(0)
                 .lastSeen(LocalDateTime.now())
+                .selectedDeck(selectedDeck)
                 .build();
         userRepository.save(user);
         return UserRes.from(user);
@@ -55,6 +60,9 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
         user.apply(request);
+        if (request.selectedDeckPresetId() != null) {
+            user.setSelectedDeck(resolveDeckPreset(request.selectedDeckPresetId()));
+        }
         userRepository.save(user);
         return UserRes.from(user);
     }
@@ -77,5 +85,31 @@ public class UserService {
         userRepository.save(user);
 
         return UserRes.from(user);
+    }
+
+    @Transactional
+    public UserRes updateSelectedDeck(Long userId, Long deckPresetId) {
+        User user = getUserOrThrow(userId);
+        DeckPreset deckPreset = getDeckPresetOrThrow(deckPresetId);
+        user.setSelectedDeck(deckPreset);
+        userRepository.save(user);
+        return UserRes.from(user);
+    }
+
+    private DeckPreset resolveDeckPreset(Long deckPresetId) {
+        if (deckPresetId == null) {
+            return null;
+        }
+        return getDeckPresetOrThrow(deckPresetId);
+    }
+
+    private User getUserOrThrow(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+    }
+
+    private DeckPreset getDeckPresetOrThrow(Long deckPresetId) {
+        return deckPresetRepository.findById(deckPresetId)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.DECK_PRESET_NOT_FOUND));
     }
 }

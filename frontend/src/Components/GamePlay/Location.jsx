@@ -57,13 +57,13 @@ const Location = ({
       <img className="location-image" src={imageUrl} alt={name} />
 
       <div className="opponentPower-container">
-        <img src={powerIcon} alt="opponentPower" className="icon" />
-        <span className="icon-text">{opponentPower}</span>
+        <img src={powerIcon} alt="opponentPower" className="location-icon" />
+        <span className="location-icon-text">{opponentPower}</span>
       </div>
 
       <div className="myPower-container">
-        <img src={powerIcon} alt="myPower" className="icon" />
-        <span className="icon-text">{myPower}</span>
+        <img src={powerIcon} alt="myPower" className="location-icon" />
+        <span className="location-icon-text">{myPower}</span>
       </div>
 
       <div className="location-name" ref={ref}>{name}</div>

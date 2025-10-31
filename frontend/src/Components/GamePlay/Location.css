@@ -67,7 +67,7 @@
 }
 
 /* 아이콘 */
-.icon {
+.location-icon {
   width: 27px;
   height: 27px;
   position: relative;
@@ -75,7 +75,7 @@
 }
 
 /* 아이콘 안 숫자 */
-.icon-text {
+.location-icon-text {
   position: absolute;
   font-size: 12px;
   color: #ffffff;

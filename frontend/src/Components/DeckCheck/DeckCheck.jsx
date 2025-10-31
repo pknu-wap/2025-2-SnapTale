@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { fetchDeckPresetCards } from "./api/DeckPresetCard.js";
-// import { fetchCardsAll} from "./api/DeckPresetCard.js";
+import { useNavigate } from 'react-router-dom';
+import { fetchDeckPresetCards, updateSelectedDeck } from "./api/DeckPresetCard.js";
+import { useUser } from "../../contexts/UserContext"
 import Card from "../GamePlay/Card";
 import EnlargedCard from "../GamePlay/EnlargedCard";
-import ExitIcon from "./Exit";
+import StoreButton from "./storeButton.jsx";
 import FactionIcon from "./FactionIcon"
 //import DCI from "../../assets/defaultCardImg.svg";
 import koreaIcon from "../../assets/koreaIcon.png";
@@ -21,15 +22,45 @@ const factionToDeckPresetId = {
 //덱 확인 페이지
 const DeckCheck = () => {
     const [selectedFaction, setSelectedFaction] = useState("korea");
-//     const [factionCards, setFactionCards] = useState({
-//     korea: [],
-//     china: [],
-//     japan: [],
-//   });
     const [cards, setCards] = useState([]);
+    const { user, updateUser } = useUser();
     const [selectedCard, setSelectedCard] = useState(null);
-    
+    const [isLoading, setIsLoading] = useState(false);
 
+    const navigate = useNavigate();
+
+    const handleDeckSelect = async (selectedDeckId) => {
+    
+    if (!user || isLoading) { // 유저 정보가 없거나 로딩 중이면 실행 방지
+      alert("유저 정보가 없거나 로딩 중입니다.");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      //API 호출 
+      const response = await updateSelectedDeck(user.guestId, selectedDeckId);
+
+      if (response.success && response.result) {
+        // 서버로부터 받은 최신 유저 정보(response.result)로
+        // 전역 UserContext 상태를 업데이트합니다.
+        updateUser(response.result);
+        navigate('/home');
+      } else {
+        // API는 성공했으나, 서버 로직상 실패한 경우 (e.g., response.success === false)
+        alert(response.message || "덱 선택에 실패했습니다.");
+      }
+
+    } catch (error) {
+      // 네트워크 오류 등 API 호출 자체에 실패한 경우
+      console.error("덱 업데이트 처리 중 오류:", error);
+      alert("덱을 선택하는 중 오류가 발생했습니다.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+    
     useEffect(() => {
     const loadCards = async () => {
         try {
@@ -42,21 +73,6 @@ const DeckCheck = () => {
                 setSelectedCard(null);
             }
 
-            // const allCards = await fetchCardsAll();
-            // console.log("Fetched cards:", allCards.length); //카드 전체 불러오기인데 불러온 카드가 12개임
-
-            // //카드를 진영별로 분류하여 배열에 저장
-            // const grouped = {
-            //     korea: allCards.filter((c) => c.faction === "한국"),
-            //     china: allCards.filter((c) => c.faction === "중국"),
-            //     japan: allCards.filter((c) => c.faction === "일본"),
-            // };
-            // setFactionCards(grouped);
-            
-            // //선택한 진영의 카드가 있으면 0번째 카드로 "확대된 카드" 초기 설정
-            // if (grouped[selectedFaction].length > 0) {
-            //     setSelectedCard(grouped[selectedFaction][0]);
-            // }
         } catch (err) {
             console.error("덱 카드 불러오기 실패:", err);
             }
@@ -64,16 +80,6 @@ const DeckCheck = () => {
         loadCards();
     }, [selectedFaction]);
 
-    //진영이 변경될 때, 해당 진영 카드 중 첫 번째 카드 선택
-    // useEffect(() => {
-    //     if (factionCards[selectedFaction].length > 0) {
-    //         setSelectedCard(factionCards[selectedFaction][0]);
-    //     } else {
-    //     setSelectedCard(null);
-    //     }
-    // }, [selectedFaction, factionCards]);
-    
-    
     const handleCardClick = (cardData) => {
         setSelectedCard(cardData);
     };
@@ -81,14 +87,16 @@ const DeckCheck = () => {
         setSelectedFaction(faction);
     };
 
-    //현재 선택된 진영의 카드들만 렌더링
-    // const currentCards = factionCards[selectedFaction] || [];
+    const handleSaveClick = () => {
+      const selectedDeckId = factionToDeckPresetId[selectedFaction];
+      handleDeckSelect(selectedDeckId);
+    };
 
   return (
     <div className="DeckCheck-container">
         {/* 상단 메뉴 (나가기 버튼) */}
         <header className="deck-top-menu">
-            <ExitIcon/>
+            <StoreButton onClick={handleSaveClick}/>
         </header>
         {/* 한중일 지역 선택 아이콘, 텍스트*/}
         <div className="deck-select">

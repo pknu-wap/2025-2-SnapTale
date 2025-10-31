@@ -1,4 +1,4 @@
-.exit-icon-container {
+.deckStore-button-container {
   position: relative;
   width: 55px; 
   height: 55px;
@@ -6,11 +6,11 @@
   user-select: none;
 }
 
-.exit-icon-container img {
+.deckStore-button-container img {
   display: block;
 }
 
-.exit-icon-text {
+.deckStore-button-text {
   position: absolute;
   top: 50%;
   left: 50%;

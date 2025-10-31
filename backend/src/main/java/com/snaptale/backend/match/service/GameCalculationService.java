@@ -193,11 +193,13 @@ public class GameCalculationService {
                 null,
                 player1.getMatchesPlayed() + 1,
                 null,
+                null,
                 null));
         player2.apply(new com.snaptale.backend.user.model.UserUpdateReq(
                 null,
                 null,
                 player2.getMatchesPlayed() + 1,
+                null,
                 null,
                 null));
 
@@ -210,10 +212,12 @@ public class GameCalculationService {
                         player1.getRankPoint() + 25,
                         null,
                         player1.getWins() + 1,
+                        null,
                         null));
                 player2.apply(new com.snaptale.backend.user.model.UserUpdateReq(
                         null,
                         Math.max(0, player2.getRankPoint() - 10),
+                        null,
                         null,
                         null,
                         null));
@@ -224,10 +228,12 @@ public class GameCalculationService {
                         player2.getRankPoint() + 25,
                         null,
                         player2.getWins() + 1,
+                        null,
                         null));
                 player1.apply(new com.snaptale.backend.user.model.UserUpdateReq(
                         null,
                         Math.max(0, player1.getRankPoint() - 10),
+                        null,
                         null,
                         null,
                         null));
@@ -239,10 +245,12 @@ public class GameCalculationService {
                     player1.getRankPoint() + 5,
                     null,
                     null,
+                    null,
                     null));
             player2.apply(new com.snaptale.backend.user.model.UserUpdateReq(
                     null,
                     player2.getRankPoint() + 5,
+                    null,
                     null,
                     null,
                     null));

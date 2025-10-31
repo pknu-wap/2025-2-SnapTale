@@ -6,6 +6,7 @@ import Location from "./Location";
 import Energy from "./Energy";
 import Slot from "./Slot";
 import EnlargedCard from "./EnlargedCard";
+import EnlargedLocation from "./EnlargedLocation";
 import defaultImg from "../../assets/koreaIcon.png";
 import DCI from "../../assets/defaultCardImg.svg";
 import { fetchLocations } from "./api/location";
@@ -15,6 +16,7 @@ export default function GameLayout() {
   const maxTurn = 6;
 
   const [selectedCard, setSelectedCard] = useState(null);
+  const [selectedLocation, setSelectedLocation] = useState(null);
   const [locations, setLocations] = useState([]); // 서버에서 불러올 위치 데이터
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -123,6 +125,22 @@ export default function GameLayout() {
     }
   };
 
+  const handleLocationClick = (locationData, index) => {
+    // locationData에 myPower, opponentPower가 없다면,
+    // GameLayout의 state에서 가져와 합쳐줍니다.
+    const locationWithPowers = {
+      ...locationData,
+      opponentPower: opponentPowers[index],
+      myPower: myPowers[index],
+    };
+    setSelectedLocation(locationWithPowers);
+  };
+
+  const handleCloseLocationModal = () => {
+    setSelectedLocation(null);
+  };
+
+
   return (
     <>
     <div className="gl-wrap">
@@ -147,7 +165,7 @@ export default function GameLayout() {
             opponentPower={opponentPowers[0]}
             myPower={myPowers[0]}
             onLocationClick={() =>
-              alert(`${locations[0].name} 클릭됨! (효과: ${locations[0].effectDesc})`)
+            handleLocationClick(locations[0], 0)
             }
           />
 
@@ -161,7 +179,7 @@ export default function GameLayout() {
             opponentPower={opponentPowers[1]}
             myPower={myPowers[1]}
             onLocationClick={() =>
-              alert(`${locations[1].name} 클릭됨! (효과: ${locations[1].effectDesc})`)
+              handleLocationClick(locations[1], 1)
             }
           />
 
@@ -175,7 +193,7 @@ export default function GameLayout() {
             opponentPower={opponentPowers[2]}
             myPower={myPowers[2]}
             onLocationClick={() =>
-              alert(`${locations[2].name} 클릭됨! (효과: ${locations[2].effectDesc})`)
+              handleLocationClick(locations[2], 2)
             }
           />
         </>
@@ -245,6 +263,14 @@ export default function GameLayout() {
       {selectedCard && (
         <div className="modal-backdrop">
           <EnlargedCard card={selectedCard} onClose={handleCloseModal} />
+        </div>
+      )}
+      {selectedLocation && (
+        <div className="modal-backdrop">
+          <EnlargedLocation
+            location={selectedLocation}
+            onClose={handleCloseLocationModal}
+          />
         </div>
       )}
     </>
