@@ -1,68 +1,105 @@
 // src/Components/GamePlay/GameLayout.jsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import "./GameLayout.css";
 import Card from "./Card";
 import Location from "./Location";
 import Energy from "./Energy";
 import EnlargedCard from "./EnlargedCard";
-import defaultImg from "../../assets/koreaIcon.png";
-import DCI from "../../assets/defaultCardImg.svg";
-import { fetchLocations } from "./api/location";
 
-export default function GameLayout() {
+import ChatBox from "./ChatBox";
+import DCI from "../../assets/defaultCardImg.svg";
+import { WebSocketClient } from "../../utils/websocket";
+import { useUser } from "../../contexts/UserContext";
+import defaultImg from "../../assets/koreaIcon.png";
+import { fetchLocations } from "./api/location";
+export default function GameLayout({ matchId }) {
   const lanes = 3;                 // 왼/중/오
   const topCountPerLane = 4;       // 위 4장
   const botCountPerLane = 4;       // 아래 4장
   const handCount = 12;            // 6x2
   const [selectedCard, setSelectedCard] = useState(null);
-  const [locations, setLocations] = useState([]); // 서버에서 불러올 위치 데이터
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [opponentPowers, setOpponentPowers] = useState([0, 0, 0]);
-  const [myPowers, setMyPowers] = useState([0, 0, 0]);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const { user } = useUser();
+  const wsClient = useRef(null);
+  const isChatOpenRef = useRef(false); // 최신 isChatOpen 값을 추적
 
+  // WebSocket 연결
   useEffect(() => {
-    async function loadLocations() {
-      try {
-        setLoading(true);
-        const data = await fetchLocations();
-
-        // 서버 응답 구조: { success, code, message, result: [...] }
-        if (data.success && Array.isArray(data.result)) {
-          console.log("서버에서 받은 locations 개수:", data.result.length);
-
-          const formatted = data.result.map((item) => ({
-            locationId: item.locationId,
-            name: item.name,
-            imageUrl: item.imageUrl || defaultImg,
-            effectDesc: item.effectDesc,
-            isActive: item.active,
-            revealedTurn: item.revealedTurn,
-            matchId: item.matchId,
-            slotIndex: item.slotIndex,
-          }));
-
-          // 랜덤으로 3개 선택
-          const shuffled = [...formatted].sort(() => Math.random() - 0.5);
-          const selected = shuffled.slice(0, 3);
-          console.log("랜덤으로 선택된 지역 ID:", selected[0].locationId, selected[1].locationId, selected[2].locationId);
-
-          setLocations(selected);
-        } else {
-          throw new Error("서버 응답이 올바르지 않습니다.");
-        }
-      } catch (err) {
-        console.error("위치 정보 불러오기 실패:", err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
+    if (!matchId || !user) {
+      console.warn("⚠️ matchId 또는 user가 없습니다:", { matchId, user });
+      return;
     }
 
-    loadLocations();
-  }, []);
+    console.log("🔌 GameLayout - WebSocket 연결 시작");
+    console.log("matchId:", matchId);
+    console.log("user:", user);
 
-  const [energy, setEnergy] = useState(3);
+    wsClient.current = new WebSocketClient(matchId, user.guestId, user.nickname);
+    
+    wsClient.current.connect(
+      () => {
+        console.log("✅ GameLayout - WebSocket 연결 성공!");
+        wsClient.current.subscribeToMatch((response) => {
+          console.log("🎯 GameLayout - 메시지 수신:", response);
+          console.log("success:", response.success);
+          console.log("message:", response.message);
+          console.log("data:", response.data);
+          
+          if (response.message === "CHAT" && response.data) {
+            console.log("💬 채팅 메시지 감지:", response.data);
+            const newMessage = response.data;
+            setChatMessages(prev => {
+              console.log("이전 메시지:", prev);
+              console.log("새 메시지 추가:", newMessage);
+              return [...prev, newMessage];
+            });
+            
+            // 채팅창이 닫혀있고, 내가 보낸 메시지가 아니면 읽지 않은 메시지 카운트 증가
+            if (!isChatOpenRef.current && newMessage.nickname !== user.nickname) {
+              setUnreadCount(prev => prev + 1);
+            }
+          } else {
+            console.log("⚠️ CHAT 타입이 아니거나 데이터 없음:", response);
+          }
+        });
+      },
+      (error) => {
+        console.error("❌ GameLayout - WebSocket 연결 실패:", error);
+      }
+    );
+
+    return () => {
+      console.log("🔌 GameLayout - WebSocket 연결 해제 (컴포넌트 언마운트)");
+      if (wsClient.current) {
+        wsClient.current.disconnect();
+      }
+    };
+  }, [matchId, user]); // isChatOpen 제거!
+
+  useEffect(() => {
+    isChatOpenRef.current = isChatOpen;
+  }, [isChatOpen]);
+
+
+  const handleSendMessage = (message) => {
+    if (wsClient.current) {
+      wsClient.current.sendChatMessage(message);
+    }
+  };
+
+  const handleToggleChat = () => {
+    setIsChatOpen(prev => {
+      const newValue = !prev;
+      isChatOpenRef.current = newValue; // ref 업데이트
+      if (newValue) {
+        // 채팅창을 열 때 읽지 않은 메시지 카운트 초기화
+        setUnreadCount(0);
+      }
+      return newValue;
+    });
+  };
 
   const handleCardClick = (cardData) => {
     setSelectedCard(cardData);
@@ -194,6 +231,23 @@ export default function GameLayout() {
           <EnlargedCard card={selectedCard} onClose={handleCloseModal} />
         </div>
       )}
-    </>
+      
+      {/* 채팅 아이콘 */}
+      <button className="chat-icon" onClick={handleToggleChat}>
+        💬
+        {unreadCount > 0 && (
+          <span className="chat-badge">{unreadCount}</span>
+        )}
+      </button>
+
+      {/* 채팅 박스 */}
+      <ChatBox
+        isOpen={isChatOpen}
+        onClose={handleToggleChat}
+        messages={chatMessages}
+        onSendMessage={handleSendMessage}
+        nickname={user?.nickname}
+      />
+  </div>
   );
 }
