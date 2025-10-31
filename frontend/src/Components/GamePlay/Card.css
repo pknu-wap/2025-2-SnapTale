@@ -51,14 +51,14 @@
 
 /* cost: 우측 상단 위치 조절 */
 .card-cost-container {
-  top: 0px;
-  right: 0px;
+  top: -3px;
+  right: -1px;
 }
 
 /* power: 좌측 상단 위치 조절*/
 .card-power-container {
-  top: 0px;
-  left: 0px;
+  top: -3px;
+  left: -8px;
 }
 
 /* cost, power 텍스트 (아이콘 중앙에 위치) */

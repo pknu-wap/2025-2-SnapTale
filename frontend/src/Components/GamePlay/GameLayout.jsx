@@ -4,6 +4,7 @@ import "./GameLayout.css";
 import Card from "./Card";
 import Location from "./Location";
 import Energy from "./Energy";
+import Slot from "./Slot";
 import EnlargedCard from "./EnlargedCard";
 import EnlargedLocation from "./EnlargedLocation";
 import defaultImg from "../../assets/koreaIcon.png";
@@ -11,10 +12,9 @@ import DCI from "../../assets/defaultCardImg.svg";
 import { fetchLocations } from "./api/location";
 
 export default function GameLayout() {
-  const lanes = 3;                 // 왼/중/오
-  const topCountPerLane = 4;       // 위 4장
-  const botCountPerLane = 4;       // 아래 4장
-  const handCount = 12;            // 6x2
+  const handCount = 12;
+  const maxTurn = 6;
+
   const [selectedCard, setSelectedCard] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [locations, setLocations] = useState([]); // 서버에서 불러올 위치 데이터
@@ -22,6 +22,24 @@ export default function GameLayout() {
   const [error, setError] = useState(null);
   const [opponentPowers, setOpponentPowers] = useState([0, 0, 0]);
   const [myPowers, setMyPowers] = useState([0, 0, 0]);
+  const [turn, setTurn] = useState(1);
+  const [hand, setHand] = useState([]);
+  const [cardPlayed, setCardPlayed] = useState(false);
+  const [energy, setEnergy] = useState(3);
+
+  //카드 12장 생성
+  const allCards = Array.from({ length: handCount }).map((_, i) => ({
+    cardId: `card-${i}`,
+    name: `Card ${i + 1}`,
+    imageUrl: DCI,
+    cost: Math.floor(Math.random() * 10) + 1,
+    power: Math.floor(Math.random() * 10) + 1,
+    faction: ["korea", "china", "japan"][i % 3],
+    effectDesc: "Sample effect description",
+    active: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  }));
 
   useEffect(() => {
     async function loadLocations() {
@@ -62,9 +80,8 @@ export default function GameLayout() {
     }
 
     loadLocations();
+    setHand(allCards.slice(0, 3));
   }, []);
-
-  const [energy, setEnergy] = useState(3);
 
   const handleCardClick = (cardData) => {
     setSelectedCard(cardData);
@@ -72,6 +89,40 @@ export default function GameLayout() {
 
   const handleCloseModal = () => {
     setSelectedCard(null);
+  };
+
+  const handleCardPlay = (cardId) => {
+    setHand((prev) => prev.filter((c) => c.cardId !== cardId)); // 카드 제거
+    setCardPlayed(true); // ✅ 카드 냈으니 턴 종료 가능
+  };
+
+  // // 샘플 카드 데이터 12장 (임의 생성)
+  // const sampleCards = Array.from({ length: handCount }).map((_, i) => ({
+  //   cardId: `card-${i}`,
+  //   name: `Card ${i + 1}`,
+  //   imageUrl: DCI,
+  //   cost: Math.floor(Math.random() * 10) + 1,    // 1~10 랜덤
+  //   power: Math.floor(Math.random() * 10) + 1,   // 1~10 랜덤
+  //   faction: ["korea", "china", "japan"][i % 3], // 번갈아 korea, china, japan
+  //   effectDesc: "Sample effect description",
+  //   active: true,
+  //   createdAt: new Date().toISOString(),
+  //   updatedAt: new Date().toISOString()
+  // }));
+
+  const endTurn = () => {
+    if (turn < maxTurn) {
+      setTurn((prev) => prev + 1);
+      setCardPlayed(false); // 다시 비활성화
+
+      setHand((prev) => {
+        const nextIndex = prev.length;
+        if (nextIndex < handCount) {
+          return [...prev, allCards[nextIndex]];
+        }
+        return prev;
+      });
+    }
   };
 
   const handleLocationClick = (locationData, index) => {
@@ -89,34 +140,15 @@ export default function GameLayout() {
     setSelectedLocation(null);
   };
 
-  // 샘플 카드 데이터 12장 (임의 생성)
-  const sampleCards = Array.from({ length: handCount }).map((_, i) => ({
-    cardId: `card-${i}`,
-    name: `Card ${i + 1}`,
-    imageUrl: DCI,
-    cost: Math.floor(Math.random() * 10) + 1,    // 1~10 랜덤
-    power: Math.floor(Math.random() * 10) + 1,   // 1~10 랜덤
-    faction: ["korea", "china", "japan"][i % 3], // 번갈아 korea, china, japan
-    effectDesc: "Sample effect description",
-    active: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  }));
 
   return (
     <>
     <div className="gl-wrap">
-      {/* 위 3레인 × 4장 */}
       <section className="gl-lanes3">
-        {Array.from({ length: lanes }).map((_, laneIdx) => (
-          <div className="gl-laneCol" key={`top-${laneIdx}`}>
-            {Array.from({ length: topCountPerLane }).map((__, i) => (
-              <div className="gl-card" key={`t-${laneIdx}-${i}`} />
-            ))}
-          </div>
-        ))}
+        <Slot isMySide={false} />
+        <Slot isMySide={false} />
+        <Slot isMySide={false} />
       </section>
-
       {/* 중앙 정육각 3개 */}
       <section className="gl-hexRow">
         {loading && <div className="loading">위치 불러오는 중...</div>}
@@ -168,22 +200,45 @@ export default function GameLayout() {
       )}
     </section>
 
-      {/* 아래 3레인 × 4장 */}
       <section className="gl-lanes3">
-        {Array.from({ length: lanes }).map((_, laneIdx) => (
-          <div className="gl-laneCol" key={`bot-${laneIdx}`}>
-            {Array.from({ length: botCountPerLane }).map((__, i) => (
-              <div className="gl-card" key={`b-${laneIdx}-${i}`} />
-            ))}
-          </div>
-        ))}
+        <Slot isMySide />
+        <Slot isMySide />
+        <Slot isMySide />
       </section>
 
-      <Energy value={energy}/>
+      <div className="gl-buttons-wrap">
+        <Energy value={energy}/>
+        <button className="gl-endBtn" onClick={endTurn}
+            disabled={!cardPlayed || turn === maxTurn}>
+            턴 종료 ({turn} / {maxTurn})
+        </button>
+      </div>
 
-      {/* 손패 6x2 = 12 */}
+      {/* 손패 */}
+        <section className="gl-hand12">
+          {hand.map((card) => (
+            <div
+              key={card.cardId}
+              draggable
+              onDragStart={(e) =>
+                e.dataTransfer.setData("application/json", JSON.stringify(card))
+              }
+              onDragEnd={() => handleCardPlay(card.cardId)} // ✅ 임시 드래그로 낸 걸로 처리
+            >
+              <Card {...card} onCardClick={() => handleCardClick(card)} />
+            </div>
+          ))}
+        </section>
+
+      {/* 손패 6x2 = 12
       <section className="gl-hand12">
         {sampleCards.map(card => (
+          <div
+            key={card.cardId}
+            draggable
+            onDragStart={(e) =>
+              e.dataTransfer.setData("application/json", JSON.stringify(card))}
+          >
           <Card
             key={card.cardId}
             cardId={card.cardId}
@@ -198,12 +253,11 @@ export default function GameLayout() {
             updatedAt={card.updatedAt}
             onCardClick={() => handleCardClick(card)}
           />
+          </div>
         ))}
-      </section>
+      </section> */}
 
-      <footer className="gl-footer">
-        <button className="gl-endBtn">턴 종료 (1/6)</button>
-      </footer>
+      
     </div>
 
       {selectedCard && (

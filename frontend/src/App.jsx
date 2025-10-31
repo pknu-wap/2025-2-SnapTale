@@ -9,7 +9,7 @@ import  GameResult  from "./Components/GameResult";
 
 function App() {
   return (
-    <div className="app-background app-bg">
+    <div className="app-background">
       <div className="app-bg-image">
         <Router>
           <Routes>
