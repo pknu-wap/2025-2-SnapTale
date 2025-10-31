@@ -2,7 +2,6 @@ import "./Init.css";
 import { createUser, getUser, updateLastSeen } from "./api/user";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import logo from "../../assets/logo.png";
 import { useUser } from "../../contexts/UserContext.jsx";
 
 const NICK_RULE = /^[가-힣a-zA-Z0-9]{2,8}$/;

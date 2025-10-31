@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import { fetchDeckPresetCards } from "./api/DeckPresetCard.js";
+import { useNavigate } from 'react-router-dom';
+import { fetchDeckPresetCards, updateSelectedDeck } from "./api/DeckPresetCard.js";
+import { useUser } from "../../contexts/UserContext"
 import Card from "../GamePlay/Card";
 import EnlargedCard from "../GamePlay/EnlargedCard";
 import StoreButton from "./storeButton.jsx";
@@ -21,7 +23,43 @@ const factionToDeckPresetId = {
 const DeckCheck = () => {
     const [selectedFaction, setSelectedFaction] = useState("korea");
     const [cards, setCards] = useState([]);
+    const { user, updateUser } = useUser();
     const [selectedCard, setSelectedCard] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const navigate = useNavigate();
+
+    const handleDeckSelect = async (selectedDeckId) => {
+    
+    if (!user || isLoading) { // 유저 정보가 없거나 로딩 중이면 실행 방지
+      alert("유저 정보가 없거나 로딩 중입니다.");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      //API 호출 
+      const response = await updateSelectedDeck(user.guestId, selectedDeckId);
+
+      if (response.success && response.result) {
+        // 서버로부터 받은 최신 유저 정보(response.result)로
+        // 전역 UserContext 상태를 업데이트합니다.
+        updateUser(response.result);
+        navigate('/');
+      } else {
+        // API는 성공했으나, 서버 로직상 실패한 경우 (e.g., response.success === false)
+        alert(response.message || "덱 선택에 실패했습니다.");
+      }
+
+    } catch (error) {
+      // 네트워크 오류 등 API 호출 자체에 실패한 경우
+      console.error("덱 업데이트 처리 중 오류:", error);
+      alert("덱을 선택하는 중 오류가 발생했습니다.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
     
     useEffect(() => {
     const loadCards = async () => {
@@ -49,11 +87,16 @@ const DeckCheck = () => {
         setSelectedFaction(faction);
     };
 
+    const handleSaveClick = () => {
+      const selectedDeckId = factionToDeckPresetId[selectedFaction];
+      handleDeckSelect(selectedDeckId);
+    };
+
   return (
     <div className="DeckCheck-container">
         {/* 상단 메뉴 (나가기 버튼) */}
         <header className="deck-top-menu">
-            <StoreButton/>
+            <StoreButton onClick={handleSaveClick}/>
         </header>
         {/* 한중일 지역 선택 아이콘, 텍스트*/}
         <div className="deck-select">

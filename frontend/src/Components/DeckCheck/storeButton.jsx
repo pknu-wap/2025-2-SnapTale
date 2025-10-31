@@ -1,13 +1,8 @@
 import smallButton from "../../assets/smallButton.png";
 import "./storeButton.css"
-import { useNavigate } from 'react-router-dom';
-const StoreButton = () => {
-    const navigate = useNavigate();
-    const handleClick = () => {
-        navigate(-1); 
-    };
+const StoreButton = ({onClick}) => {
     return (
-    <div className="deckStore-button-container" onClick={handleClick}>
+    <div className="deckStore-button-container" onClick={onClick}>
         <img src={smallButton} alt="DeckStore Button"/>
         <span className="deckStore-button-text">
             저장

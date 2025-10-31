@@ -28,7 +28,8 @@ const Home = () => {
         return;
     }
     else{
-       if (!user.deckId) { // 예: 덱 ID가 없으면
+      console.log("User selectedDeckPresetId:", user.selectedDeckPresetId);
+       if (!user.selectedDeckPresetId) { // 예: 덱 ID가 없으면
         setShowDeckModal(true); // 덱 체크 모달 보이기
       } else {
         setShowDeckModal(false); // 덱이 있으면 모달 숨기기
@@ -176,7 +177,7 @@ const Home = () => {
             disabled={showDeckModal || openRDModal || openFriendlyModal || openCreateModal || openJoinModal} 
           />
         {showDeckModal && <DCModal />}
-        
+
         {openRDModal && 
           <RDModal 
             setOpenRDModal={setOpenRDModal} 
