@@ -87,10 +87,28 @@ public class UserService {
         return UserRes.from(user);
     }
 
+    @Transactional
+    public UserRes updateSelectedDeck(Long userId, Long deckPresetId) {
+        User user = getUserOrThrow(userId);
+        DeckPreset deckPreset = getDeckPresetOrThrow(deckPresetId);
+        user.setSelectedDeck(deckPreset);
+        userRepository.save(user);
+        return UserRes.from(user);
+    }
+
     private DeckPreset resolveDeckPreset(Long deckPresetId) {
         if (deckPresetId == null) {
             return null;
         }
+        return getDeckPresetOrThrow(deckPresetId);
+    }
+
+    private User getUserOrThrow(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+    }
+
+    private DeckPreset getDeckPresetOrThrow(Long deckPresetId) {
         return deckPresetRepository.findById(deckPresetId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.DECK_PRESET_NOT_FOUND));
     }

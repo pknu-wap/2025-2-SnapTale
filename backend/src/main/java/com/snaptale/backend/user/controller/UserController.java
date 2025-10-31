@@ -1,5 +1,9 @@
 package com.snaptale.backend.user.controller;
 
+import com.snaptale.backend.user.model.UserDeckSelectionReq;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -99,5 +103,18 @@ public class UserController {
     @PatchMapping("/last-seen/{userId}")
     public BaseResponse<UserRes> updateLastSeen(@PathVariable Long userId) {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, userService.updateLastSeen(userId));
+    }
+
+    @Operation(summary = "유저 선택 덱 설정", description = "유저가 사용할 덱 프리셋을 설정합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "선택 덱 설정 성공"),
+            @ApiResponse(responseCode = "404", description = "유저 또는 덱 프리셋을 찾을 수 없음",
+                    content = @Content(schema = @Schema(implementation = BaseResponse.class)))
+    })
+    @PatchMapping("/{userId}/selected-deck")
+    public BaseResponse<UserRes> updateSelectedDeck(@PathVariable Long userId,
+                                                    @RequestBody @Valid UserDeckSelectionReq request) {
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS,
+                userService.updateSelectedDeck(userId, request.deckPresetId()));
     }
 }
