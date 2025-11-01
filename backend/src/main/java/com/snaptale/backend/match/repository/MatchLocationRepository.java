@@ -23,4 +23,11 @@ public interface MatchLocationRepository extends JpaRepository<MatchLocation, Lo
                         "JOIN FETCH ml.match m " +
                         "JOIN FETCH ml.location l")
         List<MatchLocation> findAllWithFetch();
+
+        @Query("SELECT ml FROM MatchLocation ml " +
+                        "JOIN FETCH ml.match m " +
+                        "JOIN FETCH ml.location l " +
+                        "WHERE m.matchId = :matchId " +
+                        "ORDER BY ml.slotIndex ASC")
+        List<MatchLocation> findByMatchIdWithFetch(@Param("matchId") Long matchId);
 }

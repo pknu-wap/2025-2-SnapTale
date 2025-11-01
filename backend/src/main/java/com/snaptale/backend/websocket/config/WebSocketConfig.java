@@ -11,7 +11,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 // - /ws-stomp: WebSocket 연결 엔드포인트
 // - /topic: 구독(subscribe) 경로 prefix
 // - /app: 메시지 전송(send) 경로 prefix
-@Configuration
+@Configuration("websocketConfig")
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 

@@ -144,7 +144,7 @@
   width:100%;
   display:flex;
   justify-content:center;
-  left: -550px;
+  /* left: -550px; */
 }
 
 /* 턴 종료 버튼 */
