@@ -10,7 +10,4 @@ export default defineConfig({
     include: ['sockjs-client'],
   },
   plugins: [react()],
-  define: {
-    'global': {},
-  },
 })
