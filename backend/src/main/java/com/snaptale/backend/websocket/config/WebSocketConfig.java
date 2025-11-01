@@ -18,8 +18,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(@NonNull MessageBrokerRegistry config) {
         // topic: 다수의 사용자에게 메시지 전송할 때, queue: 한 사용자에게 메시지 전송할 때
-        config.enableSimpleBroker("/topic", "/queue")
-                .setHeartbeatValue(new long[] { 10000, 10000 }); // 10초마다 하트비트 전송
+        config.enableSimpleBroker("/topic", "/queue");
 
         // 클라이언트에서 메시지 전송 시 기본 경로 설정
         config.setApplicationDestinationPrefixes("/app");

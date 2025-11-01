@@ -38,6 +38,7 @@ public class GameFlowService {
     private final UserRepository userRepository;
     private final DeckPresetRepository deckPresetRepository;
     private final LocationRepository locationRepository;
+    private final MatchLocationService matchLocationService;
     private static final int NUM_LOCATIONS = 3;
     private static final int INITIAL_HAND_SIZE = 3;
     private static final int DECK_SIZE = 12;
@@ -224,6 +225,13 @@ public class GameFlowService {
 
         if (match.getStatus() != MatchStatus.MATCHED) {
             throw new BaseException(BaseResponseStatus.INVALID_MATCH_STATUS);
+        }
+
+        // 매치에 지역이 할당되지 않았다면 랜덤으로 3개 할당
+        List<MatchLocation> existingLocations = matchLocationRepository.findByMatchIdWithFetch(matchId);
+        if (existingLocations.isEmpty()) {
+            log.info("매치에 지역 할당: matchId={}", matchId);
+            matchLocationService.assignRandomLocationsToMatch(matchId);
         }
 
         match.apply(new MatchUpdateReq(
