@@ -1,5 +1,6 @@
 // src/Components/GamePlay/GameLayout.jsx
-import { useState, useEffect } from "react";
+
+import { useState, useEffect, useMemo } from "react";
 import { useUser } from "../../contexts/UserContext";
 import "./GameLayout.css";
 import Card from "./Card";
@@ -10,7 +11,10 @@ import EnlargedCard from "./EnlargedCard";
 import EnlargedLocation from "./EnlargedLocation";
 import defaultImg from "../../assets/koreaIcon.png";
 import DCI from "../../assets/defaultCardImg.svg";
+import { fetchLocations } from "./api/location";
+import GameChatFloatingButton from "./GameChatFloatingButton";
 import { fetchLocationsByMatchId } from "./api/location";
+
 
 export default function GameLayout({ matchId }) {
   const handCount = 12;
@@ -244,7 +248,7 @@ export default function GameLayout({ matchId }) {
       </section>
 
       <div className="gl-buttons-wrap">
-        <Energy value={energy}/>
+        <Energy value={energy} />
         <button className="gl-endBtn" onClick={endTurn}
             disabled={!cardPlayed || turn === maxTurn}>
             턴 종료 ({turn} / {maxTurn})
@@ -297,6 +301,8 @@ export default function GameLayout({ matchId }) {
       
     </div>
 
+    <GameChatFloatingButton matchId={matchId} />
+    
       {selectedCard && (
         <div className="modal-backdrop">
           <EnlargedCard card={selectedCard} onClose={handleCloseModal} />
