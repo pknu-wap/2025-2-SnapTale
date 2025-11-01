@@ -48,7 +48,7 @@ const Home = () => {
       //랜덤 매치에서 createMatch 호출 안 하고 백엔드에서 알아서 처리함.
 
       // 바로 참가 (백엔드가 가장 낮은 대기 매치를 선택/생성)
-      const joinResponse = await joinMatch(0, user.guestId, user.nickname);
+      const joinResponse = await joinMatch(0, user.guestId, user.nickname, user.selectedDeckPresetId);
       console.log("랜덤 매치 참가 완료:", joinResponse);
       
       // 응답에서 matchId 추출 (parseJsonResponse가 result를 반환할 수 있으므로 둘 다 확인)
@@ -90,7 +90,7 @@ const Home = () => {
 
       // 2. 생성한 매치에 자신이 참가
       console.log("생성한 매치 참가 시도 - matchId:", matchId, "userId:", user.guestId);
-      const joinResponse = await joinMatch(matchId, user.guestId, user.nickname);
+      const joinResponse = await joinMatch(matchId, user.guestId, user.nickname, user.selectedDeckPresetId);
       console.log("친선전 매치 참가 완료 - 응답:", joinResponse);
 
       // 3. matchId 설정하고 CreateModal 열기
@@ -122,7 +122,7 @@ const Home = () => {
       console.log("친선전 매치 참가 시도: 입력 matchId =", matchIdNum, "userId =", user.guestId);
 
       // 입력받은 매치 ID로 참가
-      const joinResponse = await joinMatch(matchIdNum, user.guestId, user.nickname);
+      const joinResponse = await joinMatch(matchIdNum, user.guestId, user.nickname, user.selectedDeckPresetId);
       console.log("친선전 매치 참가 완료 - 전체 응답:", joinResponse);
 
       // 응답에서 matchId 확인

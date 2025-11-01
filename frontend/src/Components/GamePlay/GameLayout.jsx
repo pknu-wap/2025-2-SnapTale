@@ -1,5 +1,6 @@
 // src/Components/GamePlay/GameLayout.jsx
 import { useState, useEffect } from "react";
+import { useUser } from "../../contexts/UserContext";
 import "./GameLayout.css";
 import Card from "./Card";
 import Location from "./Location";
@@ -15,31 +16,62 @@ export default function GameLayout({ matchId }) {
   const handCount = 12;
   const maxTurn = 6;
 
+  const { user } = useUser();
   const [selectedCard, setSelectedCard] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [locations, setLocations] = useState([]); // 서버에서 불러올 위치 데이터
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [opponentPowers, setOpponentPowers] = useState([0, 0, 0]);
-  const [myPowers, setMyPowers] = useState([0, 0, 0]);
+  const [opponentPowers] = useState([0, 0, 0]);
+  const [myPowers] = useState([0, 0, 0]);
   const [turn, setTurn] = useState(1);
   const [hand, setHand] = useState([]);
   const [cardPlayed, setCardPlayed] = useState(false);
-  const [energy, setEnergy] = useState(3);
+  const [energy] = useState(3);
+  const [allCards, setAllCards] = useState([]);
 
-  //카드 12장 생성
-  const allCards = Array.from({ length: handCount }).map((_, i) => ({
-    cardId: `card-${i}`,
-    name: `Card ${i + 1}`,
-    imageUrl: DCI,
-    cost: Math.floor(Math.random() * 10) + 1,
-    power: Math.floor(Math.random() * 10) + 1,
-    faction: ["korea", "china", "japan"][i % 3],
-    effectDesc: "Sample effect description",
-    active: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  }));
+  // 선택한 덱의 카드들을 불러와 hand와 allCards 구성
+  useEffect(() => {
+    async function loadDeckCards() {
+      if (!user?.selectedDeckPresetId) return;
+      try {
+        // 덱 프리셋 조회
+        const resDeck = await fetch(`${import.meta.env.VITE_API_BASE}/api/deck-presets/${user.selectedDeckPresetId}`);
+        if (!resDeck.ok) throw new Error(`Failed to load deck preset: ${resDeck.status}`);
+        const deckData = await resDeck.json();
+        const deck = deckData.result ?? deckData;
+        const cardIds = (deck.cards ?? []).map(c => c.cardId);
+
+        // 카드 상세 병렬 조회
+        const cardPromises = cardIds.map(cardId =>
+          fetch(`${import.meta.env.VITE_API_BASE}/api/cards/${cardId}`)
+            .then(r => r.ok ? r.json() : Promise.reject(r.status))
+            .then(d => d.result ?? d)
+        );
+        const cards = await Promise.all(cardPromises);
+
+        const mapped = cards.map(item => ({
+          cardId: item.cardId,
+          name: item.name,
+          imageUrl: item.imageUrl || DCI,
+          cost: item.cost,
+          power: item.power,
+          faction: item.faction,
+          effectDesc: item.effectDesc,
+          active: item.active,
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt,
+        }));
+
+        setAllCards(mapped);
+        setHand(mapped.slice(0, 3));
+      } catch (e) {
+        console.error("덱 카드 불러오기 실패:", e);
+      }
+    }
+
+    loadDeckCards();
+  }, [user?.selectedDeckPresetId]);
 
   useEffect(() => {
     async function loadLocations() {
@@ -86,7 +118,6 @@ export default function GameLayout({ matchId }) {
     }
 
     loadLocations();
-    setHand(allCards.slice(0, 3));
   }, [matchId]);
 
   const handleCardClick = (cardData) => {
@@ -123,7 +154,7 @@ export default function GameLayout({ matchId }) {
 
       setHand((prev) => {
         const nextIndex = prev.length;
-        if (nextIndex < handCount) {
+        if (nextIndex < Math.min(handCount, allCards.length)) {
           return [...prev, allCards[nextIndex]];
         }
         return prev;
