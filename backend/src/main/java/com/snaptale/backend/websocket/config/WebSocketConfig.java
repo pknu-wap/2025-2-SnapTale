@@ -11,14 +11,15 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 // - /ws-stomp: WebSocket 연결 엔드포인트
 // - /topic: 구독(subscribe) 경로 prefix
 // - /app: 메시지 전송(send) 경로 prefix
-@Configuration
+@Configuration("websocketConfig")
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(@NonNull MessageBrokerRegistry config) {
         // topic: 다수의 사용자에게 메시지 전송할 때, queue: 한 사용자에게 메시지 전송할 때
-        config.enableSimpleBroker("/topic", "/queue");
+        config.enableSimpleBroker("/topic", "/queue")
+                .setHeartbeatValue(new long[] { 10000, 10000 }); // 10초마다 하트비트 전송
 
         // 클라이언트에서 메시지 전송 시 기본 경로 설정
         config.setApplicationDestinationPrefixes("/app");
@@ -28,8 +29,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(@NonNull StompEndpointRegistry registry) {
         // WebSocket 연결 기본 엔드포인트 등록
         registry.addEndpoint("/ws-stomp")
-                .setAllowedOriginPatterns("*") // CORS 설정 (개발 환경용)
-                .setAllowedOrigins("*") // CORS 설정 (개발 환경용)
+                .setAllowedOrigins(
+                        "http://localhost:5173",
+                        "http://localhost:3000",
+                        "http://localhost:8080",
+                        "https://snaptale.p-e.kr")
                 .withSockJS(); // SockJS fallback 옵션
     }
 }
