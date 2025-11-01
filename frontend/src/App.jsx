@@ -6,6 +6,7 @@ import  DeckCheck from "./Components/DeckCheck/DeckCheck";
 import  GameLoading from "./Components/Home/GameLoading";
 import  GamePlay  from "./Components/GamePlay/Index";
 import  GameResult  from "./Components/GameResult";
+import { WebSocketLayout } from "./contexts/WebSocketContext.jsx";
 
 function App() {
   return (
@@ -22,7 +23,9 @@ function App() {
             {/* 게임 로딩 화면 */}
             <Route path="/gameloading" element={<GameLoading />} />
             {/* 게임 플레이 화면 (matchId 파라미터) */}
+            <Route element={<WebSocketLayout />}>
             <Route path="/gameplay/:matchId" element={<GamePlay />} />
+            </Route>
             {/* 게임 결과 확인 화면 */}
             <Route path="/gameresult" element={<GameResult />} />
           </Routes>

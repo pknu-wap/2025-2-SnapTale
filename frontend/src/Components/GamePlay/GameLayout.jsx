@@ -1,5 +1,5 @@
 // src/Components/GamePlay/GameLayout.jsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import "./GameLayout.css";
 import Card from "./Card";
 import Location from "./Location";
@@ -10,8 +10,9 @@ import EnlargedLocation from "./EnlargedLocation";
 import defaultImg from "../../assets/koreaIcon.png";
 import DCI from "../../assets/defaultCardImg.svg";
 import { fetchLocations } from "./api/location";
+import GameChatFloatingButton from "./GameChatFloatingButton";
 
-export default function GameLayout() {
+export default function GameLayout({ matchId }) {
   const handCount = 12;
   const maxTurn = 6;
 
@@ -20,26 +21,30 @@ export default function GameLayout() {
   const [locations, setLocations] = useState([]); // 서버에서 불러올 위치 데이터
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [opponentPowers, setOpponentPowers] = useState([0, 0, 0]);
-  const [myPowers, setMyPowers] = useState([0, 0, 0]);
+  const [opponentPowers] = useState([0, 0, 0]);
+  const [myPowers] = useState([0, 0, 0]);
   const [turn, setTurn] = useState(1);
   const [hand, setHand] = useState([]);
   const [cardPlayed, setCardPlayed] = useState(false);
-  const [energy, setEnergy] = useState(3);
+  const [energy] = useState(3);
 
   //카드 12장 생성
-  const allCards = Array.from({ length: handCount }).map((_, i) => ({
-    cardId: `card-${i}`,
-    name: `Card ${i + 1}`,
-    imageUrl: DCI,
-    cost: Math.floor(Math.random() * 10) + 1,
-    power: Math.floor(Math.random() * 10) + 1,
-    faction: ["korea", "china", "japan"][i % 3],
-    effectDesc: "Sample effect description",
-    active: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  }));
+  const allCards = useMemo(
+    () =>
+      Array.from({ length: handCount }).map((_, i) => ({
+        cardId: `card-${i}`,
+        name: `Card ${i + 1}`,
+        imageUrl: DCI,
+        cost: Math.floor(Math.random() * 10) + 1,
+        power: Math.floor(Math.random() * 10) + 1,
+        faction: ["korea", "china", "japan"][i % 3],
+        effectDesc: "Sample effect description",
+        active: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      })),
+    [handCount],
+  );
 
   useEffect(() => {
     async function loadLocations() {
@@ -81,7 +86,7 @@ export default function GameLayout() {
 
     loadLocations();
     setHand(allCards.slice(0, 3));
-  }, []);
+  }, [allCards]);
 
   const handleCardClick = (cardData) => {
     setSelectedCard(cardData);
@@ -207,7 +212,7 @@ export default function GameLayout() {
       </section>
 
       <div className="gl-buttons-wrap">
-        <Energy value={energy}/>
+        <Energy value={energy} />
         <button className="gl-endBtn" onClick={endTurn}
             disabled={!cardPlayed || turn === maxTurn}>
             턴 종료 ({turn} / {maxTurn})
@@ -260,6 +265,8 @@ export default function GameLayout() {
       
     </div>
 
+    <GameChatFloatingButton matchId={matchId} />
+    
       {selectedCard && (
         <div className="modal-backdrop">
           <EnlargedCard card={selectedCard} onClose={handleCloseModal} />

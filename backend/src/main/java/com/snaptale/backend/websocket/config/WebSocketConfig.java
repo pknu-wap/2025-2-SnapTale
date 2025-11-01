@@ -25,11 +25,15 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     }
 
     @Override
-    public void registerStompEndpoints(@NonNull StompEndpointRegistry registry) {
-        // WebSocket 연결 기본 엔드포인트 등록
+    public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws-stomp")
-                .setAllowedOriginPatterns("*") // CORS 설정 (개발 환경용)
-                .setAllowedOrigins("*") // CORS 설정 (개발 환경용)
-                .withSockJS(); // SockJS fallback 옵션
+                // 개발/운영에서 접근하는 정확한 오리진만 나열
+                .setAllowedOrigins(
+                        "http://localhost:5173",
+                        "https://snaptale.p-e.kr",
+                        "https://www.snaptale.p-e.kr",
+                        "https://snap-tale.netlify.app"
+                )
+                .withSockJS();
     }
 }

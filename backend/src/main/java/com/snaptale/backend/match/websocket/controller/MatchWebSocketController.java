@@ -159,7 +159,7 @@ public class MatchWebSocketController {
 
     // 매치 채팅 메시지 처리
     @MessageMapping("/match/{matchId}/chat")
-    @SendTo("/topic/match/{matchId}")
+    @SendTo("/topic/match/{matchId}/chat")
     public WebSocketResponse<ChatMessage> handleChat(
             @DestinationVariable Long matchId,
             @Payload ChatMessage message) {

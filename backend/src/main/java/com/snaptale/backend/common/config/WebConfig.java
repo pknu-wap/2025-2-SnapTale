@@ -20,6 +20,6 @@ public class WebConfig implements WebMvcConfigurer {
                         "https://snap-tale.netlify.app")
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
-                .allowCredentials(false);
+                .allowCredentials(true);
     }
 }
