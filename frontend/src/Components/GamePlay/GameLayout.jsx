@@ -9,9 +9,9 @@ import EnlargedCard from "./EnlargedCard";
 import EnlargedLocation from "./EnlargedLocation";
 import defaultImg from "../../assets/koreaIcon.png";
 import DCI from "../../assets/defaultCardImg.svg";
-import { fetchLocations } from "./api/location";
+import { fetchLocationsByMatchId } from "./api/location";
 
-export default function GameLayout() {
+export default function GameLayout({ matchId }) {
   const handCount = 12;
   const maxTurn = 6;
 
@@ -43,31 +43,37 @@ export default function GameLayout() {
 
   useEffect(() => {
     async function loadLocations() {
+      if (!matchId) {
+        setError("매치 ID가 없습니다.");
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
-        const data = await fetchLocations();
+        const data = await fetchLocationsByMatchId(matchId);
 
         // 서버 응답 구조: { success, code, message, result: [...] }
         if (data.success && Array.isArray(data.result)) {
-          console.log("서버에서 받은 locations 개수:", data.result.length);
+          console.log("서버에서 받은 매치 지역 데이터:", data.result);
+          console.log("서버에서 받은 매치 지역 개수:", data.result.length);
 
           const formatted = data.result.map((item) => ({
-            locationId: item.locationId,
-            name: item.name,
-            imageUrl: item.imageUrl || defaultImg,
-            effectDesc: item.effectDesc,
-            isActive: item.active,
+            locationId: item.location.locationId,
+            name: item.location.name,
+            imageUrl: item.location.imageUrl || defaultImg,
+            effectDesc: item.location.effectDesc,
+            isActive: item.location.isActive,
             revealedTurn: item.revealedTurn,
             matchId: item.matchId,
             slotIndex: item.slotIndex,
           }));
 
-          // 랜덤으로 3개 선택
-          const shuffled = [...formatted].sort(() => Math.random() - 0.5);
-          const selected = shuffled.slice(0, 3);
-          console.log("랜덤으로 선택된 지역 ID:", selected[0].locationId, selected[1].locationId, selected[2].locationId);
+          // slotIndex 순서로 정렬 (서버에서 이미 3개를 선택해서 보내줌)
+          const sorted = formatted.sort((a, b) => a.slotIndex - b.slotIndex);
+          console.log("매치 지역 ID:", sorted.map(loc => loc.locationId).join(", "));
 
-          setLocations(selected);
+          setLocations(sorted);
         } else {
           throw new Error("서버 응답이 올바르지 않습니다.");
         }
@@ -81,7 +87,7 @@ export default function GameLayout() {
 
     loadLocations();
     setHand(allCards.slice(0, 3));
-  }, []);
+  }, [matchId]);
 
   const handleCardClick = (cardData) => {
     setSelectedCard(cardData);
