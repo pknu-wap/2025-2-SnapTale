@@ -32,84 +32,53 @@ export default function GameLayout({ matchId }) {
   const [hand, setHand] = useState([]);
   const [cardPlayed, setCardPlayed] = useState(false);
   const [energy] = useState(3);
-  const [allCards, setAllCards] = useState([]);
 
-  // 선택한 덱의 카드들을 불러와 hand와 allCards 구성
-  useEffect(() => {
-    async function loadDeckCards() {
-      if (!user?.selectedDeckPresetId) return;
-      try {
-        // 덱 프리셋 조회
-        const resDeck = await fetch(`${import.meta.env.VITE_API_BASE}/api/deck-presets/${user.selectedDeckPresetId}`);
-        if (!resDeck.ok) throw new Error(`Failed to load deck preset: ${resDeck.status}`);
-        const deckData = await resDeck.json();
-        const deck = deckData.result ?? deckData;
-        const cardIds = (deck.cards ?? []).map(c => c.cardId);
 
-        // 카드 상세 병렬 조회
-        const cardPromises = cardIds.map(cardId =>
-          fetch(`${import.meta.env.VITE_API_BASE}/api/cards/${cardId}`)
-            .then(r => r.ok ? r.json() : Promise.reject(r.status))
-            .then(d => d.result ?? d)
-        );
-        const cards = await Promise.all(cardPromises);
-
-        const mapped = cards.map(item => ({
-          cardId: item.cardId,
-          name: item.name,
-          imageUrl: item.imageUrl || DCI,
-          cost: item.cost,
-          power: item.power,
-          faction: item.faction,
-          effectDesc: item.effectDesc,
-          active: item.active,
-          createdAt: item.createdAt,
-          updatedAt: item.updatedAt,
-        }));
-
-        setAllCards(mapped);
-        setHand(mapped.slice(0, 3));
-      } catch (e) {
-        console.error("덱 카드 불러오기 실패:", e);
-      }
-    }
-
-    loadDeckCards();
-  }, [user?.selectedDeckPresetId]);
+//카드 12장 생성
+  const allCards = useMemo(
+    () =>
+      Array.from({ length: handCount }).map((_, i) => ({
+        cardId: `card-${i}`,
+        name: `Card ${i + 1}`,
+        imageUrl: DCI,
+        cost: Math.floor(Math.random() * 10) + 1,
+        power: Math.floor(Math.random() * 10) + 1,
+        faction: ["korea", "china", "japan"][i % 3],
+        effectDesc: "Sample effect description",
+        active: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      })),
+    [handCount],
+  );
 
   useEffect(() => {
     async function loadLocations() {
-      if (!matchId) {
-        setError("매치 ID가 없습니다.");
-        setLoading(false);
-        return;
-      }
-
       try {
         setLoading(true);
-        const data = await fetchLocationsByMatchId(matchId);
+        const data = await fetchLocations();
 
         // 서버 응답 구조: { success, code, message, result: [...] }
         if (data.success && Array.isArray(data.result)) {
-          console.log("서버에서 받은 매치 지역 데이터:", data.result);
-          console.log("서버에서 받은 매치 지역 개수:", data.result.length);
+          console.log("서버에서 받은 locations 개수:", data.result.length);
 
           const formatted = data.result.map((item) => ({
-            locationId: item.location.locationId,
-            name: item.location.name,
-            imageUrl: item.location.imageUrl || defaultImg,
-            effectDesc: item.location.effectDesc,
-            isActive: item.location.isActive,
+            locationId: item.locationId,
+            name: item.name,
+            imageUrl: item.imageUrl || defaultImg,
+            effectDesc: item.effectDesc,
+            isActive: item.active,
             revealedTurn: item.revealedTurn,
             matchId: item.matchId,
             slotIndex: item.slotIndex,
           }));
 
-          // slotIndex 순서로 정렬 (서버에서 이미 3개를 선택해서 보내줌)
-          const sorted = formatted.sort((a, b) => a.slotIndex - b.slotIndex);
-          console.log("매치 지역 ID:", sorted.map(loc => loc.locationId).join(", "));
+          // 랜덤으로 3개 선택
+          const shuffled = [...formatted].sort(() => Math.random() - 0.5);
+          const selected = shuffled.slice(0, 3);
+          console.log("랜덤으로 선택된 지역 ID:", selected[0].locationId, selected[1].locationId, selected[2].locationId);
 
-          setLocations(sorted);
+          setLocations(selected);
         } else {
           throw new Error("서버 응답이 올바르지 않습니다.");
         }
@@ -122,7 +91,8 @@ export default function GameLayout({ matchId }) {
     }
 
     loadLocations();
-  }, [matchId]);
+    setHand(allCards.slice(0, 3));
+  }, [allCards]);
 
   const handleCardClick = (cardData) => {
     setSelectedCard(cardData);
