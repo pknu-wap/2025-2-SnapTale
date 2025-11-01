@@ -115,10 +115,16 @@ public class MatchRESTService {
 			// playerIndex 결정 (1부터 시작)
 			int playerIndex = existingParticipants.size() + 1;
 
-			// todo:임시로 첫 번째 덱 사용, 추후 사용자 설정 덱으로 변경 가능
-			DeckPreset deckPreset = deckPresetRepository.findAll().stream()
-					.findFirst()
-					.orElseThrow(() -> new BaseException(BaseResponseStatus.DECK_PRESET_NOT_FOUND));
+			// 선택한 덱 프리셋 적용 (없으면 첫 번째 덱 사용)
+			DeckPreset deckPreset;
+			if (message.getDeckPresetId() != null) {
+				deckPreset = deckPresetRepository.findById(message.getDeckPresetId())
+						.orElseThrow(() -> new BaseException(BaseResponseStatus.DECK_PRESET_NOT_FOUND));
+			} else {
+				deckPreset = deckPresetRepository.findAll().stream()
+						.findFirst()
+						.orElseThrow(() -> new BaseException(BaseResponseStatus.DECK_PRESET_NOT_FOUND));
+			}
 
 			// MatchParticipant 생성
 			MatchParticipant participant = MatchParticipant.builder()
