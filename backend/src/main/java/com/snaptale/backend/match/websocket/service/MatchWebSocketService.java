@@ -4,6 +4,7 @@ import com.snaptale.backend.common.exceptions.BaseException;
 import com.snaptale.backend.common.response.BaseResponseStatus;
 import com.snaptale.backend.match.entity.Match;
 import com.snaptale.backend.match.entity.MatchParticipant;
+import com.snaptale.backend.match.entity.MatchStatus;
 import com.snaptale.backend.match.entity.Play;
 import com.snaptale.backend.match.repository.MatchParticipantRepository;
 import com.snaptale.backend.match.repository.MatchRepository;
@@ -47,7 +48,7 @@ public class MatchWebSocketService {
 	private final TurnService turnService;
 	private final GameCalculationService gameCalculationService;
 
-	//api로 대체됨.
+	// api로 대체됨.
 	// 매치 참가 처리
 	@Transactional
 	public void handleJoin(MatchJoinMessage message) {
@@ -74,7 +75,7 @@ public class MatchWebSocketService {
 				message.getNickname() + "님이 입장했습니다.");
 	}
 
-	//api로 대체됨.
+	// api로 대체됨.
 	// 매치 시작 처리
 	@Transactional
 	public void handleStart(MatchStartMessage message) {
@@ -341,7 +342,7 @@ public class MatchWebSocketService {
 	// 매치 채팅 처리
 	public ChatMessage handleChat(ChatMessage message) {
 		if (message == null || message.getMatchId() == null) {
-			throw new BaseException(BaseResponseStatus.MATCH_NOT_FOUND);
+			throw new BaseException(BaseResponseStatus.CHAT_NOT_ALLOWED);
 		}
 
 		String trimmedContent = Optional.ofNullable(message.getContent())
@@ -352,24 +353,50 @@ public class MatchWebSocketService {
 			throw new BaseException(BaseResponseStatus.INVALID_ACTION_TYPE);
 		}
 
+		// 채팅 길이 제한 (최대 500자)
+		if (trimmedContent.length() > 500) {
+			throw new BaseException(BaseResponseStatus.MESSAGE_TOO_LONG);
+		}
+
+		// 매치 존재 여부 및 상태 확인
+		Match match = matchRepository.findById(message.getMatchId())
+				.orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_NOT_FOUND));
+
+		// 채팅은 MATCHED 또는 PLAYING 상태에서만 가능
+		if (match.getStatus() != MatchStatus.MATCHED && match.getStatus() != MatchStatus.PLAYING) {
+			throw new BaseException(BaseResponseStatus.INVALID_MATCH_STATUS);
+		}
+
+		// senderId 검증
 		Long senderId = message.getSenderId();
+		if (senderId == null) {
+			throw new BaseException(BaseResponseStatus.CHAT_NOT_ALLOWED);
+		}
+
+		// 발신자가 해당 매치의 참가자인지 확인
+		boolean isParticipant = matchParticipantRepository
+				.findByMatch_MatchId(message.getMatchId())
+				.stream()
+				.anyMatch(participant -> participant.getGuestId().equals(senderId));
+
+		if (!isParticipant) {
+			throw new BaseException(BaseResponseStatus.NOT_MATCH_PARTICIPANT);
+		}
+
+		// 닉네임 조회
 		String resolvedNickname = Optional.ofNullable(message.getSenderNickname())
 				.filter(nick -> !nick.isBlank())
-				.orElseGet(() -> senderId == null ? "익명" : userRepository.findById(senderId)
+				.orElseGet(() -> userRepository.findById(senderId)
 						.map(User::getNickname)
 						.orElse("익명"));
 
-		ChatMessage chatPayload = ChatMessage.builder()
+		// 채팅 메시지 생성 및 반환 (브로드캐스트는 컨트롤러의 @SendTo에서 처리)
+		return ChatMessage.builder()
 				.matchId(message.getMatchId())
 				.senderId(senderId)
 				.senderNickname(resolvedNickname)
 				.content(trimmedContent)
 				.sentAt(LocalDateTime.now())
 				.build();
-
-		broadcastToMatch(message.getMatchId(), "CHAT", chatPayload,
-				resolvedNickname + ": " + trimmedContent, senderId);
-
-		return chatPayload;
 	}
 }

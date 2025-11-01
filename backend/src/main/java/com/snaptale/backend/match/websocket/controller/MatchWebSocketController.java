@@ -159,16 +159,16 @@ public class MatchWebSocketController {
 
     // 매치 채팅 메시지 처리
     @MessageMapping("/match/{matchId}/chat")
-    public void handleChat(
+    @SendTo("/topic/match/{matchId}")
+    public WebSocketResponse<ChatMessage> handleChat(
             @DestinationVariable Long matchId,
             @Payload ChatMessage message) {
         try {
             message.setMatchId(matchId);
-            matchWebSocketService.handleChat(message);
+            ChatMessage chatMessage = matchWebSocketService.handleChat(message);
+            return WebSocketResponse.success(chatMessage, "채팅 메시지 전송 성공");
         } catch (Exception e) {
-            log.error("채팅 메시지 처리 실패: matchId={}, error={}", matchId, e.getMessage());
-            throw e;
+            return WebSocketResponse.error("채팅 메시지 처리에 실패했습니다: " + e.getMessage());
         }
     }
-
 }
