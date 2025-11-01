@@ -40,7 +40,7 @@ const RDModal = ({setOpenRDModal, matchCode, currentMatchId: initialMatchId}) =>
                         return;
                     }
 
-                    const response = await joinMatch(matchId, user.guestId, user.nickname, user.selectedDeckPresetId);
+                    const response = await joinMatch(matchId, user.guestId, user.nickname);
                     console.log("친선전 매치 참가 성공:", response);
                     setCurrentMatchId(matchId);
                 }
