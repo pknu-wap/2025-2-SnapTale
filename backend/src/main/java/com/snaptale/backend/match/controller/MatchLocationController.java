@@ -56,6 +56,17 @@ public class MatchLocationController {
                 return new BaseResponse<>(BaseResponseStatus.SUCCESS, matchLocationService.getMatchLocations());
         }
 
+        @Operation(summary = "특정 매치의 지역들 조회", description = "특정 매치에 할당된 지역들을 조회합니다.")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "매치 지역 조회 성공"),
+                        @ApiResponse(responseCode = "404", description = "매치를 찾을 수 없음"),
+        })
+        @GetMapping("/match/{matchId}")
+        public BaseResponse<List<MatchLocationRes>> getLocationsByMatchId(@PathVariable Long matchId) {
+                return new BaseResponse<>(BaseResponseStatus.CREATED,
+                                matchLocationService.getLocationsByMatchId(matchId));
+        }
+
         // 테스트 완
         @Operation(summary = "특정 매치 지역 하나 조회", description = "특정 매치 지역를 조회합니다.")
         @ApiResponses({

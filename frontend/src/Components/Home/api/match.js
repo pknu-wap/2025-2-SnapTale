@@ -23,13 +23,14 @@ export async function getMatch(matchId) { // 매치 삭제 후 404면 null 반�
 
 // 매치 참가 (userId, nickname만 전송)
 // MatchJoinMessage: matchId (서버에서 설정), userId (필수), nickname (필수), sessionId (서버에서 생성)
-export async function joinMatch(matchId, userId, nickname) {
+export async function joinMatch(matchId, userId, nickname, deckPresetId) {
   const res = await fetch(`${API_BASE}/api/matches/${matchId}/join`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       userId,
-      nickname
+      nickname,
+      deckPresetId
     }),
   });
   return parseJsonResponse(res);

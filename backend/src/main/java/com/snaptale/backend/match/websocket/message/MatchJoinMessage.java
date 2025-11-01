@@ -23,4 +23,7 @@ public class MatchJoinMessage {
 
     // 세션 ID (서버에서 생성)
     private String sessionId;
+
+    // 선택한 덱 프리셋 ID (선택)
+    private Long deckPresetId;
 }
