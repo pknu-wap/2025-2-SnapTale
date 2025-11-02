@@ -20,10 +20,12 @@ import com.snaptale.backend.match.model.response.MatchJoinRes;
 import com.snaptale.backend.match.model.response.MatchRes;
 import com.snaptale.backend.match.model.response.MatchDetailRes;
 import com.snaptale.backend.match.model.response.MatchStartRes;
+import com.snaptale.backend.match.model.response.PlayActionRes;
 import com.snaptale.backend.match.service.MatchRESTService;
 import com.snaptale.backend.match.service.MatchService;
 import com.snaptale.backend.match.websocket.message.MatchJoinMessage;
 import com.snaptale.backend.match.websocket.message.MatchStartMessage;
+import com.snaptale.backend.match.websocket.message.PlayActionMessage;
 import lombok.RequiredArgsConstructor;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
@@ -125,6 +127,19 @@ public class MatchController {
             @RequestBody MatchStartMessage message) {
         message.setMatchId(matchId);
         MatchStartRes response = matchRESTService.startMatch(message);
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, response);
+    }
+
+    // 플레이 액션 (카드 플레이, 턴 종료 등)
+    @Operation(summary = "플레이 액션", description = "플레이 액션을 처리합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "플레이 액션 처리 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+    })
+    @PostMapping("/{matchId}/play-action")
+    public BaseResponse<PlayActionRes> playAction(@PathVariable Long matchId, @RequestBody PlayActionMessage message) {
+        message.setMatchId(matchId);
+        PlayActionRes response = matchRESTService.playAction(message);
         return new BaseResponse<>(BaseResponseStatus.SUCCESS, response);
     }
 }

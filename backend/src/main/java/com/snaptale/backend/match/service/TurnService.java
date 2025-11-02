@@ -5,9 +5,12 @@ import com.snaptale.backend.card.repository.CardRepository;
 import com.snaptale.backend.common.exceptions.BaseException;
 import com.snaptale.backend.common.response.BaseResponseStatus;
 import com.snaptale.backend.match.entity.*;
+import com.snaptale.backend.match.model.request.MatchUpdateReq;
 import com.snaptale.backend.match.repository.MatchParticipantRepository;
 import com.snaptale.backend.match.repository.MatchRepository;
 import com.snaptale.backend.match.repository.PlayRepository;
+import com.snaptale.backend.match.service.GameCalculationService.LocationPowerResult;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,7 +32,7 @@ public class TurnService {
     private final MatchParticipantRepository matchParticipantRepository;
     private final PlayRepository playRepository;
     private final CardRepository cardRepository;
-
+    private final GameCalculationService gameCalculationService;
     private static final int MAX_TURNS = 6;
     private static final int NUM_LOCATIONS = 3;
 
@@ -76,17 +79,23 @@ public class TurnService {
                 .card(card)
                 .slotIndex(slotIndex)
                 .powerSnapshot(card.getPower()) // 현재 파워 스냅샷 저장
+                .isTurnEnd(false) // 카드 제출
                 .build();
         playRepository.save(play);
         match.addPlay(play);
 
         log.info("카드 제출 완료: playId={}", play.getId());
 
-        // 6. 양쪽 플레이어가 모두 제출했는지 확인
+        // 6. 양쪽 플레이어가 모두 카드 제출했는지 확인
         List<Play> currentTurnPlays = playRepository.findByMatch_MatchIdAndTurnCount(
                 matchId, match.getTurnCount());
 
-        boolean bothPlayersSubmitted = currentTurnPlays.size() >= 2;
+        // 카드 제출만 카운트 (isTurnEnd = false 또는 null)
+        long cardPlays = currentTurnPlays.stream()
+                .filter(p -> p.getIsTurnEnd() == null || !p.getIsTurnEnd())
+                .count();
+
+        boolean bothPlayersSubmitted = cardPlays >= 2;
 
         return PlaySubmissionResult.builder()
                 .playId(play.getId())
@@ -96,7 +105,7 @@ public class TurnService {
     }
 
     // 턴 종료 및 다음 턴 시작
-    // 양쪽 플레이어가 모두 카드를 제출한 후 호출
+    // 양쪽 플레이어가 모두 턴 종료했을 때 호출
     @Transactional
     public TurnEndResult endTurnAndStartNext(Long matchId) {
         log.info("턴 종료 및 다음 턴 시작: matchId={}", matchId);
@@ -110,13 +119,14 @@ public class TurnService {
 
         int currentTurn = match.getTurnCount();
 
-        // 1. 현재 턴의 플레이 확인
-        List<Play> currentTurnPlays = playRepository.findByMatch_MatchIdAndTurnCount(
-                matchId, currentTurn);
-
-        if (currentTurnPlays.size() < 2) {
+        // 1. 현재 턴의 턴 종료 확인 (보안을 위해 재확인)
+        boolean bothEnded = checkBothPlayersEnded(matchId, currentTurn);
+        if (!bothEnded) {
             throw new BaseException(BaseResponseStatus.WAITING_FOR_OTHER_PLAYER);
         }
+
+        // 모든 지역에서 상대, 자신의 파워 계산 후 점령 수 계산.
+        LocationPowerResult locationPowerResult = gameCalculationService.calculateLocationPowers(matchId);
 
         // 2. 마지막 턴(6턴)인지 확인
         if (currentTurn >= MAX_TURNS) {
@@ -124,12 +134,13 @@ public class TurnService {
             return TurnEndResult.builder()
                     .gameEnded(true)
                     .nextTurn(currentTurn)
+                    .locationPowerResult(locationPowerResult)
                     .build();
         }
 
         // 3. 다음 턴으로 진행
         int nextTurn = currentTurn + 1;
-        match.apply(new com.snaptale.backend.match.model.request.MatchUpdateReq(
+        match.apply(new MatchUpdateReq(
                 null,
                 null,
                 nextTurn,
@@ -141,13 +152,65 @@ public class TurnService {
         return TurnEndResult.builder()
                 .gameEnded(false)
                 .nextTurn(nextTurn)
+                .locationPowerResult(locationPowerResult)
                 .build();
     }
 
-    // 현재 턴의 모든 플레이어가 제출했는지 확인
-    public boolean checkBothPlayersSubmitted(Long matchId, Integer turnCount) {
-        List<Play> plays = playRepository.findByMatch_MatchIdAndTurnCount(matchId, turnCount);
-        return plays.size() >= 2;
+    // 턴 종료 처리 (플레이어가 턴 종료 버튼을 누름)
+    @Transactional
+    public TurnEndSubmitResult submitTurnEnd(Long matchId, Long participantId) {
+        log.info("턴 종료 제출: matchId={}, participantId={}", matchId, participantId);
+
+        // 1. 매치 및 참가자 확인
+        Match match = matchRepository.findById(matchId)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_NOT_FOUND));
+
+        if (match.getStatus() != MatchStatus.PLAYING) {
+            throw new BaseException(BaseResponseStatus.GAME_NOT_STARTED);
+        }
+
+        MatchParticipant participant = matchParticipantRepository.findById(participantId)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.PARTICIPANT_NOT_FOUND));
+
+        int currentTurn = match.getTurnCount();
+
+        // 2. 이미 이번 턴에 턴 종료했는지 확인
+        boolean alreadyEnded = playRepository.existsTurnEndByMatchAndTurnAndPlayer(
+                matchId, currentTurn, participant.getGuestId());
+
+        if (alreadyEnded) {
+            throw new BaseException(BaseResponseStatus.ALREADY_PLAYED_THIS_TURN);
+        }
+
+        // 3. Play 엔티티 생성 및 저장 (턴 종료)
+        Play turnEndPlay = Play.builder()
+                .match(match)
+                .turnCount(currentTurn)
+                .guestId(participant.getGuestId())
+                .isTurnEnd(true)
+                .build();
+        playRepository.save(turnEndPlay);
+        match.addPlay(turnEndPlay);
+
+        log.info("턴 종료 제출 완료: turnEndPlayId={}", turnEndPlay.getId());
+
+        // 4. 양쪽 플레이어가 모두 턴 종료했는지 확인
+        List<Play> currentTurnEnds = playRepository.findTurnEndsByMatchAndTurn(
+                matchId, currentTurn);
+
+        boolean bothPlayersEnded = currentTurnEnds.size() >= 2;
+
+        return TurnEndSubmitResult.builder()
+                .turnEndId(turnEndPlay.getId())
+                .bothPlayersEnded(bothPlayersEnded)
+                .currentTurn(currentTurn)
+                .build();
+    }
+
+    // 현재 턴의 모든 플레이어가 턴 종료했는지 확인
+    public boolean checkBothPlayersEnded(Long matchId, Integer turnCount) {
+        List<Play> turnEnds = playRepository.findTurnEndsByMatchAndTurn(matchId, turnCount);
+        return turnEnds.size() >= 2;
     }
 
     // Play 제출 결과 DTO
@@ -176,15 +239,43 @@ public class TurnService {
         }
     }
 
+    // 턴 종료 제출 결과 DTO
+    public static class TurnEndSubmitResult {
+        private final Long turnEndId;
+        private final boolean bothPlayersEnded;
+        private final int currentTurn;
+
+        @lombok.Builder
+        public TurnEndSubmitResult(Long turnEndId, boolean bothPlayersEnded, int currentTurn) {
+            this.turnEndId = turnEndId;
+            this.bothPlayersEnded = bothPlayersEnded;
+            this.currentTurn = currentTurn;
+        }
+
+        public Long getTurnEndId() {
+            return turnEndId;
+        }
+
+        public boolean isBothPlayersEnded() {
+            return bothPlayersEnded;
+        }
+
+        public int getCurrentTurn() {
+            return currentTurn;
+        }
+    }
+
     // 턴 종료 결과 DTO
     public static class TurnEndResult {
         private final boolean gameEnded;
         private final int nextTurn;
+        private final LocationPowerResult locationPowerResult;
 
         @lombok.Builder
-        public TurnEndResult(boolean gameEnded, int nextTurn) {
+        public TurnEndResult(boolean gameEnded, int nextTurn, LocationPowerResult locationPowerResult) {
             this.gameEnded = gameEnded;
             this.nextTurn = nextTurn;
+            this.locationPowerResult = locationPowerResult;
         }
 
         public boolean isGameEnded() {
@@ -193,6 +284,10 @@ public class TurnService {
 
         public int getNextTurn() {
             return nextTurn;
+        }
+
+        public LocationPowerResult getLocationPowerResult() {
+            return locationPowerResult;
         }
     }
 }
