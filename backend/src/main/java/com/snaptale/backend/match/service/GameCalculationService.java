@@ -48,26 +48,18 @@ public class GameCalculationService {
         Long player1Id = participants.get(0).getGuestId();
         Long player2Id = participants.get(1).getGuestId();
 
-        // 모든 플레이 가져오기
-        List<Play> allPlays = playRepository.findByMatch_MatchId(matchId);
+        Match match = matchRepository.findById(matchId)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_NOT_FOUND));
 
         // 각 Location별 파워 계산
         Map<Integer, Integer> player1Powers = new HashMap<>();
         Map<Integer, Integer> player2Powers = new HashMap<>();
 
         for (int slotIndex = 0; slotIndex < NUM_LOCATIONS; slotIndex++) {
-            int slot = slotIndex;
 
-            // 각 플레이어의 해당 슬롯에 놓인 카드들의 파워 합계
-            int p1Power = allPlays.stream()
-                    .filter(p -> p.getGuestId().equals(player1Id) && p.getSlotIndex() == slot)
-                    .mapToInt(p -> p.getPowerSnapshot() != null ? p.getPowerSnapshot() : 0)
-                    .sum();
+            int p1Power = playRepository.sumPowerSnapshotByMatchAndTurnAndGuestIdAndSlotIndex(matchId, match.getTurnCount(), player1Id, slotIndex);
 
-            int p2Power = allPlays.stream()
-                    .filter(p -> p.getGuestId().equals(player2Id) && p.getSlotIndex() == slot)
-                    .mapToInt(p -> p.getPowerSnapshot() != null ? p.getPowerSnapshot() : 0)
-                    .sum();
+            int p2Power = playRepository.sumPowerSnapshotByMatchAndTurnAndGuestIdAndSlotIndex(matchId, match.getTurnCount(), player2Id, slotIndex);
 
             player1Powers.put(slotIndex, p1Power);
             player2Powers.put(slotIndex, p2Power);

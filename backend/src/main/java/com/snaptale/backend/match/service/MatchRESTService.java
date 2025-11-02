@@ -254,7 +254,7 @@ public class MatchRESTService {
 		TurnService.TurnEndSubmitResult result = turnService.submitTurnEnd(
 				message.getMatchId(), message.getParticipantId());
 
-		// 양쪽 플레이어가 모두 턴 종료했으면 턴 종료 처리
+		// 양쪽 플레이어가 모두 턴 종료했으면 턴 종료 처리 후 다음 턴 시작됨.
 		if (result.isBothPlayersEnded()) {
 			processTurnEnd(message.getMatchId());
 		}
@@ -266,7 +266,7 @@ public class MatchRESTService {
 		return PlayActionRes.from(message, participant);
 	}
 
-	// 턴 종료 처리 로직
+	// 턴 종료 후 다음 턴 시작 로직
 	@Transactional
 	public void processTurnEnd(Long matchId) {
 		log.info("턴 종료 처리: matchId={}", matchId);

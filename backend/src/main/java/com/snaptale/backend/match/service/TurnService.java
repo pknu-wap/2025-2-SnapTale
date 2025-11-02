@@ -5,9 +5,12 @@ import com.snaptale.backend.card.repository.CardRepository;
 import com.snaptale.backend.common.exceptions.BaseException;
 import com.snaptale.backend.common.response.BaseResponseStatus;
 import com.snaptale.backend.match.entity.*;
+import com.snaptale.backend.match.model.request.MatchUpdateReq;
 import com.snaptale.backend.match.repository.MatchParticipantRepository;
 import com.snaptale.backend.match.repository.MatchRepository;
 import com.snaptale.backend.match.repository.PlayRepository;
+import com.snaptale.backend.match.service.GameCalculationService.LocationPowerResult;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,7 +32,7 @@ public class TurnService {
     private final MatchParticipantRepository matchParticipantRepository;
     private final PlayRepository playRepository;
     private final CardRepository cardRepository;
-
+    private final GameCalculationService gameCalculationService;
     private static final int MAX_TURNS = 6;
     private static final int NUM_LOCATIONS = 3;
 
@@ -122,18 +125,22 @@ public class TurnService {
             throw new BaseException(BaseResponseStatus.WAITING_FOR_OTHER_PLAYER);
         }
 
+        // 모든 지역에서 상대, 자신의 파워 계산 후 점령 수 계산.
+        LocationPowerResult locationPowerResult = gameCalculationService.calculateLocationPowers(matchId);
+
         // 2. 마지막 턴(6턴)인지 확인
         if (currentTurn >= MAX_TURNS) {
             log.info("마지막 턴 도달, 게임 종료 처리");
             return TurnEndResult.builder()
                     .gameEnded(true)
                     .nextTurn(currentTurn)
+                    .locationPowerResult(locationPowerResult)
                     .build();
         }
 
         // 3. 다음 턴으로 진행
         int nextTurn = currentTurn + 1;
-        match.apply(new com.snaptale.backend.match.model.request.MatchUpdateReq(
+        match.apply(new MatchUpdateReq(
                 null,
                 null,
                 nextTurn,
@@ -145,6 +152,7 @@ public class TurnService {
         return TurnEndResult.builder()
                 .gameEnded(false)
                 .nextTurn(nextTurn)
+                .locationPowerResult(locationPowerResult)
                 .build();
     }
 
@@ -261,11 +269,13 @@ public class TurnService {
     public static class TurnEndResult {
         private final boolean gameEnded;
         private final int nextTurn;
+        private final LocationPowerResult locationPowerResult;
 
         @lombok.Builder
-        public TurnEndResult(boolean gameEnded, int nextTurn) {
+        public TurnEndResult(boolean gameEnded, int nextTurn, LocationPowerResult locationPowerResult) {
             this.gameEnded = gameEnded;
             this.nextTurn = nextTurn;
+            this.locationPowerResult = locationPowerResult;
         }
 
         public boolean isGameEnded() {
@@ -274,6 +284,10 @@ public class TurnService {
 
         public int getNextTurn() {
             return nextTurn;
+        }
+
+        public LocationPowerResult getLocationPowerResult() {
+            return locationPowerResult;
         }
     }
 }

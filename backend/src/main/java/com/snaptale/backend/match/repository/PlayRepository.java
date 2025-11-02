@@ -38,4 +38,12 @@ public interface PlayRepository extends JpaRepository<Play, Long> {
     boolean existsTurnEndByMatchAndTurnAndPlayer(@Param("matchId") Long matchId,
             @Param("turnCount") Integer turnCount,
             @Param("guestId") Long guestId);
+
+    // 특정 매치의 특정 턴에 특정 지역에 특정 플레이어가 놓은 카드들의 파워 합계 조회
+    @Query("SELECT SUM(p.powerSnapshot) FROM Play p WHERE p.match.matchId = :matchId " +
+            "AND p.turnCount = :turnCount AND p.guestId = :guestId AND p.slotIndex = :slotIndex")
+    Integer sumPowerSnapshotByMatchAndTurnAndGuestIdAndSlotIndex(@Param("matchId") Long matchId,
+            @Param("turnCount") Integer turnCount,
+            @Param("guestId") Long guestId,
+            @Param("slotIndex") Integer slotIndex);
 }
