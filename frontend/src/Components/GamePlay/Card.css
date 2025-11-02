@@ -2,7 +2,7 @@
   position: relative;
   width: 46px;
   height: 76px; 
-  cursor: pointer;
+  cursor: grab;
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
