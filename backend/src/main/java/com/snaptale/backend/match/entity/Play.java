@@ -31,14 +31,18 @@ public class Play extends BaseEntity {
     private Long guestId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "card_id", nullable = false)
+    @JoinColumn(name = "card_id", nullable = true)
     private Card card;
 
-    @Column(name = "slot_index", nullable = false)
+    @Column(name = "slot_index", nullable = true)
     private Integer slotIndex;
 
     @Column(name = "power_snapshot")
     private Integer powerSnapshot;
+
+    @Column(name = "is_turn_end", nullable = false)
+    @Builder.Default
+    private Boolean isTurnEnd = false;
 
     public void apply(PlayUpdateReq request, Match match, Card card) {
         if (request.turnCount() != null) {

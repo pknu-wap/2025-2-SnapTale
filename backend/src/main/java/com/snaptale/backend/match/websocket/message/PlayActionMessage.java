@@ -1,5 +1,6 @@
 package com.snaptale.backend.match.websocket.message;
 
+import com.snaptale.backend.match.entity.PlayActionType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,8 +25,8 @@ public class PlayActionMessage {
     // 카드 ID
     private Long cardId;
 
-    // 액션 타입 (PLAY_CARD, END_TURN, SKIP 등)
-    private String actionType;
+    // 액션 타입
+    private PlayActionType actionType;
 
     // 추가 데이터 (JSON 형태)
     private String additionalData;

@@ -43,7 +43,7 @@ public class GameFlowService {
     private static final int INITIAL_HAND_SIZE = 3;
     private static final int DECK_SIZE = 12;
     private static final int INITIAL_ENERGY = 5;
-    private static final int ENERGY_PER_TURN = 4;
+    private static final int ENERGY_PER_TURN = 1;
 
     // 게임 초기화
     // - Match 생성
