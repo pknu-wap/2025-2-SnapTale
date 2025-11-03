@@ -11,7 +11,7 @@ import powerIcon from "../../assets/locationPower.svg";
  * @param {string} props.imageUrl - 지역 이미지 URL (UI 표시)
  * @param {number} props.opponentPower - 상대방 파워 총합 (UI 표시)
  * @param {number} props.myPower - 내 파워 총합 (UI 표시)
- * @param {string} props.effectDesc - 지역 효과 설명 (지역 클릭 시 UI 표시)
+ * @param {string} props.effectDesc - 지역 효과 설명 (UI 표시)
  * @param {boolean} props.active - 사용 가능 여부 ? (UI 미표시)
  */
 
@@ -67,6 +67,7 @@ const Location = ({
       </div>
 
       <div className="location-name" ref={ref}>{name}</div>
+      <div className="location-desc">{effectDesc}</div>
     </div>
   );
 };
