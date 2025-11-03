@@ -127,20 +127,6 @@ export default function GameLayout({ matchId }) {
     setCardPlayed(true); // ✅ 카드 냈으니 턴 종료 가능
   };
 
-  // // 샘플 카드 데이터 12장 (임의 생성)
-  // const sampleCards = Array.from({ length: handCount }).map((_, i) => ({
-  //   cardId: `card-${i}`,
-  //   name: `Card ${i + 1}`,
-  //   imageUrl: DCI,
-  //   cost: Math.floor(Math.random() * 10) + 1,    // 1~10 랜덤
-  //   power: Math.floor(Math.random() * 10) + 1,   // 1~10 랜덤
-  //   faction: ["korea", "china", "japan"][i % 3], // 번갈아 korea, china, japan
-  //   effectDesc: "Sample effect description",
-  //   active: true,
-  //   createdAt: new Date().toISOString(),
-  //   updatedAt: new Date().toISOString()
-  // }));
-
   const endTurn = () => {
     if (turn < maxTurn) {
       setTurn((prev) => prev + 1);
@@ -185,50 +171,26 @@ export default function GameLayout({ matchId }) {
         {loading && <div className="loading">위치 불러오는 중...</div>}
         {error && <div className="error">⚠ {error}</div>}
         {!loading && !error && locations.length === 3 && (
-        <>
+    <>
+      {locations.map((loc, i) => {
+        const turnsLeft = i + 1 - turn; // 남은 턴 계산 (예: turn=1일 때 i=1 → 1턴 뒤 활성)
+        return (
           <Location
-            key={locations[0].locationId}
-            locationId={locations[0].locationId}
-            name={locations[0].name}
-            imageUrl={locations[0].imageUrl}
-            effectDesc={locations[0].effectDesc}
-            active={locations[0].active}
-            opponentPower={opponentPowers[0]}
-            myPower={myPowers[0]}
-            onLocationClick={() =>
-            handleLocationClick(locations[0], 0)
-            }
+            key={loc.locationId}
+            locationId={loc.locationId}
+            name={loc.name}
+            imageUrl={loc.imageUrl}
+            effectDesc={loc.effectDesc}
+            active={loc.isActive}
+            turnsLeft={turnsLeft > 0 ? turnsLeft : 0}
+            opponentPower={opponentPowers[i]}
+            myPower={myPowers[i]}
+            onLocationClick={() => handleLocationClick(loc, i)}
           />
-
-          <Location
-            key={locations[1].locationId}
-            locationId={locations[1].locationId}
-            name={locations[1].name}
-            imageUrl={locations[1].imageUrl}
-            effectDesc={locations[1].effectDesc}
-            active={locations[1].active}
-            opponentPower={opponentPowers[1]}
-            myPower={myPowers[1]}
-            onLocationClick={() =>
-              handleLocationClick(locations[1], 1)
-            }
-          />
-
-          <Location
-            key={locations[2].locationId}
-            locationId={locations[2].locationId}
-            name={locations[2].name}
-            imageUrl={locations[2].imageUrl}
-            effectDesc={locations[2].effectDesc}
-            active={locations[2].active}
-            opponentPower={opponentPowers[2]}
-            myPower={myPowers[2]}
-            onLocationClick={() =>
-              handleLocationClick(locations[2], 2)
-            }
-          />
-        </>
-      )}
+        );
+      })}
+    </>
+    )}
     </section>
 
       <section className="gl-lanes3">
@@ -261,34 +223,6 @@ export default function GameLayout({ matchId }) {
           ))}
         </section>
 
-      {/* 손패 6x2 = 12
-      <section className="gl-hand12">
-        {sampleCards.map(card => (
-          <div
-            key={card.cardId}
-            draggable
-            onDragStart={(e) =>
-              e.dataTransfer.setData("application/json", JSON.stringify(card))}
-          >
-          <Card
-            key={card.cardId}
-            cardId={card.cardId}
-            name={card.name}
-            imageUrl={card.imageUrl}
-            cost={card.cost}
-            power={card.power}
-            faction={card.faction}
-            effectDesc={card.effectDesc}
-            active={card.active}
-            createdAt={card.createdAt}
-            updatedAt={card.updatedAt}
-            onCardClick={() => handleCardClick(card)}
-          />
-          </div>
-        ))}
-      </section> */}
-
-      
     </div>
 
     <GameChatFloatingButton matchId={matchId} />

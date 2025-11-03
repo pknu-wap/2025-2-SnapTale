@@ -28,6 +28,31 @@
   );
   z-index: 1;
 }
+/* 비활성화된 회색 배경 */
+.location-container.locked .location-image {
+  display: none; /* 이미지 숨김 */
+}
+.locked-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #888; /* 완전히 회색 배경 */
+  border-radius: 12px;
+  z-index: 5;
+}
+.locked-text {
+  color: #fff; /* 밝은 글씨 */
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.6);
+}
+/* 비활성화 상태 클릭 불가 */
+.location-container.locked {
+  pointer-events: none;
+}
 
 /* 이름을 상단으로 */
 .location-name {
@@ -101,6 +126,7 @@
   transform: translate(-50%, -50%);
   z-index: 10;
 }
+
 .enlarged-location-container {
   position: relative;
   width: 195px;  
@@ -115,7 +141,7 @@
   position: absolute;
   top: 80px;
   left: 50%;
-  width: 130px;
+  width: 195px;
   height: 30px;
   transform: translate(-50%, -50%);
   font-size: 32px;
