@@ -101,3 +101,58 @@
   transform: translate(-50%, -50%);
   z-index: 10;
 }
+.enlarged-location-container {
+  position: relative;
+  width: 195px;  
+  height: 300px; 
+  animation: zoomIn 0.3s ease-out;
+}
+.enlarged-location-container .location-image {
+   width: 195px;
+  height: 270px;   
+}
+.enlarged-location-container .location-name {
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  width: 130px;
+  height: 30px;
+  transform: translate(-50%, -50%);
+  font-size: 32px;
+  color: #fff;
+  text-align: center;
+  z-index: 5;
+  pointer-events: none;
+}
+.enlarged-location-container .location-icon {
+  width: 60px;
+  height: 60px;
+  position: relative;
+  z-index: 3;
+}
+
+/* 아이콘 안 숫자 */
+.enlarged-location-container .location-icon-text {
+  position: absolute;
+  font-size: 30px;
+  color: #ffffff;
+  user-select: none;
+  pointer-events: none;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}
+.enlarged-location-container .location-desc{
+  position: absolute;
+  top: 60%;
+  left: 50%;
+  width: 300px;
+  height: 100px;
+  transform: translate(-50%, -50%);
+  font-size: 24px;
+  color: #fff;
+  z-index: 5;
+  text-align: center;
+  pointer-events: none;
+}
