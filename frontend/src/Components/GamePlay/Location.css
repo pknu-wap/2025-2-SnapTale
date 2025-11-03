@@ -17,6 +17,7 @@
   height: 180px;
   object-fit: cover;
   transform: translate(-50%, -50%);
+  filter: brightness(0.8);
   clip-path: polygon(
     50% 0%,
     100% 25%,
