@@ -14,6 +14,8 @@ import DCI from "../../assets/defaultCardImg.svg";
 // import { fetchLocations } from "./api/location";
 import GameChatFloatingButton from "./GameChatFloatingButton";
 import { fetchLocationsByMatchId } from "./api/location";
+import { playCardAction, endTurnAction } from "./api/playAction";
+import useMatchParticipant from "./hooks/useMatchParticipant";
 
 
 export default function GameLayout({ matchId }) {
@@ -27,13 +29,51 @@ export default function GameLayout({ matchId }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [opponentPowers] = useState([0, 0, 0]);
-  const [myPowers] = useState([0, 0, 0]);
+  const [myPowers, setMyPowers] = useState([0, 0, 0]);
   const [turn, setTurn] = useState(1);
   const [hand, setHand] = useState([]);
   const [cardPlayed, setCardPlayed] = useState(false);
-  const [energy] = useState(3);
   const [allCards, setAllCards] = useState([]);
+  const [isEndingTurn, setIsEndingTurn] = useState(false);
 
+  const matchIdNumber = Number(matchId);
+  const normalizedMatchId = Number.isNaN(matchIdNumber) ? null : matchIdNumber;
+
+  const {
+    participantId,
+    energy,
+    setEnergy,
+    loading: participantLoading,
+    error: participantError,
+    isReady: isParticipantReady,
+  } = useMatchParticipant(normalizedMatchId, user?.guestId);
+
+  const isCardInteractionDisabled =
+    !isParticipantReady || participantLoading || Boolean(participantError);
+
+  const participantStatusMessage = (() => {
+    if (participantLoading) {
+      return "매치 참가자 정보를 불러오는 중입니다...";
+    }
+
+    if (participantError) {
+      return "참가자 정보를 불러오는 데 실패했습니다. 새로고침 후 다시 시도해 주세요.";
+    }
+
+    if (!isParticipantReady) {
+      return "참가자 정보를 찾을 수 없어 카드를 낼 수 없습니다.";
+    }
+
+    return null;
+  })();
+
+  const participantStatusVariant = participantError
+    ? "error"
+    : participantLoading
+    ? "info"
+    : !isParticipantReady
+    ? "warning"
+    : null;
 
   // 선택한 덱의 카드들을 불러와 hand와 allCards 구성
   useEffect(() => {
@@ -122,9 +162,78 @@ export default function GameLayout({ matchId }) {
     setSelectedCard(null);
   };
 
-  const handleCardPlay = (cardId) => {
-    setHand((prev) => prev.filter((c) => c.cardId !== cardId)); // 카드 제거
-    setCardPlayed(true); // ✅ 카드 냈으니 턴 종료 가능
+  const handleCardDrop = async (cardData, laneIndex = 0, _cellIndex, revertPlacement) => {
+    if (!cardData) {
+      return;
+    }
+
+    if (isCardInteractionDisabled) {
+      console.warn("참가자 정보가 준비되지 않아 카드를 낼 수 없습니다.");
+      revertPlacement?.();
+      return;
+    }
+
+    if (!normalizedMatchId || !participantId) {
+      console.warn("플레이어 정보가 준비되지 않아 카드를 낼 수 없습니다.", {
+        matchId: normalizedMatchId,
+        participantId,
+      });
+      revertPlacement?.();
+      return;
+    }
+
+    const handIndex = hand.findIndex((c) => c.cardId === cardData.cardId);
+    if (handIndex === -1) {
+      revertPlacement?.();
+      return;
+    }
+
+    const cardCost = Number(cardData.cost ?? 0);
+    if (Number.isFinite(cardCost) && energy < cardCost) {
+      console.warn("에너지가 부족하여 카드를 낼 수 없습니다.", {
+        energy,
+        cardCost,
+        cardId: cardData.cardId,
+      });
+      revertPlacement?.();
+      return;
+    }
+
+    const previousEnergy = energy;
+    const previousPowers = [...myPowers];
+
+    setHand((prev) => prev.filter((c) => c.cardId !== cardData.cardId));
+    setCardPlayed(true);
+    if (Number.isFinite(cardCost)) {
+      setEnergy((prev) => Math.max(prev - cardCost, 0));
+    }
+    setMyPowers((prev) =>
+      prev.map((value, idx) => (idx === laneIndex ? value + (Number(cardData.power) || 0) : value))
+    );
+
+    try {
+      const response = await playCardAction({
+        matchId: normalizedMatchId,
+        participantId,
+        cardId: cardData.cardId,
+        slotIndex: laneIndex,
+      });
+
+      if (response?.energy !== undefined && response.energy !== null) {
+        setEnergy(response.energy);
+      }
+    } catch (err) {
+      console.error("카드 플레이 실패:", err);
+      setCardPlayed(false);
+      setHand((prev) => {
+        const next = [...prev];
+        next.splice(handIndex, 0, cardData);
+        return next;
+      });
+      setEnergy(previousEnergy);
+      setMyPowers(previousPowers);
+      revertPlacement?.();
+    }
   };
 
   // // 샘플 카드 데이터 12장 (임의 생성)
@@ -141,18 +250,49 @@ export default function GameLayout({ matchId }) {
   //   updatedAt: new Date().toISOString()
   // }));
 
-  const endTurn = () => {
-    if (turn < maxTurn) {
-      setTurn((prev) => prev + 1);
-      setCardPlayed(false); // 다시 비활성화
+  const endTurn = async () => {
+    if (!cardPlayed || isEndingTurn || isCardInteractionDisabled) {
+      return;
+    }
+
+    if (!normalizedMatchId || !participantId) {
+      console.warn("플레이어 정보가 준비되지 않아 턴을 종료할 수 없습니다.", {
+        matchId: normalizedMatchId,
+        participantId,
+      });
+      return;
+    }
+
+    setIsEndingTurn(true);
+    try {
+      const response = await endTurnAction({
+        matchId: normalizedMatchId,
+        participantId,
+      });
+
+      if (response?.energy !== undefined && response.energy !== null) {
+        setEnergy(response.energy);
+      }
+
+      if (turn < maxTurn) {
+        setTurn((prev) => prev + 1);
+      }
+      setCardPlayed(false);
 
       setHand((prev) => {
         const nextIndex = prev.length;
         if (nextIndex < Math.min(handCount, allCards.length)) {
-          return [...prev, allCards[nextIndex]];
+          const nextCard = allCards[nextIndex];
+          if (nextCard) {
+            return [...prev, nextCard];
+          }
         }
         return prev;
       });
+    } catch (err) {
+      console.error("턴 종료 실패:", err);
+    } finally {
+      setIsEndingTurn(false);
     }
   };
 
@@ -176,9 +316,9 @@ export default function GameLayout({ matchId }) {
     <>
     <div className="gl-wrap">
       <section className="gl-lanes3">
-        <Slot isMySide={false} />
-        <Slot isMySide={false} />
-        <Slot isMySide={false} />
+        <Slot isMySide={false} slotIndex={0} />
+        <Slot isMySide={false} slotIndex={1} />
+        <Slot isMySide={false} slotIndex={2} />
       </section>
       {/* 중앙 정육각 3개 */}
       <section className="gl-hexRow">
@@ -232,34 +372,80 @@ export default function GameLayout({ matchId }) {
     </section>
 
       <section className="gl-lanes3">
-        <Slot isMySide />
-        <Slot isMySide />
-        <Slot isMySide />
+        <Slot
+          isMySide
+          slotIndex={0}
+          onCardDrop={handleCardDrop}
+          disabled={isCardInteractionDisabled}
+        />
+        <Slot
+          isMySide
+          slotIndex={1}
+          onCardDrop={handleCardDrop}
+          disabled={isCardInteractionDisabled}
+        />
+        <Slot
+          isMySide
+          slotIndex={2}
+          onCardDrop={handleCardDrop}
+          disabled={isCardInteractionDisabled}
+        />
       </section>
+
+      {participantStatusMessage && (
+        <div
+          className={[
+            "gl-status",
+            participantStatusVariant
+              ? `gl-status--${participantStatusVariant}`
+              : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        >
+          {participantStatusMessage}
+        </div>
+      )}
 
       <div className="gl-buttons-wrap">
         <Energy value={energy} />
-        <button className="gl-endBtn" onClick={endTurn}
-            disabled={!cardPlayed || turn === maxTurn}>
-            턴 종료 ({turn} / {maxTurn})
+        <button
+          className="gl-endBtn"
+          onClick={endTurn}
+          disabled={
+            !cardPlayed ||
+            turn === maxTurn ||
+            isEndingTurn ||
+            isCardInteractionDisabled
+          }
+        >
+          {isEndingTurn ? "턴 종료 중..." : `턴 종료 (${turn} / ${maxTurn})`}
         </button>
       </div>
 
       {/* 손패 */}
-        <section className="gl-hand12">
-          {hand.map((card) => (
-            <div
-              key={card.cardId}
-              draggable
-              onDragStart={(e) =>
-                e.dataTransfer.setData("application/json", JSON.stringify(card))
+      <section className="gl-hand12">
+        {hand.map((card) => (
+          <div
+            key={card.cardId}
+            draggable={!isCardInteractionDisabled}
+            onDragStart={(e) => {
+              if (isCardInteractionDisabled) {
+                e.preventDefault();
+                return;
               }
-              onDragEnd={() => handleCardPlay(card.cardId)} // ✅ 임시 드래그로 낸 걸로 처리
-            >
-              <Card {...card} onCardClick={() => handleCardClick(card)} />
-            </div>
-          ))}
-        </section>
+              e.dataTransfer.effectAllowed = "move";
+              e.dataTransfer.setData(
+                "application/json",
+                JSON.stringify(card)
+              );
+            }}
+            aria-disabled={isCardInteractionDisabled}
+          >
+            <Card {...card} onCardClick={() => handleCardClick(card)} />
+          </div>
+        ))}
+      </section>
 
       {/* 손패 6x2 = 12
       <section className="gl-hand12">

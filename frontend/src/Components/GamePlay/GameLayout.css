@@ -147,6 +147,28 @@
   /* left: -550px; */
 }
 
+.gl-status{
+  margin-top: clamp(4px, 1vh, 8px);
+  margin-bottom: clamp(4px, 1vh, 8px);
+  font-size: 0.85rem;
+  text-align: center;
+  color: #2c1105;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+  padding: 0 clamp(6px, 1.5vw, 12px);
+}
+
+.gl-status--info{
+  color: #1f4fa3;
+}
+
+.gl-status--warning{
+  color: #8a6d3b;
+}
+
+.gl-status--error{
+  color: #b94a48;
+}
+
 /* 턴 종료 버튼 */
 .gl-endBtn{
   display: grid;

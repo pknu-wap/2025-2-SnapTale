@@ -2,7 +2,12 @@ import React, { useMemo, useState } from "react";
 import "./Slot.css";
 import Card from "./Card";
 
-export default function Slot({ isMySide = false, onChange }) {
+export default function Slot({
+  isMySide = false,
+  slotIndex,
+  onCardDrop,
+  disabled = false,
+}) {
   // 4칸(인덱스 0~3), null = 비어있음
   const [cells, setCells] = useState([null, null, null, null]);
   const [isOver, setIsOver] = useState(false);
@@ -10,7 +15,7 @@ export default function Slot({ isMySide = false, onChange }) {
   const firstEmpty = useMemo(() => cells.findIndex((c) => !c), [cells]);
   const isFull = firstEmpty === -1;
 
-  const allowDrop = isMySide && !isFull;
+  const allowDrop = isMySide && !isFull && !disabled;
 
   const handleDragEnter = (e) => {
     if (!allowDrop) return;
@@ -42,12 +47,28 @@ export default function Slot({ isMySide = false, onChange }) {
       // 이미 꽉 차있으면 무시
       if (firstEmpty === -1) return;
 
-      setCells((prev) => {
-        const next = [...prev];
-        next[firstEmpty] = card;
-        return next;
-      });
-      onChange?.(cells);
+      const dropIndex = cells.findIndex((c) => !c);
+      if (dropIndex === -1) return;
+
+      const nextCells = [...cells];
+      nextCells[dropIndex] = card;
+      setCells(nextCells);
+
+      const revertPlacement = () => {
+        setCells((prev) => {
+          const copy = [...prev];
+          copy[dropIndex] = null;
+          return copy;
+        });
+      };
+
+      if (typeof onCardDrop === "function") {
+        Promise.resolve(
+          onCardDrop(card, slotIndex, dropIndex, revertPlacement)
+        ).catch(() => {
+          revertPlacement();
+        });
+      }
     } catch {
       // JSON 파싱 실패 시 무시
     }
@@ -59,12 +80,13 @@ export default function Slot({ isMySide = false, onChange }) {
         "slot",
         isMySide ? "is-ally" : "is-enemy",
         allowDrop && isOver ? "is-over" : "",
-        !isMySide ? "is-disabled" : "",
+        !isMySide || disabled ? "is-disabled" : "",
       ].join(" ")}
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
+      aria-disabled={disabled}
     >
       <div className="slot__grid">
         {cells.map((card, i) => (
@@ -89,7 +111,7 @@ export default function Slot({ isMySide = false, onChange }) {
       </div>
 
       {/* 상대쪽은 투명 잠금 레이어(시각적으로 드롭 불가 표시) */}
-      {!isMySide && <div className="slot__lock" />}
+      {(!isMySide || disabled) && <div className="slot__lock" />}
     </div>
   );
 }
