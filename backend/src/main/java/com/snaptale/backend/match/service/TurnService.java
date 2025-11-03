@@ -38,7 +38,7 @@ public class TurnService {
 
     // 카드 제출 처리
     @Transactional
-    public PlaySubmissionResult submitPlay(Long matchId, Long participantId,
+    public void submitPlay(Long matchId, Long participantId,
             Long cardId, Integer slotIndex) {
         log.info("카드 제출: matchId={}, participantId={}, cardId={}, slotIndex={}",
                 matchId, participantId, cardId, slotIndex);
@@ -85,23 +85,6 @@ public class TurnService {
         match.addPlay(play);
 
         log.info("카드 제출 완료: playId={}", play.getId());
-
-        // 6. 양쪽 플레이어가 모두 카드 제출했는지 확인
-        List<Play> currentTurnPlays = playRepository.findByMatch_MatchIdAndTurnCount(
-                matchId, match.getTurnCount());
-
-        // 카드 제출만 카운트 (isTurnEnd = false 또는 null)
-        long cardPlays = currentTurnPlays.stream()
-                .filter(p -> p.getIsTurnEnd() == null || !p.getIsTurnEnd())
-                .count();
-
-        boolean bothPlayersSubmitted = cardPlays >= 2;
-
-        return PlaySubmissionResult.builder()
-                .playId(play.getId())
-                .bothPlayersSubmitted(bothPlayersSubmitted)
-                .currentTurn(match.getTurnCount())
-                .build();
     }
 
     // 턴 종료 및 다음 턴 시작

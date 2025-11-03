@@ -10,9 +10,6 @@ import java.util.List;
 
 public interface PlayRepository extends JpaRepository<Play, Long> {
 
-    // 특정 매치의 특정 턴에 플레이된 모든 Play 조회
-    List<Play> findByMatch_MatchIdAndTurnCount(Long matchId, Integer turnCount);
-
     // 특정 매치의 특정 플레이어가 플레이한 모든 Play 조회
     List<Play> findByMatch_MatchIdAndGuestId(Long matchId, Long guestId);
 
