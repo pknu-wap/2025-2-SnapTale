@@ -128,7 +128,9 @@
 .gl-wrap .gl-hand12{
   width:100%;
   display:grid !important;
-  grid-template-columns: repeat(12, var(--hand-w, 64px));
+  grid-template-columns: repeat(auto-fit, var(--hand-w, 64px)); /* 손패 크기 12(고정) -> auto-fit으로 수정 */
+  justify-content: center; /* 손패 영역을 중앙 정렬 */
+  place-items: center; /* 영역 안에 카드가 중앙에 위치하도록 */
   gap: clamp(8px, 1.2vw, 14px);
   --hand-w: clamp(50px, 9.2vw, 76px);
 }
