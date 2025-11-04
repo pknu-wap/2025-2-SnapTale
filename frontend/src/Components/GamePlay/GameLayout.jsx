@@ -141,6 +141,12 @@ export default function GameLayout({ matchId }) {
       });
     }
   };
+  const SLOT_COUNT = 3;
+  // turn에 따라 슬롯 활성화 상태를 결정
+  const getSlotDisabled = (index) => {
+  // 1번 슬롯은 turn >= 1일 때 활성, 2번은 turn >= 2일 때 활성, 3번은 turn >= 3일 때 활성
+    return turn < index + 1;
+  };
 
   const handleLocationClick = (locationData, index) => {
     // locationData에 myPower, opponentPower가 없다면,
@@ -162,17 +168,9 @@ export default function GameLayout({ matchId }) {
     <>
     <div className="gl-wrap">
       <section className="gl-lanes3">
-        {locations.map((loc, i) => {
-    const turnsLeft = i + 1 - turn;   // 남은 턴 계산
-    const disabled = turnsLeft > 0;   // 아직 공개되지 않음 → 비활성화
-    return (
-      <Slot
-        key={`enemy-${i}`}
-        isMySide={false}
-        disabled={disabled} // turnLeft 기반 비활성화
-      />
-    );
-  })}
+        {Array.from({ length: SLOT_COUNT }).map((_, i) => (
+    <Slot key={`enemy-${i}`} isMySide={false} disabled={getSlotDisabled(i)} />
+    ))}
       </section>
       {/* 중앙 정육각 3개 */}
       <section className="gl-hexRow">
@@ -202,19 +200,9 @@ export default function GameLayout({ matchId }) {
     </section>
 
       <section className="gl-lanes3">
-        {/* 내 슬롯 - 각 위치의 공개 여부(turnLeft)에 따라 활성화 */}
-  {locations.map((loc, i) => {
-    const turnsLeft = i + 1 - turn; // 남은 턴 계산
-    const disabled = turnsLeft > 0; // 아직 공개되지 않음 → 비활성화
-
-    return (
-      <Slot
-        key={`ally-${i}`}
-        isMySide={true}
-        disabled={disabled} // turnLeft 기반 비활성화
-      />
-    );
-  })}
+        {Array.from({ length: SLOT_COUNT }).map((_, i) => (
+          <Slot key={`ally-${i}`} isMySide={true} disabled={getSlotDisabled(i)} />
+        ))}
       </section>
 
       <div className="gl-buttons-wrap">
