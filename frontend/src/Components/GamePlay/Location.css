@@ -2,8 +2,9 @@
 .location-container {
   position: relative;
   cursor: pointer;
-  width: 75px;
-  height: 130px;
+  width: 130px;
+  height: 200px;
+  top: calc(-40px); /*부모의 크기가 120px인데 자식이 200px이라서 위로 40px 튀어나오게 임시 설정 */
   flex: 0 0 130px; /* flexbox 높이 고정 */
 }
 
@@ -12,10 +13,11 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 150px;
-  height: 200px;
+  width: 130px;
+  height: 180px;
   object-fit: cover;
   transform: translate(-50%, -50%);
+  filter: brightness(0.8);
   clip-path: polygon(
     50% 0%,
     100% 25%,
@@ -26,13 +28,38 @@
   );
   z-index: 1;
 }
+/* 비활성화된 회색 배경 */
+.location-container.locked .location-image {
+  display: none; /* 이미지 숨김 */
+}
+.locked-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #888; /* 완전히 회색 배경 */
+  border-radius: 12px;
+  z-index: 5;
+}
+.locked-text {
+  color: #fff; /* 밝은 글씨 */
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.6);
+}
+/* 비활성화 상태 클릭 불가 */
+.location-container.locked {
+  pointer-events: none;
+}
 
-/* 중앙의 텍스트 */
+/* 이름을 상단으로 */
 .location-name {
   position: absolute;
-  bottom: -20px;
+  top: 60px;
   left: 50%;
-  width: 150px;
+  width: 130px;
   height: 30px;
   transform: translate(-50%, -50%);
   font-size: 24px;
@@ -41,11 +68,24 @@
   z-index: 5;
   pointer-events: none;
 }
+.location-desc{
+  position: absolute;
+  top: 60%;
+  left: 50%;
+  width: 130px;
+  height: 50px;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  color: #fff;
+  z-index: 5;
+  text-align: center;
+  pointer-events: none;
+}
 
 /* 위쪽 파워 (상대방) */
 .opponentPower-container {
   position: absolute;
-  top: -40px; /* 컨테이너 맨 위 */
+  top: 0px; /* 컨테이너 맨 위 */
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -57,7 +97,7 @@
 /* 아래쪽 파워 (내 것) */
 .myPower-container {
   position: absolute;
-  bottom: -40px; /* 컨테이너 맨 아래 */
+  bottom: 0px; /* 컨테이너 맨 아래 */
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -68,8 +108,8 @@
 
 /* 아이콘 */
 .location-icon {
-  width: 27px;
-  height: 27px;
+  width: 40px;
+  height: 40px;
   position: relative;
   z-index: 3;
 }
@@ -77,7 +117,7 @@
 /* 아이콘 안 숫자 */
 .location-icon-text {
   position: absolute;
-  font-size: 12px;
+  font-size: 20px;
   color: #ffffff;
   user-select: none;
   pointer-events: none;
@@ -85,4 +125,60 @@
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 10;
+}
+
+.enlarged-location-container {
+  position: relative;
+  width: 195px;  
+  height: 300px; 
+  animation: zoomIn 0.3s ease-out;
+}
+.enlarged-location-container .location-image {
+   width: 195px;
+  height: 270px;   
+}
+.enlarged-location-container .location-name {
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  width: 195px;
+  height: 30px;
+  transform: translate(-50%, -50%);
+  font-size: 32px;
+  color: #fff;
+  text-align: center;
+  z-index: 5;
+  pointer-events: none;
+}
+.enlarged-location-container .location-icon {
+  width: 60px;
+  height: 60px;
+  position: relative;
+  z-index: 3;
+}
+
+/* 아이콘 안 숫자 */
+.enlarged-location-container .location-icon-text {
+  position: absolute;
+  font-size: 30px;
+  color: #ffffff;
+  user-select: none;
+  pointer-events: none;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}
+.enlarged-location-container .location-desc{
+  position: absolute;
+  top: 60%;
+  left: 50%;
+  width: 300px;
+  height: 100px;
+  transform: translate(-50%, -50%);
+  font-size: 24px;
+  color: #fff;
+  z-index: 5;
+  text-align: center;
+  pointer-events: none;
 }

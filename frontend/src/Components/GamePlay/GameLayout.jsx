@@ -166,19 +166,6 @@ const handleDropCard = async ({ laneIndex, slotIndex, card }) => {
     }
   };
 
-  // // 샘플 카드 데이터 12장 (임의 생성)
-  // const sampleCards = Array.from({ length: handCount }).map((_, i) => ({
-  //   cardId: `card-${i}`,
-  //   name: `Card ${i + 1}`,
-  //   imageUrl: DCI,
-  //   cost: Math.floor(Math.random() * 10) + 1,    // 1~10 랜덤
-  //   power: Math.floor(Math.random() * 10) + 1,   // 1~10 랜덤
-  //   faction: ["korea", "china", "japan"][i % 3], // 번갈아 korea, china, japan
-  //   effectDesc: "Sample effect description",
-  //   active: true,
-  //   createdAt: new Date().toISOString(),
-  //   updatedAt: new Date().toISOString()
-  // }));
 
   // const endTurn = () => {
   //   if (turn < maxTurn) {
@@ -219,6 +206,12 @@ const handleDropCard = async ({ laneIndex, slotIndex, card }) => {
     setCardPlayed(true);
   }
 };
+  const SLOT_COUNT = 3;
+  // turn에 따라 슬롯 활성화 상태를 결정
+  const getSlotDisabled = (index) => {
+  // 1번 슬롯은 turn >= 1일 때 활성, 2번은 turn >= 2일 때 활성, 3번은 turn >= 3일 때 활성
+    return turn < index + 1;
+  };
 
   const handleLocationClick = (locationData, index) => {
     // locationData에 myPower, opponentPower가 없다면,
@@ -240,66 +233,41 @@ const handleDropCard = async ({ laneIndex, slotIndex, card }) => {
     <>
     <div className="gl-wrap">
       <section className="gl-lanes3">
-        <Slot isMySide={false} />
-        <Slot isMySide={false} />
-        <Slot isMySide={false} />
+        {Array.from({ length: SLOT_COUNT }).map((_, i) => (
+    <Slot key={`enemy-${i}`} isMySide={false} disabled={getSlotDisabled(i)} />
+    ))}
       </section>
       {/* 중앙 정육각 3개 */}
       <section className="gl-hexRow">
         {loading && <div className="loading">위치 불러오는 중...</div>}
         {error && <div className="error">⚠ {error}</div>}
         {!loading && !error && locations.length === 3 && (
-        <>
+    <>
+      {locations.map((loc, i) => {
+        const turnsLeft = i + 1 - turn; // 남은 턴 계산 (예: turn=1일 때 i=1 → 1턴 뒤 활성)
+        return (
           <Location
-            key={locations[0].locationId}
-            locationId={locations[0].locationId}
-            name={locations[0].name}
-            imageUrl={locations[0].imageUrl}
-            effectDesc={locations[0].effectDesc}
-            active={locations[0].active}
-            opponentPower={opponentPowers[0]}
-            myPower={myPowers[0]}
-            onLocationClick={() =>
-            handleLocationClick(locations[0], 0)
-            }
+            key={loc.locationId}
+            locationId={loc.locationId}
+            name={loc.name}
+            imageUrl={loc.imageUrl}
+            effectDesc={loc.effectDesc}
+            active={loc.isActive}
+            turnsLeft={turnsLeft > 0 ? turnsLeft : 0}
+            opponentPower={opponentPowers[i]}
+            myPower={myPowers[i]}
+            onLocationClick={() => handleLocationClick(loc, i)}
           />
-
-          <Location
-            key={locations[1].locationId}
-            locationId={locations[1].locationId}
-            name={locations[1].name}
-            imageUrl={locations[1].imageUrl}
-            effectDesc={locations[1].effectDesc}
-            active={locations[1].active}
-            opponentPower={opponentPowers[1]}
-            myPower={myPowers[1]}
-            onLocationClick={() =>
-              handleLocationClick(locations[1], 1)
-            }
-          />
-
-          <Location
-            key={locations[2].locationId}
-            locationId={locations[2].locationId}
-            name={locations[2].name}
-            imageUrl={locations[2].imageUrl}
-            effectDesc={locations[2].effectDesc}
-            active={locations[2].active}
-            opponentPower={opponentPowers[2]}
-            myPower={myPowers[2]}
-            onLocationClick={() =>
-              handleLocationClick(locations[2], 2)
-            }
-          />
-        </>
-      )}
+        );
+      })}
+    </>
+    )}
     </section>
 
       <section className="gl-lanes3">
-        {/* 내 칸: laneIndex와 onDropCard 넘김 */}
-        <Slot isMySide laneIndex={0} onDropCard={handleDropCard} />
-        <Slot isMySide laneIndex={1} onDropCard={handleDropCard} />
-        <Slot isMySide laneIndex={2} onDropCard={handleDropCard} />
+        {Array.from({ length: SLOT_COUNT }).map((_, i) => (
+          <Slot key={`ally-${i}`} isMySide={true} disabled={getSlotDisabled(i)} />
+        ))}
       </section>
 
       <div className="gl-buttons-wrap">
@@ -325,34 +293,6 @@ const handleDropCard = async ({ laneIndex, slotIndex, card }) => {
           ))}
         </section>
 
-      {/* 손패 6x2 = 12
-      <section className="gl-hand12">
-        {sampleCards.map(card => (
-          <div
-            key={card.cardId}
-            draggable
-            onDragStart={(e) =>
-              e.dataTransfer.setData("application/json", JSON.stringify(card))}
-          >
-          <Card
-            key={card.cardId}
-            cardId={card.cardId}
-            name={card.name}
-            imageUrl={card.imageUrl}
-            cost={card.cost}
-            power={card.power}
-            faction={card.faction}
-            effectDesc={card.effectDesc}
-            active={card.active}
-            createdAt={card.createdAt}
-            updatedAt={card.updatedAt}
-            onCardClick={() => handleCardClick(card)}
-          />
-          </div>
-        ))}
-      </section> */}
-
-      
     </div>
 
     <GameChatFloatingButton matchId={matchId} />

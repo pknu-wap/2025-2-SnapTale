@@ -2,19 +2,16 @@ import React, { useMemo, useState } from "react";
 import "./Slot.css";
 import Card from "./Card";
 
-export default function Slot({ 
-    isMySide = false,
-    laneIndex, //이 슬롯이 몇 번째 레인인지
-    onDropCard, //부모(GameLayout)로 드롭 이벤트 알려줄 콜백
-    onChange 
-  }) {
+
+export default function Slot({ isMySide = false, laneIndex, onDropCard, disabled = false, onChange }) {
   // 4칸(인덱스 0~3), null = 비어있음
   const [cells, setCells] = useState([null, null, null, null]);
   const [isOver, setIsOver] = useState(false);
 
   const firstEmpty = useMemo(() => cells.findIndex((c) => !c), [cells]);
   const isFull = firstEmpty === -1;
-  const allowDrop = isMySide && !isFull;
+  const allowDrop = isMySide && !disabled && !isFull;
+
 
   const handleDragEnter = (e) => {
     if (!allowDrop) return;
