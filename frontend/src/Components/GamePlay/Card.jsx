@@ -70,7 +70,13 @@ const Card = ({
     }, [name]);
   const borderClass = factionClasses[faction] || "card-border-default";
   return (
-    <div className="card-container" onClick={onCardClick}>
+    <div className="card-container" 
+      onContextMenu={(e) => {
+        e.preventDefault(); // 브라우저 기본 우클릭 메뉴 막기
+        onCardClick && onCardClick(e); // 우클릭 시 확대
+      }}
+      
+    >
       <img className={`card-image ${borderClass}`} src={imageUrl} alt={name} />
 
       <div className="card-cost-container">

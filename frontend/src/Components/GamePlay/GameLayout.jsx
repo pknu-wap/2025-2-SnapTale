@@ -13,14 +13,16 @@ import defaultImg from "../../assets/koreaIcon.png";
 import DCI from "../../assets/defaultCardImg.svg";
 // import { fetchLocations } from "./api/location";
 import GameChatFloatingButton from "./GameChatFloatingButton";
+import { getMatch } from "../Home/api/match";
 import { fetchLocationsByMatchId } from "./api/location";
+// import { playAction, startNextTurn } from "./api/matchTurn";
 
 
 export default function GameLayout({ matchId }) {
   const handCount = 12;
   const maxTurn = 6;
 
-  const { user } = useUser();
+  const { user, updateUser } = useUser();
   const [selectedCard, setSelectedCard] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [locations, setLocations] = useState([]); // 서버에서 불러올 위치 데이터
@@ -34,6 +36,24 @@ export default function GameLayout({ matchId }) {
   const [energy] = useState(3);
   const [allCards, setAllCards] = useState([]);
 
+  useEffect(() => {
+    async function ensureParticipant() {
+      if (!matchId || !user?.guestId) return;
+      if (user.participantId) return; // 이미 있으면 스킵
+
+      try {
+        const match = await getMatch(matchId);
+        const me = match?.participants?.find(p => p.guestId === user.guestId);
+        if (me?.participantId) {
+          // UserContext 메모리에만 저장(로컬스토리지는 기존 필드만 저장됨)
+          updateUser({ participantId: me.participantId });
+        }
+      } catch (e) {
+        console.warn("participantId 조회 실패:", e);
+      }
+    }
+    ensureParticipant();
+  }, [matchId, user?.guestId, user?.participantId, updateUser]);
 
   // 선택한 덱의 카드들을 불러와 hand와 allCards 구성
   useEffect(() => {
@@ -88,6 +108,7 @@ export default function GameLayout({ matchId }) {
         if (data.success && Array.isArray(data.result)) {
           console.log("서버에서 받은 매치 지역 데이터:", data.result);
           console.log("서버에서 받은 매치 지역 개수:", data.result.length);
+          console.log("유저 아이디:", user.participantId);
           const formatted = data.result.map((item) => ({
             locationId: item.location.locationId,
             name: item.location.name,
@@ -121,25 +142,29 @@ export default function GameLayout({ matchId }) {
   const handleCloseModal = () => {
     setSelectedCard(null);
   };
+//laneIndex, slotIndex
+// const handleDropCard = async ({  card }) => {
+//   // if (!user?.participantId) {
+//   //   console.warn("participantId 없음 → play-action 전송 스킵");
+//   //   return;
+//   // }
+//   const prevHand = hand;
+//   setHand((h) => h.filter((c) => c.cardId !== card.cardId));
 
-  const handleCardPlay = (cardId) => {
-    setHand((prev) => prev.filter((c) => c.cardId !== cardId)); // 카드 제거
-    setCardPlayed(true); // ✅ 카드 냈으니 턴 종료 가능
-  };
+//   try {
+//     // await playAction(matchId, {
+//     //   participantId: user.participantId,
+//     //   cardId: card.cardId,
+//     //   actionType: "PLAY_CARD",
+//     //   additionalData: JSON.stringify({ laneIndex, slotIndex, turn }),
+//     // });
+//     setCardPlayed(true);
+//   } catch (e) {
+//       console.error("playAction 실패:", e);
+//       setHand(prevHand);
+//     }
+//   };
 
-  // // 샘플 카드 데이터 12장 (임의 생성)
-  // const sampleCards = Array.from({ length: handCount }).map((_, i) => ({
-  //   cardId: `card-${i}`,
-  //   name: `Card ${i + 1}`,
-  //   imageUrl: DCI,
-  //   cost: Math.floor(Math.random() * 10) + 1,    // 1~10 랜덤
-  //   power: Math.floor(Math.random() * 10) + 1,   // 1~10 랜덤
-  //   faction: ["korea", "china", "japan"][i % 3], // 번갈아 korea, china, japan
-  //   effectDesc: "Sample effect description",
-  //   active: true,
-  //   createdAt: new Date().toISOString(),
-  //   updatedAt: new Date().toISOString()
-  // }));
 
   const endTurn = () => {
     if (turn < maxTurn) {
@@ -154,6 +179,37 @@ export default function GameLayout({ matchId }) {
         return prev;
       });
     }
+  };
+
+//   const endTurn = async () => {
+//   if (!cardPlayed || turn === maxTurn) return;
+
+//   const prev = { turn, hand };
+//   setTurn((t) => t + 1);
+//   setCardPlayed(false);
+
+//   try {
+//     console.log("🎯 startNextTurn 호출:", matchId);
+//     const data = await startNextTurn(matchId);
+//     console.log("✅ startNextTurn 응답:", data);
+
+//     if (!data.success) throw new Error(data.message || "turn start failed");
+
+//     setTurn(data.result.turn);
+//     const drawn = Object.values(data.result.drawnCards ?? {});
+//     setHand((h) => [...h, ...drawn]);
+//   } catch (e) {
+//     console.error("❌ startNextTurn 실패:", e);
+//     setTurn(prev.turn);
+//     setHand(prev.hand);
+//     setCardPlayed(true);
+//   }
+// };
+  const SLOT_COUNT = 3;
+  // turn에 따라 슬롯 활성화 상태를 결정
+  const getSlotDisabled = (index) => {
+  // 1번 슬롯은 turn >= 1일 때 활성, 2번은 turn >= 2일 때 활성, 3번은 turn >= 3일 때 활성
+    return turn < index + 1;
   };
 
   const handleLocationClick = (locationData, index) => {
@@ -171,76 +227,78 @@ export default function GameLayout({ matchId }) {
     setSelectedLocation(null);
   };
 
+  const handleCardDrop = ({ card, laneIndex, slotIndex }) => {
+    
+    if (card && card.cardId) {
+      setHand((prevHand) => prevHand.filter((c) => c.cardId !== card.cardId));
+
+      setCardPlayed(true); 
+
+      console.log(`[GameLayout] 카드 ${card.name}가 lane ${laneIndex}, slot ${slotIndex}에 놓였습니다.`);
+
+    } else {
+      console.warn("[GameLayout] Slot에서 유효하지 않은 카드 데이터를 받았습니다.", { card, laneIndex, slotIndex });
+    }
+  };
 
   return (
     <>
     <div className="gl-wrap">
       <section className="gl-lanes3">
-        <Slot isMySide={false} />
-        <Slot isMySide={false} />
-        <Slot isMySide={false} />
+        {Array.from({ length: SLOT_COUNT }).map((_, i) => (
+    <Slot key={`enemy-${i}`} isMySide={false} disabled={getSlotDisabled(i)} />
+    ))}
       </section>
       {/* 중앙 정육각 3개 */}
       <section className="gl-hexRow">
         {loading && <div className="loading">위치 불러오는 중...</div>}
         {error && <div className="error">⚠ {error}</div>}
         {!loading && !error && locations.length === 3 && (
-        <>
+    <>
+      {locations.map((loc, i) => {
+        const turnsLeft = i + 1 - turn; // 남은 턴 계산 (예: turn=1일 때 i=1 → 1턴 뒤 활성)
+        return (
           <Location
-            key={locations[0].locationId}
-            locationId={locations[0].locationId}
-            name={locations[0].name}
-            imageUrl={locations[0].imageUrl}
-            effectDesc={locations[0].effectDesc}
-            active={locations[0].active}
-            opponentPower={opponentPowers[0]}
-            myPower={myPowers[0]}
-            onLocationClick={() =>
-            handleLocationClick(locations[0], 0)
-            }
+            key={loc.locationId}
+            locationId={loc.locationId}
+            name={loc.name}
+            imageUrl={loc.imageUrl}
+            effectDesc={loc.effectDesc}
+            active={loc.isActive}
+            turnsLeft={turnsLeft > 0 ? turnsLeft : 0}
+            opponentPower={opponentPowers[i]}
+            myPower={myPowers[i]}
+            onLocationClick={() => handleLocationClick(loc, i)}
           />
-
-          <Location
-            key={locations[1].locationId}
-            locationId={locations[1].locationId}
-            name={locations[1].name}
-            imageUrl={locations[1].imageUrl}
-            effectDesc={locations[1].effectDesc}
-            active={locations[1].active}
-            opponentPower={opponentPowers[1]}
-            myPower={myPowers[1]}
-            onLocationClick={() =>
-              handleLocationClick(locations[1], 1)
-            }
-          />
-
-          <Location
-            key={locations[2].locationId}
-            locationId={locations[2].locationId}
-            name={locations[2].name}
-            imageUrl={locations[2].imageUrl}
-            effectDesc={locations[2].effectDesc}
-            active={locations[2].active}
-            opponentPower={opponentPowers[2]}
-            myPower={myPowers[2]}
-            onLocationClick={() =>
-              handleLocationClick(locations[2], 2)
-            }
-          />
-        </>
-      )}
+        );
+      })}
+    </>
+    )}
     </section>
 
       <section className="gl-lanes3">
-        <Slot isMySide />
-        <Slot isMySide />
-        <Slot isMySide />
+        {Array.from({ length: SLOT_COUNT }).map((_, i) => (
+          <Slot 
+            key={`ally-${i}`} 
+            isMySide={true} 
+            disabled={getSlotDisabled(i)}
+            laneIndex={i}                 
+            onDropCard={handleCardDrop}   
+          />
+        ))}
       </section>
 
-      <div className="gl-buttons-wrap">
+      {/* <div className="gl-buttons-wrap">
         <Energy value={energy} />
         <button className="gl-endBtn" onClick={endTurn}
             disabled={!cardPlayed || turn === maxTurn}>
+            턴 종료 ({turn} / {maxTurn})
+        </button>
+      </div> */}
+      <div className="gl-buttons-wrap">
+        <Energy value={energy} />
+        <button className="gl-endBtn" onClick={endTurn}
+            disabled={turn === maxTurn}>
             턴 종료 ({turn} / {maxTurn})
         </button>
       </div>
@@ -254,41 +312,12 @@ export default function GameLayout({ matchId }) {
               onDragStart={(e) =>
                 e.dataTransfer.setData("application/json", JSON.stringify(card))
               }
-              onDragEnd={() => handleCardPlay(card.cardId)} // ✅ 임시 드래그로 낸 걸로 처리
             >
               <Card {...card} onCardClick={() => handleCardClick(card)} />
             </div>
           ))}
         </section>
 
-      {/* 손패 6x2 = 12
-      <section className="gl-hand12">
-        {sampleCards.map(card => (
-          <div
-            key={card.cardId}
-            draggable
-            onDragStart={(e) =>
-              e.dataTransfer.setData("application/json", JSON.stringify(card))}
-          >
-          <Card
-            key={card.cardId}
-            cardId={card.cardId}
-            name={card.name}
-            imageUrl={card.imageUrl}
-            cost={card.cost}
-            power={card.power}
-            faction={card.faction}
-            effectDesc={card.effectDesc}
-            active={card.active}
-            createdAt={card.createdAt}
-            updatedAt={card.updatedAt}
-            onCardClick={() => handleCardClick(card)}
-          />
-          </div>
-        ))}
-      </section> */}
-
-      
     </div>
 
     <GameChatFloatingButton matchId={matchId} />
