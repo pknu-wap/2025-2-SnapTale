@@ -227,6 +227,19 @@ export default function GameLayout({ matchId }) {
     setSelectedLocation(null);
   };
 
+  const handleCardDrop = ({ card, laneIndex, slotIndex }) => {
+    
+    if (card && card.cardId) {
+      setHand((prevHand) => prevHand.filter((c) => c.cardId !== card.cardId));
+
+      setCardPlayed(true); 
+
+      console.log(`[GameLayout] 카드 ${card.name}가 lane ${laneIndex}, slot ${slotIndex}에 놓였습니다.`);
+
+    } else {
+      console.warn("[GameLayout] Slot에서 유효하지 않은 카드 데이터를 받았습니다.", { card, laneIndex, slotIndex });
+    }
+  };
 
   return (
     <>
@@ -265,7 +278,13 @@ export default function GameLayout({ matchId }) {
 
       <section className="gl-lanes3">
         {Array.from({ length: SLOT_COUNT }).map((_, i) => (
-          <Slot key={`ally-${i}`} isMySide={true} disabled={getSlotDisabled(i)} />
+          <Slot 
+            key={`ally-${i}`} 
+            isMySide={true} 
+            disabled={getSlotDisabled(i)}
+            laneIndex={i}                 
+            onDropCard={handleCardDrop}   
+          />
         ))}
       </section>
 
