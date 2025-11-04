@@ -15,7 +15,7 @@ import DCI from "../../assets/defaultCardImg.svg";
 import GameChatFloatingButton from "./GameChatFloatingButton";
 import { getMatch } from "../Home/api/match";
 import { fetchLocationsByMatchId } from "./api/location";
-import { playAction, startNextTurn } from "./api/matchTurn";
+// import { playAction, startNextTurn } from "./api/matchTurn";
 
 
 export default function GameLayout({ matchId }) {
@@ -35,7 +35,6 @@ export default function GameLayout({ matchId }) {
   const [cardPlayed, setCardPlayed] = useState(false);
   const [energy] = useState(3);
   const [allCards, setAllCards] = useState([]);
-  const opponentName = user.enemyPlayer ? user.enemyPlayer.userName : "상대방";
 
   useEffect(() => {
     async function ensureParticipant() {
@@ -143,69 +142,69 @@ export default function GameLayout({ matchId }) {
   const handleCloseModal = () => {
     setSelectedCard(null);
   };
+//laneIndex, slotIndex
+// const handleDropCard = async ({  card }) => {
+//   // if (!user?.participantId) {
+//   //   console.warn("participantId 없음 → play-action 전송 스킵");
+//   //   return;
+//   // }
+//   const prevHand = hand;
+//   setHand((h) => h.filter((c) => c.cardId !== card.cardId));
 
-const handleDropCard = async ({ laneIndex, slotIndex, card }) => {
-  if (!user?.participantId) {
-    console.warn("participantId 없음 → play-action 전송 스킵");
-    return;
-  }
-  const prevHand = hand;
-  setHand((h) => h.filter((c) => c.cardId !== card.cardId));
+//   try {
+//     // await playAction(matchId, {
+//     //   participantId: user.participantId,
+//     //   cardId: card.cardId,
+//     //   actionType: "PLAY_CARD",
+//     //   additionalData: JSON.stringify({ laneIndex, slotIndex, turn }),
+//     // });
+//     setCardPlayed(true);
+//   } catch (e) {
+//       console.error("playAction 실패:", e);
+//       setHand(prevHand);
+//     }
+//   };
 
-  try {
-    await playAction(matchId, {
-      participantId: user.participantId,
-      cardId: card.cardId,
-      actionType: "PLAY_CARD",
-      additionalData: JSON.stringify({ laneIndex, slotIndex, turn }),
-    });
-    setCardPlayed(true);
-  } catch (e) {
-      console.error("playAction 실패:", e);
-      setHand(prevHand);
+
+  const endTurn = () => {
+    if (turn < maxTurn) {
+      setTurn((prev) => prev + 1);
+      setCardPlayed(false); // 다시 비활성화
+
+      setHand((prev) => {
+        const nextIndex = prev.length;
+        if (nextIndex < Math.min(handCount, allCards.length)) {
+          return [...prev, allCards[nextIndex]];
+        }
+        return prev;
+      });
     }
   };
 
+//   const endTurn = async () => {
+//   if (!cardPlayed || turn === maxTurn) return;
 
-  // const endTurn = () => {
-  //   if (turn < maxTurn) {
-  //     setTurn((prev) => prev + 1);
-  //     setCardPlayed(false); // 다시 비활성화
+//   const prev = { turn, hand };
+//   setTurn((t) => t + 1);
+//   setCardPlayed(false);
 
-  //     setHand((prev) => {
-  //       const nextIndex = prev.length;
-  //       if (nextIndex < Math.min(handCount, allCards.length)) {
-  //         return [...prev, allCards[nextIndex]];
-  //       }
-  //       return prev;
-  //     });
-  //   }
-  // };
+//   try {
+//     console.log("🎯 startNextTurn 호출:", matchId);
+//     const data = await startNextTurn(matchId);
+//     console.log("✅ startNextTurn 응답:", data);
 
-  const endTurn = async () => {
-  if (!cardPlayed || turn === maxTurn) return;
+//     if (!data.success) throw new Error(data.message || "turn start failed");
 
-  const prev = { turn, hand };
-  setTurn((t) => t + 1);
-  setCardPlayed(false);
-
-  try {
-    console.log("🎯 startNextTurn 호출:", matchId);
-    const data = await startNextTurn(matchId);
-    console.log("✅ startNextTurn 응답:", data);
-
-    if (!data.success) throw new Error(data.message || "turn start failed");
-
-    setTurn(data.result.turn);
-    const drawn = Object.values(data.result.drawnCards ?? {});
-    setHand((h) => [...h, ...drawn]);
-  } catch (e) {
-    console.error("❌ startNextTurn 실패:", e);
-    setTurn(prev.turn);
-    setHand(prev.hand);
-    setCardPlayed(true);
-  }
-};
+//     setTurn(data.result.turn);
+//     const drawn = Object.values(data.result.drawnCards ?? {});
+//     setHand((h) => [...h, ...drawn]);
+//   } catch (e) {
+//     console.error("❌ startNextTurn 실패:", e);
+//     setTurn(prev.turn);
+//     setHand(prev.hand);
+//     setCardPlayed(true);
+//   }
+// };
   const SLOT_COUNT = 3;
   // turn에 따라 슬롯 활성화 상태를 결정
   const getSlotDisabled = (index) => {
@@ -228,6 +227,19 @@ const handleDropCard = async ({ laneIndex, slotIndex, card }) => {
     setSelectedLocation(null);
   };
 
+  const handleCardDrop = ({ card, laneIndex, slotIndex }) => {
+    
+    if (card && card.cardId) {
+      setHand((prevHand) => prevHand.filter((c) => c.cardId !== card.cardId));
+
+      setCardPlayed(true); 
+
+      console.log(`[GameLayout] 카드 ${card.name}가 lane ${laneIndex}, slot ${slotIndex}에 놓였습니다.`);
+
+    } else {
+      console.warn("[GameLayout] Slot에서 유효하지 않은 카드 데이터를 받았습니다.", { card, laneIndex, slotIndex });
+    }
+  };
 
   return (
     <>
@@ -266,14 +278,27 @@ const handleDropCard = async ({ laneIndex, slotIndex, card }) => {
 
       <section className="gl-lanes3">
         {Array.from({ length: SLOT_COUNT }).map((_, i) => (
-          <Slot key={`ally-${i}`} isMySide={true} disabled={getSlotDisabled(i)} />
+          <Slot 
+            key={`ally-${i}`} 
+            isMySide={true} 
+            disabled={getSlotDisabled(i)}
+            laneIndex={i}                 
+            onDropCard={handleCardDrop}   
+          />
         ))}
       </section>
 
-      <div className="gl-buttons-wrap">
+      {/* <div className="gl-buttons-wrap">
         <Energy value={energy} />
         <button className="gl-endBtn" onClick={endTurn}
             disabled={!cardPlayed || turn === maxTurn}>
+            턴 종료 ({turn} / {maxTurn})
+        </button>
+      </div> */}
+      <div className="gl-buttons-wrap">
+        <Energy value={energy} />
+        <button className="gl-endBtn" onClick={endTurn}
+            disabled={turn === maxTurn}>
             턴 종료 ({turn} / {maxTurn})
         </button>
       </div>
