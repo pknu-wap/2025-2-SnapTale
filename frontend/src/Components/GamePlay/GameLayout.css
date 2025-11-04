@@ -143,8 +143,9 @@
   position: relative;
   width:100%;
   display:flex;
-  justify-content:center;
-  /* left: -550px; */
+  justify-content: center;
+  margin-top: -5vw;
+  left: -35vw;
 }
 
 /* 턴 종료 버튼 */
