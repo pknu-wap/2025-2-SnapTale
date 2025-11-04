@@ -12,7 +12,7 @@ const RDModal = ({setOpenRDModal, matchCode, currentMatchId: initialMatchId}) =>
     const { user, updateUser } = useUser();
     const [isMatched, setIsMatched] = useState(false);
     const [currentMatchId, setCurrentMatchId] = useState(initialMatchId);
-
+    const [myParticipantId, setMyParticipantId] = useState(null);
     const [enemyPlayer, setEnemyPlayer] = useState({
         userName: "",
         profileImage: ""
@@ -68,7 +68,13 @@ const RDModal = ({setOpenRDModal, matchCode, currentMatchId: initialMatchId}) =>
                     // 상대 정보가 응답에 포함되어 있으면 설정 (선택적)
                     if (matchData.participants && matchData.participants.length >= 2) {
                         const mine = matchData.participants.find(p => String(p.guestId) === String(user?.guestId));
-                        if (mine?.participantId) updateUser({ participantId: mine.participantId });
+                        console.log("내 참가자 정보:", mine);
+                        const pId = mine?.guestId;
+                        if (pId) { // pId가 있을 때만 실행
+                        updateUser({ participantId: pId });
+                        setMyParticipantId(pId); // [추가] 로컬 상태에도 저장
+                        console.log("내 참가자 ID 설정:", pId);
+                    }
                         const other = matchData.participants.find(p => p.guestId !== user.guestId);
                         if (other) {
                             setEnemyPlayer({
@@ -101,7 +107,7 @@ const RDModal = ({setOpenRDModal, matchCode, currentMatchId: initialMatchId}) =>
                 }
             });
         }
-    }, [isMatched, navigate, enemyPlayer, user, currentMatchId]);
+    }, [isMatched, myParticipantId, navigate, enemyPlayer, user, currentMatchId]);
 
     return (
         <div className = "Overlay">

@@ -108,6 +108,7 @@ export default function GameLayout({ matchId }) {
         if (data.success && Array.isArray(data.result)) {
           console.log("서버에서 받은 매치 지역 데이터:", data.result);
           console.log("서버에서 받은 매치 지역 개수:", data.result.length);
+          console.log("유저 아이디:", user.participantId);
           const formatted = data.result.map((item) => ({
             locationId: item.location.locationId,
             name: item.location.name,
