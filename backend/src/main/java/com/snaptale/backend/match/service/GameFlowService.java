@@ -71,11 +71,6 @@ public class GameFlowService {
         DeckPreset deck2 = deckPresetRepository.findById(deck2Id)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.DECK_NOT_FOUND));
 
-        // 덱 중복 사용 방지
-        if (deck1Id.equals(deck2Id)) {
-            throw new BaseException(BaseResponseStatus.DUPLICATE_DECK_USAGE);
-        }
-
         // 덱 카드 수 및 진영 검증
         validateDeckSize(deck1);
         validateDeckSize(deck2);
