@@ -35,6 +35,7 @@ export default function GameLayout({ matchId }) {
   const [cardPlayed, setCardPlayed] = useState(false);
   const [energy] = useState(3);
   const [allCards, setAllCards] = useState([]);
+  const opponentName = user.enemyPlayer ? user.enemyPlayer.userName : "상대방";
 
   useEffect(() => {
     async function ensureParticipant() {

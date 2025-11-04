@@ -20,11 +20,15 @@
 }
 
 .gl-oppo-chip{
-  padding:.35rem .9rem;
-  background: url("../../assets/uiBtn.png") center/contain no-repeat;
-  font-weight:800;
+  width: 150px;
+  height: 40px;
+  background: url("../../assets/uiBtn.png") center / 100% 100% no-repeat;
+  font-size: 18px;
+  font-weight: bold;
+  display: flex;
+  justify-content: center; /* 수평 중앙 정렬 */
+  align-items: center;
   color: #2c1105;
-  letter-spacing: 0.05em;
 }
 
 .exit-btn{

@@ -81,6 +81,13 @@ const RDModal = ({setOpenRDModal, matchCode, currentMatchId: initialMatchId}) =>
                                 userName: other.nickname || "상대방",
                                 profileImage: other.profileImage || profile1
                             });
+                            console.log("상대 참가자 정보:", other);
+                            updateUser({ enemyPlayer: other }); //상대방 정보도 전역에 저장 
+                            /* 매치 끝나면 지워야 함!!! 이거 꼭 추가할 것
+                            updateUser({ 
+                                participantId: null, 
+                                enemyPlayer: null 
+                            }); */
                         }
                     }
                     setIsMatched(true);

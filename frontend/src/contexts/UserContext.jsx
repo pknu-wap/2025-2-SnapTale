@@ -20,6 +20,19 @@ function readInitialUser() {
     const storedParticipantId = localStorage.getItem("participantId");
     const participantIdNumber = normalizeStoredNumber(storedParticipantId);
 
+    const storedEnemyPlayer = localStorage.getItem("enemyPlayer"); //매치 끝나고 지워야 함
+    let parsedEnemyPlayer = null;
+
+    if (storedEnemyPlayer) {
+        try {
+            // JSON 문자열을 다시 객체로 변환
+            parsedEnemyPlayer = JSON.parse(storedEnemyPlayer);
+        } catch (e) {
+                console.error("Failed to parse enemyPlayer from localStorage", e);
+                parsedEnemyPlayer = null;
+      }
+    }
+
     if (!storedGuestId || !storedNickname) {
         return null;
     }
@@ -34,6 +47,7 @@ function readInitialUser() {
     points: pointsNumber,
     selectedDeckPresetId: deckIdNumber ?? null,
     participantId: participantIdNumber ?? null,
+    enemyPlayer: parsedEnemyPlayer ?? null,
   };
 }
 
@@ -43,6 +57,7 @@ function persistUser(user) {
     localStorage.removeItem("nickname");
     localStorage.removeItem("points");
     localStorage.removeItem("selectedDeckPresetId");
+    localStorage.removeItem("enemyPlayer");
     return;
   }
 
@@ -63,6 +78,12 @@ function persistUser(user) {
     localStorage.setItem("participantId", String(user.participantId));
   } else {
     localStorage.removeItem("participantId");
+  }
+  if (user.enemyPlayer && typeof user.enemyPlayer === "object") {
+    localStorage.setItem("enemyPlayer", JSON.stringify(user.enemyPlayer));
+  } else {
+    // null이거나 없으면 localStorage에서 제거
+    localStorage.removeItem("enemyPlayer");
   }
 }
 
