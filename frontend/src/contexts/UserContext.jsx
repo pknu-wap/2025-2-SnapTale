@@ -16,20 +16,24 @@ function readInitialUser() {
     const storedNickname = localStorage.getItem("nickname");
     const storedPoints = localStorage.getItem("points");
     const storedDeckId = localStorage.getItem("selectedDeckPresetId");
+    
+    const storedParticipantId = localStorage.getItem("participantId");
+    const participantIdNumber = normalizeStoredNumber(storedParticipantId);
 
     if (!storedGuestId || !storedNickname) {
         return null;
     }
 
     const guestIdNumber = normalizeStoredNumber(storedGuestId);
-  const pointsNumber = normalizeStoredNumber(storedPoints);
-  const deckIdNumber = normalizeStoredNumber(storedDeckId);
+    const pointsNumber = normalizeStoredNumber(storedPoints);
+    const deckIdNumber = normalizeStoredNumber(storedDeckId);
 
   return {
     guestId: guestIdNumber ?? storedGuestId,
     nickname: storedNickname,
     points: pointsNumber,
     selectedDeckPresetId: deckIdNumber ?? null,
+    participantId: participantIdNumber ?? null,
   };
 }
 
@@ -54,6 +58,11 @@ function persistUser(user) {
     localStorage.setItem("selectedDeckPresetId", String(user.selectedDeckPresetId));
   } else {
     localStorage.removeItem("selectedDeckPresetId");
+  }
+  if (typeof user.participantId === "number" && !Number.isNaN(user.participantId)) {
+    localStorage.setItem("participantId", String(user.participantId));
+  } else {
+    localStorage.removeItem("participantId");
   }
 }
 

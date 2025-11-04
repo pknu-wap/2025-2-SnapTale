@@ -9,7 +9,7 @@ import { joinMatch, getMatch, deleteMatch } from './api/match';
 {/* 전투 준비 중 모달창 */}
 const RDModal = ({setOpenRDModal, matchCode, currentMatchId: initialMatchId}) => {
     const navigate = useNavigate();
-    const { user } = useUser();
+    const { user, updateUser } = useUser();
     const [isMatched, setIsMatched] = useState(false);
     const [currentMatchId, setCurrentMatchId] = useState(initialMatchId);
 
@@ -67,6 +67,8 @@ const RDModal = ({setOpenRDModal, matchCode, currentMatchId: initialMatchId}) =>
                 if (matchData && (matchData.status === "MATCHED" || matchData.status === "PLAYING")) {
                     // 상대 정보가 응답에 포함되어 있으면 설정 (선택적)
                     if (matchData.participants && matchData.participants.length >= 2) {
+                        const mine = matchData.participants.find(p => String(p.guestId) === String(user?.guestId));
+                        if (mine?.participantId) updateUser({ participantId: mine.participantId });
                         const other = matchData.participants.find(p => p.guestId !== user.guestId);
                         if (other) {
                             setEnemyPlayer({

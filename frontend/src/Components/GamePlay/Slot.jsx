@@ -2,14 +2,18 @@ import React, { useMemo, useState } from "react";
 import "./Slot.css";
 import Card from "./Card";
 
-export default function Slot({ isMySide = false, onChange }) {
+export default function Slot({ 
+    isMySide = false,
+    laneIndex, //이 슬롯이 몇 번째 레인인지
+    onDropCard, //부모(GameLayout)로 드롭 이벤트 알려줄 콜백
+    onChange 
+  }) {
   // 4칸(인덱스 0~3), null = 비어있음
   const [cells, setCells] = useState([null, null, null, null]);
   const [isOver, setIsOver] = useState(false);
 
   const firstEmpty = useMemo(() => cells.findIndex((c) => !c), [cells]);
   const isFull = firstEmpty === -1;
-
   const allowDrop = isMySide && !isFull;
 
   const handleDragEnter = (e) => {
@@ -30,27 +34,28 @@ export default function Slot({ isMySide = false, onChange }) {
     if (!allowDrop) return;
     e.preventDefault();
 
-    // 핸드 카드에서 setData('application/json', JSON.stringify(card))
     const raw =
       e.dataTransfer.getData("application/json") ||
       e.dataTransfer.getData("text/plain");
     if (!raw) return;
 
+    let card;
     try {
-      const card = JSON.parse(raw);
-
-      // 이미 꽉 차있으면 무시
-      if (firstEmpty === -1) return;
-
-      setCells((prev) => {
-        const next = [...prev];
-        next[firstEmpty] = card;
-        return next;
-      });
-      onChange?.(cells);
+      card = JSON.parse(raw);
     } catch {
-      // JSON 파싱 실패 시 무시
+      return;
     }
+
+    if (firstEmpty === -1) return;
+    const slotIndex = firstEmpty;
+
+    const next = [...cells];
+    next[slotIndex] = card;
+
+    setCells(next);
+
+    onChange?.(next);
+    onDropCard?.({ laneIndex, slotIndex, card});
   };
 
   return (
