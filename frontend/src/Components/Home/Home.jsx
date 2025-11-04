@@ -20,7 +20,7 @@ const Home = () => {
   const [showDeckModal, setShowDeckModal] = useState(false); //덱 설정 정보에 따라 DeckCheck 모달을 보여줄 지 여부 결정
   const [matchCode, setMatchCode] = useState(""); // 매치코드 값 저장
   const [currentMatchId, setCurrentMatchId] = useState(null); // 매치의 matchId 저장
-  const { user } = useUser();
+  const { user, updateUser } = useUser();
 
   useEffect(() => {
     if (!user) {
@@ -53,6 +53,13 @@ const Home = () => {
       
       // 응답에서 matchId 추출 (parseJsonResponse가 result를 반환할 수 있으므로 둘 다 확인)
       const matchId = joinResponse.matchId || joinResponse.result?.matchId;
+      
+      const pid =
+        joinResponse.participantId ??
+        joinResponse.result?.participantId ??
+        joinResponse.participant?.participantId;
+      if (pid) updateUser({ participantId: pid });
+
       if (matchId) {
         setCurrentMatchId(matchId);
         setMatchCode(""); // 랜덤 매치는 matchCode 없음
@@ -93,6 +100,12 @@ const Home = () => {
       const joinResponse = await joinMatch(matchId, user.guestId, user.nickname, user.selectedDeckPresetId);
       console.log("친선전 매치 참가 완료 - 응답:", joinResponse);
 
+      const pid =
+        joinResponse.participantId ??
+        joinResponse.result?.participantId ??
+        joinResponse.participant?.participantId;
+      if (pid) updateUser({ participantId: pid });
+
       // 3. matchId 설정하고 CreateModal 열기
       setCurrentMatchId(matchId);
       setMatchCode(matchId.toString());
@@ -124,6 +137,12 @@ const Home = () => {
       // 입력받은 매치 ID로 참가
       const joinResponse = await joinMatch(matchIdNum, user.guestId, user.nickname, user.selectedDeckPresetId);
       console.log("친선전 매치 참가 완료 - 전체 응답:", joinResponse);
+
+      const pid =
+        joinResponse.participantId ??
+        joinResponse.result?.participantId ??
+        joinResponse.participant?.participantId;
+      if (pid) updateUser({ participantId: pid });
 
       // 응답에서 matchId 확인
       const responseMatchId = joinResponse.matchId || joinResponse.result?.matchId;

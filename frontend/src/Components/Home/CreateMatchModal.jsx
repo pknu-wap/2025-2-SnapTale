@@ -9,7 +9,7 @@ import { getMatch, deleteMatch } from './api/match';
 {/* 매치 생성 후 대기 모달창 */}
 const CreateMatchModal = ({ setOpenCreateModal, matchId }) => {
     const navigate = useNavigate();
-    const { user } = useUser();
+    const { user, updateUser } = useUser();
     const [isMatched, setIsMatched] = useState(false);
     const [enemyPlayer, setEnemyPlayer] = useState({
         userName: "",
@@ -30,6 +30,8 @@ const CreateMatchModal = ({ setOpenCreateModal, matchId }) => {
                     // 상대 정보가 응답에 포함되어 있으면 설정
                     if (matchData.participants && matchData.participants.length >= 2) {
                         const other = matchData.participants.find(p => p.guestId !== user?.guestId);
+                        const mine = matchData.participants.find(p => String(p.guestId) === String(user?.guestId));
+                        if (mine?.participantId) updateUser({ participantId: mine.participantId });
                         if (other) {
                             setEnemyPlayer({
                                 userName: other.nickname || "상대방",

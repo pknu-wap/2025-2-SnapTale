@@ -13,14 +13,16 @@ import defaultImg from "../../assets/koreaIcon.png";
 import DCI from "../../assets/defaultCardImg.svg";
 // import { fetchLocations } from "./api/location";
 import GameChatFloatingButton from "./GameChatFloatingButton";
+import { getMatch } from "../Home/api/match";
 import { fetchLocationsByMatchId } from "./api/location";
+import { playAction, startNextTurn } from "./api/matchTurn";
 
 
 export default function GameLayout({ matchId }) {
   const handCount = 12;
   const maxTurn = 6;
 
-  const { user } = useUser();
+  const { user, updateUser } = useUser();
   const [selectedCard, setSelectedCard] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [locations, setLocations] = useState([]); // 서버에서 불러올 위치 데이터
@@ -33,7 +35,26 @@ export default function GameLayout({ matchId }) {
   const [cardPlayed, setCardPlayed] = useState(false);
   const [energy] = useState(3);
   const [allCards, setAllCards] = useState([]);
+  const opponentName = user.enemyPlayer ? user.enemyPlayer.userName : "상대방";
 
+  useEffect(() => {
+    async function ensureParticipant() {
+      if (!matchId || !user?.guestId) return;
+      if (user.participantId) return; // 이미 있으면 스킵
+
+      try {
+        const match = await getMatch(matchId);
+        const me = match?.participants?.find(p => p.guestId === user.guestId);
+        if (me?.participantId) {
+          // UserContext 메모리에만 저장(로컬스토리지는 기존 필드만 저장됨)
+          updateUser({ participantId: me.participantId });
+        }
+      } catch (e) {
+        console.warn("participantId 조회 실패:", e);
+      }
+    }
+    ensureParticipant();
+  }, [matchId, user?.guestId, user?.participantId, updateUser]);
 
   // 선택한 덱의 카드들을 불러와 hand와 allCards 구성
   useEffect(() => {
@@ -88,6 +109,7 @@ export default function GameLayout({ matchId }) {
         if (data.success && Array.isArray(data.result)) {
           console.log("서버에서 받은 매치 지역 데이터:", data.result);
           console.log("서버에서 받은 매치 지역 개수:", data.result.length);
+          console.log("유저 아이디:", user.participantId);
           const formatted = data.result.map((item) => ({
             locationId: item.location.locationId,
             name: item.location.name,
@@ -122,25 +144,68 @@ export default function GameLayout({ matchId }) {
     setSelectedCard(null);
   };
 
-  const handleCardPlay = (cardId) => {
-    setHand((prev) => prev.filter((c) => c.cardId !== cardId)); // 카드 제거
-    setCardPlayed(true); // ✅ 카드 냈으니 턴 종료 가능
-  };
+const handleDropCard = async ({ laneIndex, slotIndex, card }) => {
+  if (!user?.participantId) {
+    console.warn("participantId 없음 → play-action 전송 스킵");
+    return;
+  }
+  const prevHand = hand;
+  setHand((h) => h.filter((c) => c.cardId !== card.cardId));
 
-  const endTurn = () => {
-    if (turn < maxTurn) {
-      setTurn((prev) => prev + 1);
-      setCardPlayed(false); // 다시 비활성화
-
-      setHand((prev) => {
-        const nextIndex = prev.length;
-        if (nextIndex < Math.min(handCount, allCards.length)) {
-          return [...prev, allCards[nextIndex]];
-        }
-        return prev;
-      });
+  try {
+    await playAction(matchId, {
+      participantId: user.participantId,
+      cardId: card.cardId,
+      actionType: "PLAY_CARD",
+      additionalData: JSON.stringify({ laneIndex, slotIndex, turn }),
+    });
+    setCardPlayed(true);
+  } catch (e) {
+      console.error("playAction 실패:", e);
+      setHand(prevHand);
     }
   };
+
+
+  // const endTurn = () => {
+  //   if (turn < maxTurn) {
+  //     setTurn((prev) => prev + 1);
+  //     setCardPlayed(false); // 다시 비활성화
+
+  //     setHand((prev) => {
+  //       const nextIndex = prev.length;
+  //       if (nextIndex < Math.min(handCount, allCards.length)) {
+  //         return [...prev, allCards[nextIndex]];
+  //       }
+  //       return prev;
+  //     });
+  //   }
+  // };
+
+  const endTurn = async () => {
+  if (!cardPlayed || turn === maxTurn) return;
+
+  const prev = { turn, hand };
+  setTurn((t) => t + 1);
+  setCardPlayed(false);
+
+  try {
+    console.log("🎯 startNextTurn 호출:", matchId);
+    const data = await startNextTurn(matchId);
+    console.log("✅ startNextTurn 응답:", data);
+
+    if (!data.success) throw new Error(data.message || "turn start failed");
+
+    setTurn(data.result.turn);
+    const drawn = Object.values(data.result.drawnCards ?? {});
+    setHand((h) => [...h, ...drawn]);
+  } catch (e) {
+    console.error("❌ startNextTurn 실패:", e);
+    setTurn(prev.turn);
+    setHand(prev.hand);
+    setCardPlayed(true);
+  }
+};
   const SLOT_COUNT = 3;
   // turn에 따라 슬롯 활성화 상태를 결정
   const getSlotDisabled = (index) => {
@@ -222,7 +287,6 @@ export default function GameLayout({ matchId }) {
               onDragStart={(e) =>
                 e.dataTransfer.setData("application/json", JSON.stringify(card))
               }
-              onDragEnd={() => handleCardPlay(card.cardId)} // ✅ 임시 드래그로 낸 걸로 처리
             >
               <Card {...card} onCardClick={() => handleCardClick(card)} />
             </div>
