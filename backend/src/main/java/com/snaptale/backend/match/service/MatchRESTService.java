@@ -1,7 +1,5 @@
 package com.snaptale.backend.match.service;
 
-import com.snaptale.backend.card.entity.Card;
-import com.snaptale.backend.card.repository.CardRepository;
 import com.snaptale.backend.common.exceptions.BaseException;
 import com.snaptale.backend.common.response.BaseResponseStatus;
 import com.snaptale.backend.deck.entity.DeckPreset;
@@ -49,7 +47,6 @@ public class MatchRESTService {
 	private final WebSocketSessionManager sessionManager;
 	private final com.snaptale.backend.deck.repository.DeckPresetRepository deckPresetRepository;
 	private final TurnService turnService;
-	private final CardRepository cardRepository;
 
 	// 매치 참가 처리
 	@Transactional
@@ -235,20 +232,6 @@ public class MatchRESTService {
 			throw new BaseException(BaseResponseStatus.INVALID_SLOT_INDEX);
 		}
 
-		// 참가자 정보 조회
-		MatchParticipant participant = matchParticipantRepository.findById(message.getParticipantId())
-				.orElseThrow(() -> new BaseException(BaseResponseStatus.PARTICIPANT_NOT_FOUND));
-
-		// 카드 정보 조회 및 에너지 검증
-		Card card = cardRepository.findById(message.getCardId())
-				.orElseThrow(() -> new BaseException(BaseResponseStatus.CARD_NOT_FOUND));
-
-		if (card.getCost() > participant.getEnergy()) {
-			log.warn("에너지 부족: participantId={}, cardId={}, requiredCost={}, currentEnergy={}",
-					message.getParticipantId(), message.getCardId(), card.getCost(), participant.getEnergy());
-			throw new BaseException(BaseResponseStatus.INSUFFICIENT_ENERGY);
-		}
-
 		// 카드 제출
 		turnService.submitPlay(
 				message.getMatchId(),
@@ -256,12 +239,8 @@ public class MatchRESTService {
 				message.getCardId(),
 				slotIndex);
 
-		// 에너지 차감
-		participant.consumeEnergy(card.getCost());
-		matchParticipantRepository.save(participant);
-
-		// 업데이트된 참가자 정보 조회 (에너지 포함)
-		participant = matchParticipantRepository.findById(message.getParticipantId())
+		// 참가자 정보 조회 (에너지 포함)
+		MatchParticipant participant = matchParticipantRepository.findById(message.getParticipantId())
 				.orElseThrow(() -> new BaseException(BaseResponseStatus.PARTICIPANT_NOT_FOUND));
 		return PlayActionRes.from(message, participant);
 	}
