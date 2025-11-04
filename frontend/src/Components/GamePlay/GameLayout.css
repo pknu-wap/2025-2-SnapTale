@@ -16,7 +16,6 @@
   display:flex;
   justify-content:space-between;
   align-items:center;
-  padding: clamp(8px, 1.6vh, 12px) 0;
 }
 
 .gl-oppo-chip{
@@ -44,7 +43,6 @@
   flex-direction:column;
   align-items:center;
   gap: clamp(8px, 1.6vh, 14px);
-  padding: 0 clamp(8px, 2vw, 12px) clamp(12px, 2vh, 16px);
 }
 
 .gl-wrap .gl-lanes3{
@@ -105,10 +103,9 @@
   grid-template-columns: repeat(3, 1fr);
   gap: clamp(8px, 1.2vw, 16px);
   justify-items: center;
-  
 }
 .gl-hexRow{
-  height: clamp(130px, 15vh, 160px);
+  height: 120px; /*크기 임시로 조정 */
   align-items: center;
 }
 .gl-hex{
@@ -129,8 +126,11 @@
 .gl-wrap .gl-hand12{
   width:100%;
   display:grid !important;
-  grid-template-columns: repeat(12, var(--hand-w, 64px));
+  grid-template-columns: repeat(auto-fit, var(--hand-w, 64px)); /* 손패 크기 12(고정) -> auto-fit으로 수정 */
+  justify-content: center; /* 손패 영역을 중앙 정렬 */
+  place-items: center; /* 영역 안에 카드가 중앙에 위치하도록 */
   gap: clamp(8px, 1.2vw, 14px);
+  min-height: 76px;
   --hand-w: clamp(50px, 9.2vw, 76px);
 }
 
@@ -142,6 +142,7 @@
 .gl-buttons-wrap{
   position: relative;
   width:100%;
+  height: 60px;
   display:flex;
   justify-content: center;
   margin-top: -5vw;
@@ -152,14 +153,13 @@
 .gl-endBtn{
   display: grid;
   position: absolute;
-  margin-top: -50px;
   padding:.4rem 1rem;
   background: url("../../assets/uiBtn.png") center/contain no-repeat;
   font-weight:800;
   color: #2c1105;
   letter-spacing: 0.05em;
   border: none;
-  bottom: 50px;
+  bottom: 10px;
 }
 
 /* 카드 확대 */

@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import "./Slot.css";
 import Card from "./Card";
 
-export default function Slot({ isMySide = false, onChange }) {
+export default function Slot({ isMySide = false, disabled = false, onChange }) {
   // 4칸(인덱스 0~3), null = 비어있음
   const [cells, setCells] = useState([null, null, null, null]);
   const [isOver, setIsOver] = useState(false);
@@ -10,7 +10,7 @@ export default function Slot({ isMySide = false, onChange }) {
   const firstEmpty = useMemo(() => cells.findIndex((c) => !c), [cells]);
   const isFull = firstEmpty === -1;
 
-  const allowDrop = isMySide && !isFull;
+  const allowDrop = isMySide && !disabled && !isFull;
 
   const handleDragEnter = (e) => {
     if (!allowDrop) return;
