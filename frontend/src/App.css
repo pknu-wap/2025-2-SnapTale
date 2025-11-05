@@ -1,24 +1,79 @@
-html, body{
-  background-color: #6D719A;
+:root {
+  --space-sm: 16px;
+  --space-md: 24px;
+  --space-lg: 32px;
 }
 
-.app-background{
-  width: 100vw;
-  height: 96vh;
-  margin-top: 1vh;
+html,
+body,
+#root {
+  margin: 0px;
+  min-height: 100%;
+  background-color: #6d719a;
+}
+
+.app-background {
+  min-height: 100dvh;
+  width: 100%;
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  padding: calc(var(--space-sm) + env(safe-area-inset-top))
+    calc(var(--space-sm) + env(safe-area-inset-right))
+    calc(var(--space-sm) + env(safe-area-inset-bottom))
+    calc(var(--space-sm) + env(safe-area-inset-left));
+  background-color: #6d719a;
+  box-sizing: border-box;
 }
 
-/* 문서 전체 뼈대, 내용, React가 붙는 최상위 div에 적용 */
 .app-bg-image {
-  width: 1280px;
-  height: 750px;
+  position: relative;
   display: flex;
-  justify-content: center;
   align-items: center;
-  transform-origin: center center;
-  background: url("./assets/initpageBG.png") center / cover no-repeat;
+  justify-content: center;
+  width: clamp(320px, 100%, 600px);
+  min-height: clamp(480px, 100%, 760px);
+  padding: var(--space-md);
+  border-radius: 15px;
   overflow: hidden;
+  color: #fff;
+  text-align: center;
+  background: url("./assets/initpageBG.png") center / cover no-repeat;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
+  transition: width 320ms ease, padding 320ms ease, border-radius 320ms ease,box-shadow 320ms ease;
+}
+
+.app-bg-image::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(280deg, rgba(24, 26, 43, 0.55), rgba(24, 26, 43, 0.75));
+  pointer-events: none;
+}
+
+.app-bg-image > * {
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 767px) {
+  .app-bg-image {
+    padding: var(--space-md);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .app-bg-image {
+    width: clamp(520px, 68%, 780px);
+    min-height: clamp(650px, 90dvh, 850px);
+    padding: var(--space-lg);
+  }
+}
+
+@media (min-width: 1024px) {
+  .app-bg-image {
+    width: clamp(650px, 80vw, 1200px);
+    min-height: clamp(600px, 80dvh, 880px);
+    padding: calc(var(--space-lg) + 12px);
+  }
 }
