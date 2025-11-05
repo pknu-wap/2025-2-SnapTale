@@ -40,7 +40,7 @@ body,
   text-align: center;
   background: url("./assets/initpageBG.png") center / cover no-repeat;
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
-  transition: width 320ms ease, padding 320ms ease, border-radius 320ms ease,box-shadow 320ms ease;
+  transition: width 320ms ease, padding 320ms ease, border-radius 320ms ease, box-shadow 320ms ease;
 }
 
 .app-bg-image::after {
@@ -56,6 +56,19 @@ body,
   z-index: 1;
 }
 
+@media (max-width: 1023px) {
+  .app-background {
+    padding: 0;
+  }
+  .app-bg-image {
+    width: 100vw;
+    min-height: 100dvh;
+    box-sizing: border-box;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
 @media (max-width: 767px) {
   .app-bg-image {
     padding: var(--space-md);
@@ -64,8 +77,6 @@ body,
 
 @media (min-width: 768px) and (max-width: 1023px) {
   .app-bg-image {
-    width: clamp(520px, 68%, 780px);
-    min-height: clamp(650px, 90dvh, 850px);
     padding: var(--space-lg);
   }
 }
