@@ -4,7 +4,7 @@ import profile1 from '../../assets/userProfile.png';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../contexts/UserContext';
-import { joinMatch, getMatch, deleteMatch } from './api/match';
+import { joinMatch, getMatch, deleteMatch, startMatch } from './api/match';
 
 {/* 전투 준비 중 모달창 */}
 const RDModal = ({setOpenRDModal, matchCode, currentMatchId: initialMatchId}) => {
@@ -13,6 +13,7 @@ const RDModal = ({setOpenRDModal, matchCode, currentMatchId: initialMatchId}) =>
     const [isMatched, setIsMatched] = useState(false);
     const [currentMatchId, setCurrentMatchId] = useState(initialMatchId);
     const [myParticipantId, setMyParticipantId] = useState(null);
+    const [gameStarted, setGameStarted] = useState(false); // 게임 시작 플래그
     const [enemyPlayer, setEnemyPlayer] = useState({
         userName: "",
         profileImage: ""
@@ -64,6 +65,18 @@ const RDModal = ({setOpenRDModal, matchCode, currentMatchId: initialMatchId}) =>
                 console.log("매치 상태:", matchData);
 
                 // 상태 기반 매칭 완료 처리 (권장)
+                if (matchData && matchData.status === "MATCHED" && !gameStarted) {
+                    // MATCHED 상태이면 게임 시작 API 호출 (한 번만)
+                    try {
+                        console.log("게임 시작 API 호출: matchId=", currentMatchId);
+                        await startMatch(currentMatchId);
+                        console.log("게임 시작 완료");
+                        setGameStarted(true);
+                    } catch (error) {
+                        console.error("게임 시작 실패:", error);
+                    }
+                }
+                
                 if (matchData && (matchData.status === "MATCHED" || matchData.status === "PLAYING")) {
                     // 상대 정보가 응답에 포함되어 있으면 설정 (선택적)
                     if (matchData.participants && matchData.participants.length >= 2) {

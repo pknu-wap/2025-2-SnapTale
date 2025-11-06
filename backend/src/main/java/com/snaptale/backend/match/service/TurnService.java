@@ -46,47 +46,58 @@ public class TurnService {
         // 1. 매치 및 참가자 확인
         Match match = matchRepository.findById(matchId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_NOT_FOUND));
+        log.info("매치 조회 성공: matchId={}", match.getMatchId());
 
         if (match.getStatus() != MatchStatus.PLAYING) {
+            log.info("매치 상태 오류: matchId={}, status={}", match.getMatchId(), match.getStatus());
             throw new BaseException(BaseResponseStatus.GAME_NOT_STARTED);
         }
 
-        MatchParticipant participant = matchParticipantRepository.findById(participantId)
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.PARTICIPANT_NOT_FOUND));
+        // 참가자 조회 (participantId는 guestId를 의미함)
+        MatchParticipant participant = matchParticipantRepository.findByMatch_MatchIdAndGuestId(matchId, participantId)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_PARTICIPANT_NOT_FOUND));
+        log.info("참가자 조회 성공: participantId={}, guestId={}", participant.getId(), participant.getGuestId());
 
         // 2. 이미 이번 턴에 플레이했는지 확인
         boolean alreadyPlayed = playRepository.existsByMatchAndTurnAndPlayer(
                 matchId, match.getTurnCount(), participant.getGuestId());
 
         if (alreadyPlayed) {
+            log.info("이미 이번 턴에 플레이했습니다.");
             throw new BaseException(BaseResponseStatus.ALREADY_PLAYED_THIS_TURN);
         }
 
         // 3. slotIndex 유효성 검증
         if (slotIndex < 0 || slotIndex >= NUM_LOCATIONS) {
+            log.info("슬롯 인덱스 유효성 검증 실패: slotIndex={}", slotIndex);
             throw new BaseException(BaseResponseStatus.INVALID_SLOT_INDEX);
         }
 
         // 4. 카드 확인
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.CARD_NOT_FOUND));
+        log.info("카드 조회 성공: cardId={}, name={}, cost={}", card.getCardId(), card.getName(), card.getCost());
 
-        // 5. 카드 코스트와 플레이어 에너지 비교
-        Integer cardCost = card.getCost();
-        Integer playerEnergy = participant.getEnergy();
+        // 5. 카드 코스트와 에너지 소모
+        Integer cardCost = card.getCost() != null ? card.getCost() : 0;
 
-        if (cardCost > playerEnergy) {
-            throw new BaseException(BaseResponseStatus.INSUFFICIENT_ENERGY);
-        }
+        // 에너지 소모
+        participant.consumeEnergy(cardCost);
+        matchParticipantRepository.save(participant);
+        log.info("에너지 소모 성공: energy={}", participant.getEnergy());
 
         // 6. Play 엔티티 생성 및 저장
+        Integer turnCount = match.getTurnCount() != null ? match.getTurnCount() : 0;
+
+        Integer powerSnapshot = card.getPower() != null ? card.getPower() : 0;
+
         Play play = Play.builder()
                 .match(match)
-                .turnCount(match.getTurnCount())
+                .turnCount(turnCount)
                 .guestId(participant.getGuestId())
                 .card(card)
                 .slotIndex(slotIndex)
-                .powerSnapshot(card.getPower()) // 현재 파워 스냅샷 저장
+                .powerSnapshot(powerSnapshot) // 현재 파워 스냅샷 저장
                 .isTurnEnd(false) // 카드 제출
                 .build();
         playRepository.save(play);
@@ -108,7 +119,7 @@ public class TurnService {
             throw new BaseException(BaseResponseStatus.GAME_NOT_STARTED);
         }
 
-        int currentTurn = match.getTurnCount();
+        int currentTurn = match.getTurnCount() != null ? match.getTurnCount() : 0;
 
         // 1. 현재 턴의 턴 종료 확인 (보안을 위해 재확인)
         boolean bothEnded = checkBothPlayersEnded(matchId, currentTurn);
@@ -160,10 +171,11 @@ public class TurnService {
             throw new BaseException(BaseResponseStatus.GAME_NOT_STARTED);
         }
 
-        MatchParticipant participant = matchParticipantRepository.findById(participantId)
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.PARTICIPANT_NOT_FOUND));
+        // 참가자 조회 (participantId는 guestId를 의미함)
+        MatchParticipant participant = matchParticipantRepository.findByMatch_MatchIdAndGuestId(matchId, participantId)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_PARTICIPANT_NOT_FOUND));
 
-        int currentTurn = match.getTurnCount();
+        int currentTurn = match.getTurnCount() != null ? match.getTurnCount() : 0;
 
         // 2. 이미 이번 턴에 턴 종료했는지 확인
         boolean alreadyEnded = playRepository.existsTurnEndByMatchAndTurnAndPlayer(

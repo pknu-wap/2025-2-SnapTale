@@ -35,131 +35,6 @@ public class GameFlowService {
     private static final int INITIAL_ENERGY = 5;
     private static final int ENERGY_PER_TURN = 1;
 
-    // 게임 초기화
-    // - Match 생성
-    // - 두 플레이어의 MatchParticipant 생성
-    // - 3개의 Location 할당
-    // - 각 플레이어의 덱에서 초기 카드 드로우 (각 3장)
-    // @Transactional
-    // public GameInitializationResult initializeGame(Long player1Id, Long player2Id,
-    //         Long deck1Id, Long deck2Id) {
-    //     log.info("게임 초기화 시작: player1={}, player2={}, deck1={}, deck2={}",
-    //             player1Id, player2Id, deck1Id, deck2Id);
-
-    //     // 1. 유저 존재 확인
-    //     userRepository.findById(player1Id)
-    //             .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
-    //     userRepository.findById(player2Id)
-    //             .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
-
-    //     // 2. 덱 존재 확인 및 검증
-    //     DeckPreset deck1 = deckPresetRepository.findById(deck1Id)
-    //             .orElseThrow(() -> new BaseException(BaseResponseStatus.DECK_NOT_FOUND));
-    //     DeckPreset deck2 = deckPresetRepository.findById(deck2Id)
-    //             .orElseThrow(() -> new BaseException(BaseResponseStatus.DECK_NOT_FOUND));
-
-    //     // 덱 카드 수 및 진영 검증
-    //     validateDeckSize(deck1);
-    //     validateDeckSize(deck2);
-
-    //     // 3. Match 생성
-    //     Match match = Match.builder()
-    //             .status(MatchStatus.MATCHED)
-    //             .turnCount(0)
-    //             .build();
-    //     matchRepository.save(match);
-
-    //     // 4. MatchParticipant 생성
-    //     MatchParticipant participant1 = MatchParticipant.builder()
-    //             .match(match)
-    //             .guestId(player1Id)
-    //             .playerIndex(0)
-    //             .deckPreset(deck1)
-    //             .build();
-
-    //     List<Long> deckOrder1 = createShuffledDeckOrder(deck1);
-    //     participant1.setDeckOrder(deckOrder1);
-    //     participant1.setDrawIndex(0);
-    //     List<Card> player1Hand = extractInitialHand(deck1, deckOrder1);
-    //     participant1.setDrawIndex(INITIAL_HAND_SIZE);
-    //     matchParticipantRepository.save(participant1);
-    //     match.addParticipant(participant1);
-
-    //     MatchParticipant participant2 = MatchParticipant.builder()
-    //             .match(match)
-    //             .guestId(player2Id)
-    //             .playerIndex(1)
-    //             .deckPreset(deck2)
-    //             .build();
-
-    //     List<Long> deckOrder2 = createShuffledDeckOrder(deck2);
-    //     participant2.setDeckOrder(deckOrder2);
-    //     participant2.setDrawIndex(0);
-    //     List<Card> player2Hand = extractInitialHand(deck2, deckOrder2);
-    //     participant2.setDrawIndex(INITIAL_HAND_SIZE);
-    //     matchParticipantRepository.save(participant2);
-    //     match.addParticipant(participant2);
-
-    //     // 5. Location 할당 (랜덤으로 3개 선택)
-    //     List<Location> allLocations = locationRepository.findAll();
-    //     if (allLocations.size() < NUM_LOCATIONS) {
-    //         throw new BaseException(BaseResponseStatus.INSUFFICIENT_LOCATIONS);
-    //     }
-
-    //     Collections.shuffle(allLocations);
-    //     List<Location> selectedLocations = allLocations.subList(0, NUM_LOCATIONS);
-
-    //     for (int i = 0; i < NUM_LOCATIONS; i++) {
-    //         MatchLocation matchLocation = MatchLocation.builder()
-    //                 .match(match)
-    //                 .slotIndex(i)
-    //                 .location(selectedLocations.get(i))
-    //                 .revealedTurn(1) // 첫 턴부터 공개
-    //                 .build();
-    //         matchLocationRepository.save(matchLocation);
-    //         match.addLocation(matchLocation);
-    //     }
-
-    //     log.info("게임 초기화 완료: matchId={}", match.getMatchId());
-
-    //     return GameInitializationResult.builder()
-    //             .matchId(match.getMatchId())
-    //             .participant1Id(participant1.getId())
-    //             .participant2Id(participant2.getId())
-    //             .player1Hand(player1Hand)
-    //             .player2Hand(player2Hand)
-    //             .locations(selectedLocations)
-    //             .build();
-    // }
-
-    // 덱 카드 수 검증 (12장인지 확인)
-    // private void validateDeckSize(DeckPreset deck) {
-    //     int totalCards = deck.getDeckPresetcards().size();
-
-    //     if (totalCards != DECK_SIZE) {
-    //         throw new BaseException(BaseResponseStatus.INVALID_DECK_SIZE);
-    //     }
-    // }
-
-    // private List<Long> createShuffledDeckOrder(DeckPreset deck) {
-    //     List<Long> deckOrder = deck.getDeckPresetcards().stream()
-    //             .map(DeckPresetCard::getCard)
-    //             .map(Card::getCardId)
-    //             .collect(Collectors.toCollection(ArrayList::new));
-
-    //     Collections.shuffle(deckOrder);
-    //     return deckOrder;
-    // }
-
-    // private List<Card> extractInitialHand(DeckPreset deck, List<Long> deckOrder) {
-    //     return deckOrder.stream()
-    //             .limit(INITIAL_HAND_SIZE)
-    //             .map(cardId -> resolveCardFromDeck(deck, cardId))
-    //             .collect(Collectors.toList());
-    // }
-
-    // --------------------------------------------------------------------------------------------------------
-
     // 게임 시작 (턴 카운트를 1로 설정하고 상태를 PLAYING으로 변경)
     @Transactional
     public void startGame(Long matchId) {
@@ -188,9 +63,17 @@ public class GameFlowService {
 
         // 모든 플레이어에게 초기 에너지 부여
         List<MatchParticipant> participants = matchParticipantRepository.findByMatch_MatchId(matchId);
+        // matchParticipant의 id임. guestId는 아님.
         for (MatchParticipant participant : participants) {
+            log.info("초기 에너지 설정 전: participantId={}, guestId={}, energy={}",
+                    participant.getId(), participant.getGuestId(), participant.getEnergy());
             participant.addEnergy(INITIAL_ENERGY);
             matchParticipantRepository.save(participant);
+            // 저장 후 다시 조회하여 확인
+            MatchParticipant saved = matchParticipantRepository.findById(participant.getId())
+                    .orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_PARTICIPANT_NOT_FOUND));
+            log.info("초기 에너지 설정 후: participantId={}, guestId={}, energy={}",
+                    saved.getId(), saved.getGuestId(), saved.getEnergy());
         }
 
         // 첫 턴 시작 드로우 수행
@@ -219,8 +102,8 @@ public class GameFlowService {
         // 모든 플레이어에게 턴마다 에너지 추가
         List<MatchParticipant> participants = matchParticipantRepository.findByMatch_MatchId(matchId);
         for (MatchParticipant participant : participants) {
-            participant.addEnergy(ENERGY_PER_TURN);
-            matchParticipantRepository.save(participant);
+            MatchParticipant updatedParticipant = participant.addEnergy(ENERGY_PER_TURN);
+            matchParticipantRepository.save(updatedParticipant);
         }
 
         // 이번 턴 드로우 수행

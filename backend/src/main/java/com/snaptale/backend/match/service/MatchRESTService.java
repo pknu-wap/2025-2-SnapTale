@@ -28,6 +28,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -137,7 +139,7 @@ public class MatchRESTService {
 					.playerIndex(playerIndex)
 					.deckPreset(deckPreset)
 					.finalScore(0)
-					.drawIndex(0)
+					.drawIndex(0) //todo: 에너지
 					.build();
 
 			matchParticipantRepository.save(participant);
@@ -210,14 +212,11 @@ public class MatchRESTService {
 			throw new BaseException(BaseResponseStatus.INVALID_ACTION_TYPE);
 		}
 
-		switch (actionType) {
-			case PLAY_CARD:
-				return handlePlayCard(message);
-			case END_TURN:
-				return handleEndTurn(message);
-			default:
-				throw new BaseException(BaseResponseStatus.INVALID_ACTION_TYPE);
-		}
+		return switch (actionType) {
+			case PLAY_CARD -> handlePlayCard(message);
+			case END_TURN -> handleEndTurn(message);
+			default -> throw new BaseException(BaseResponseStatus.INVALID_ACTION_TYPE);
+		};
 	}
 
 	// 카드 플레이 처리
@@ -239,9 +238,12 @@ public class MatchRESTService {
 				message.getCardId(),
 				slotIndex);
 
-		// 참가자 정보 조회 (에너지 포함)
-		MatchParticipant participant = matchParticipantRepository.findById(message.getParticipantId())
+		// 참가자 정보 조회 (에너지 포함) - participantId는 guestId를 의미함
+		MatchParticipant participant = matchParticipantRepository.findByMatch_MatchIdAndGuestId(
+				message.getMatchId(), message.getParticipantId())
 				.orElseThrow(() -> new BaseException(BaseResponseStatus.PARTICIPANT_NOT_FOUND));
+		log.info("카드 플레이 후 참가자 조회: participantId={}, guestId={}, energy={}", 
+				participant.getId(), participant.getGuestId(), participant.getEnergy());
 		return PlayActionRes.from(message, participant);
 	}
 
@@ -259,8 +261,9 @@ public class MatchRESTService {
 			processTurnEnd(message.getMatchId());
 		}
 
-		// 참가자 정보 조회 (에너지 포함)
-		MatchParticipant participant = matchParticipantRepository.findById(message.getParticipantId())
+		// 참가자 정보 조회 (에너지 포함) - participantId는 guestId를 의미함
+		MatchParticipant participant = matchParticipantRepository.findByMatch_MatchIdAndGuestId(
+				message.getMatchId(), message.getParticipantId())
 				.orElseThrow(() -> new BaseException(BaseResponseStatus.PARTICIPANT_NOT_FOUND));
 
 		return PlayActionRes.from(message, participant);
@@ -281,10 +284,17 @@ public class MatchRESTService {
 			return null;
 		}
 		try {
-			// JSON 파싱 (간단한 경우)
-			// 예: {"slotIndex": 0}
-			String value = additionalData.replaceAll("[^0-9]", "");
-			return Integer.parseInt(value);
+			// JSON 파싱
+			// 프론트엔드에서 JSON.stringify({ slotIndex: laneIndex })로 보내므로
+			// "{\"slotIndex\":0}" 형태로 들어옴
+			ObjectMapper objectMapper = new ObjectMapper();
+			JsonNode jsonNode = objectMapper.readTree(additionalData);
+			JsonNode slotIndexNode = jsonNode.get("slotIndex");
+			if (slotIndexNode != null && slotIndexNode.isNumber()) {
+				return slotIndexNode.asInt();
+			}
+			log.warn("slotIndex를 찾을 수 없음: {}", additionalData);
+			return null;
 		} catch (Exception e) {
 			log.error("slotIndex 파싱 실패: {}", additionalData, e);
 			return null;
@@ -337,7 +347,7 @@ public class MatchRESTService {
 				.map(p -> {
 					User user = userRepository.findById(p.getGuestId()).orElse(null);
 					String nickname = user != null ? user.getNickname() : ("Player " + p.getPlayerIndex());
-					return new MatchDetailRes.ParticipantInfo(p.getGuestId(), nickname, p.getEnergy());
+					return new MatchDetailRes.ParticipantInfo(p.getId(), p.getGuestId(), nickname, p.getEnergy());
 				})
 				.toList();
 

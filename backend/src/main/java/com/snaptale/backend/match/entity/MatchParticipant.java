@@ -4,11 +4,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.snaptale.backend.common.entity.BaseEntity;
+import com.snaptale.backend.common.exceptions.BaseException;
+import com.snaptale.backend.common.response.BaseResponseStatus;
 import com.snaptale.backend.deck.entity.DeckPreset;
 import com.snaptale.backend.match.model.request.MatchParticipantUpdateReq;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collections;
 import java.util.List;
@@ -18,6 +21,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Slf4j
 @Entity
 @Table(name = "match_participants")
 public class MatchParticipant extends BaseEntity {
@@ -112,13 +116,15 @@ public class MatchParticipant extends BaseEntity {
         this.drawIndex++;
     }
 
-    public void addEnergy(int amount) {
+    public MatchParticipant addEnergy(int amount) {
         this.energy += amount;
+        return this;
     }
 
     public void consumeEnergy(int amount) {
         if (this.energy < amount) {
-            throw new IllegalStateException("Not enough energy. Current: " + this.energy + ", Required: " + amount);
+            log.info("에너지 부족: energy={}, amount={}", this.energy, amount);
+            throw new BaseException(BaseResponseStatus.INSUFFICIENT_ENERGY);
         }
         this.energy -= amount;
     }
