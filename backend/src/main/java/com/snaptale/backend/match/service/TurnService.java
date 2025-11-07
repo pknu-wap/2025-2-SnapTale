@@ -58,12 +58,12 @@ public class TurnService {
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_PARTICIPANT_NOT_FOUND));
         log.info("참가자 조회 성공: participantId={}, guestId={}", participant.getId(), participant.getGuestId());
 
-        // 2. 이미 이번 턴에 플레이했는지 확인
-        boolean alreadyPlayed = playRepository.existsByMatchAndTurnAndPlayer(
+        // 2. 이미 이번 턴에 턴 종료했는지 확인
+        boolean alreadyEnded = playRepository.existsTurnEndByMatchAndTurnAndPlayer(
                 matchId, match.getTurnCount(), participant.getGuestId());
 
-        if (alreadyPlayed) {
-            log.info("이미 이번 턴에 플레이했습니다.");
+        if (alreadyEnded) {
+            log.info("이미 이번 턴을 종료한 참가자입니다: matchId={}, guestId={}", matchId, participant.getGuestId());
             throw new BaseException(BaseResponseStatus.ALREADY_PLAYED_THIS_TURN);
         }
 
