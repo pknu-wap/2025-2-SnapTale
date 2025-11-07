@@ -1,6 +1,6 @@
 import './Home.css'
 import Button from "./Button"
-import TopBar from '../Layout/TopBar';
+import TopBar from '../TopBar/TopBar';
 import RDModal from "./RDModal";
 import FriendlyMatchModal from "./FriendlyMatchModal";
 import CreateMatchModal from "./CreateMatchModal";

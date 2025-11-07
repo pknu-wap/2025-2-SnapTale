@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import GameLayout from "./GameLayout";
-import TopBar from "../Layout/TopBar";
+import TopBar from "../TopBar/TopBar";
 import { useUser } from "../../contexts/UserContext";
 
 const GamePlay = () => {

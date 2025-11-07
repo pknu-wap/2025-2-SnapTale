@@ -1,4 +1,4 @@
-import TopBar from "../Layout/TopBar";
+import TopBar from "../TopBar/TopBar";
 import "./GameResult.css";
 
 const GameResult = () => {

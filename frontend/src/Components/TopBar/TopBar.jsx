@@ -13,21 +13,21 @@ export default function TopBar({ screenType, onSave, onExit }) {
     switch (screenType) {
       case "home":
         return (
-          <div className="icon-btn" aria-label="덱 확인 버튼">
+          <div className="icon-btn">
             <DeckIcon />
           </div>
         );
       case "gameplay": {
         const handleExit = onExit ?? (() => navigate("/home"));
         return (
-          <div className="icon-btn" aria-label="게임 나가기 버튼">
+          <div className="icon-btn">
             <ExitButton onClick={handleExit} />
           </div>
         );
       }
       case "deckcheck":
         return (
-          <div className="icon-btn" aria-label="덱 저장 버튼">
+          <div className="icon-btn">
             <StoreButton onClick={onSave} />
           </div>
         );
@@ -39,7 +39,7 @@ export default function TopBar({ screenType, onSave, onExit }) {
   return (
     <div className="top-bar">
       <div className="left-buttons">
-        <div className="icon-btn" aria-label="사운드 설정 버튼">
+        <div className="icon-btn">
           <SoundIcon />
         </div>
       </div>
