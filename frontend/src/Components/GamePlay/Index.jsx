@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import GameLayout from "./GameLayout";
-import Soundbar from "../Home/SoundIcon";
+import TopBar from "../Layout/TopBar";
 import { useUser } from "../../contexts/UserContext";
 
 const GamePlay = () => {
@@ -11,14 +11,9 @@ const GamePlay = () => {
   console.log("GamePlay opponentName:", opponentName);
   return (
     <div className="gameplay-container">
+      <TopBar screenType="gameplay" onExit={() => navigate("/home")} />
       <header className="gameplay-header">
-        <Soundbar />
         <div className="gl-oppo-chip">{opponentName}</div>
-        <button 
-            className="exit-btn"
-            onClick={() => navigate("/home")}>
-              나가기
-          </button>
       </header>
       <GameLayout matchId={matchId} />
     </div>

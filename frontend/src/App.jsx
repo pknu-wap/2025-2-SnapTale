@@ -5,7 +5,7 @@ import  Home  from "./Components/Home/Home";
 import  DeckCheck from "./Components/DeckCheck/DeckCheck";
 import  GameLoading from "./Components/Home/GameLoading";
 import  GamePlay  from "./Components/GamePlay/Index";
-import  GameResult  from "./Components/GameResult";
+import  GameResult  from "./Components/GameResult/GameResult";
 import { WebSocketLayout } from "./contexts/WebSocketContext.jsx";
 
 function App() {

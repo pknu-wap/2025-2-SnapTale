@@ -1,7 +1,6 @@
 import './Home.css'
 import Button from "./Button"
-import DeckIcon from "./DeckIcon";
-import SoundIcon from "./SoundIcon";
+import TopBar from '../Layout/TopBar';
 import RDModal from "./RDModal";
 import FriendlyMatchModal from "./FriendlyMatchModal";
 import CreateMatchModal from "./CreateMatchModal";
@@ -167,11 +166,7 @@ const Home = () => {
   return (
     <div className="home-container">
       
-      {/* 상단 메뉴 (사운드바, 프로필) */}
-      <header className="top-menu">
-        <SoundIcon />
-        <DeckIcon />
-      </header>
+      <TopBar screenType="home" />
 
       {/* 메인 버튼 영역 */}
       <main className= "matching-buttons">

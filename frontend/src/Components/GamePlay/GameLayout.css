@@ -6,15 +6,22 @@
   flex-direction:column;
   align-items:center;
   background:#e3e6eb;
-  justify-content: center;
+  justify-content: flex-start;
   background: url("../../assets/bg_gamepage.png") center / cover no-repeat;
+  padding-top: calc(
+    clamp(32px, 4vw, 56px) +
+    clamp(8px, 2vw, 24px) * 2 +
+    clamp(12px, 3vw, 24px)
+  );
+  box-sizing: border-box;
+  gap: clamp(12px, 2vh, 24px);
 }
 
 .gameplay-header{
   width: 90%;
   max-width: 90%;
   display:flex;
-  justify-content:space-between;
+  justify-content:center;
   align-items:center;
 }
 

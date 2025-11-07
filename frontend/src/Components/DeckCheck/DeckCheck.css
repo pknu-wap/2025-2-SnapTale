@@ -5,6 +5,12 @@
   justify-content: flex-start; 
   height: 100%;
   width: 100%;
+  box-sizing: border-box;
+  padding-top: calc(
+    clamp(32px, 4vw, 56px) +
+    clamp(8px, 2vw, 24px) * 2 +
+    clamp(12px, 3vw, 24px)
+  );
 }
 
 /* 상단 메뉴 (나가기 버튼) */

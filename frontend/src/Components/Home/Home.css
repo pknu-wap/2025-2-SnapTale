@@ -9,7 +9,12 @@
   flex-direction: column; 
   align-items: center;       
   box-sizing: border-box;
-  padding: 20px 0;
+  padding: 0 0 20px;
+  padding-top: calc(
+    clamp(32px, 4vw, 56px) +
+    clamp(8px, 2vw, 24px) * 2 +
+    clamp(12px, 3vw, 24px)
+  );
 }
 /* top-menu: 상단 아이콘 배치 */
 .top-menu {
