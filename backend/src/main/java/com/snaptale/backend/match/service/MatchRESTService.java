@@ -139,7 +139,7 @@ public class MatchRESTService {
 					.playerIndex(playerIndex)
 					.deckPreset(deckPreset)
 					.finalScore(0)
-					.drawIndex(0) //todo: 에너지
+					.drawIndex(0)
 					.build();
 
 			matchParticipantRepository.save(participant);
