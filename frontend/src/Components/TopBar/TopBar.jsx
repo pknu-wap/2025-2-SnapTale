@@ -1,9 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import "./TopBar.css";
-import SoundIcon from "../Home/SoundIcon";
-import DeckIcon from "../Home/DeckIcon";
-import ExitButton from "../GamePlay/ExitButton";
-import StoreButton from "../DeckCheck/storeButton";
+import { SoundIcon, DeckIcon, ExitButton, StoreButton } from "./TopBarButtons";
 
 // 사용 예시: import TopBar from "../Layout/TopBar"; -> <TopBar screenType="home" />
 export default function TopBar({ screenType, onSave, onExit }) {
