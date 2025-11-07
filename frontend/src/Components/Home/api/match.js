@@ -60,3 +60,15 @@ export async function deleteMatch(matchId) {
   // 삭제 응답은 result가 없을 수 있으므로 오류만 검사
   return parseJsonResponse(res).catch(() => null);
 }
+
+// 매치 시작
+export async function startMatch(matchId) {
+  const res = await fetch(`${API_BASE}/api/matches/${matchId}/start`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      matchId: matchId
+    }),
+  });
+  return parseJsonResponse(res);
+}
