@@ -34,14 +34,3 @@ export async function playAction(matchId, body) {
   });
   return parseJsonOrThrow(res);
 }
-
-export async function startNextTurn(matchId) {
-  const url = `${API_BASE}/api/matches/${matchId}/turns/start`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Accept": "application/json",
-    },
-  });
-  return parseJsonOrThrow(res);
-}

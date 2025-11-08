@@ -1,7 +1,8 @@
 // src/Components/GamePlay/GameLayout.jsx
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useUser } from "../../contexts/UserContext";
+import { useWebSocket } from "../../contexts/WebSocketContext";
 import "./GameLayout.css";
 import Card from "./Card";
 import Location from "./Location";
@@ -16,7 +17,6 @@ import GameChatFloatingButton from "./GameChatFloatingButton";
 import { getMatch } from "../Home/api/match";
 import { fetchLocationsByMatchId } from "./api/location";
 import { playAction } from "./api/matchTurn";
-// import { startNextTurn } from "./api/matchTurn";
 
 
 export default function GameLayout({ matchId }) {
@@ -37,6 +37,9 @@ export default function GameLayout({ matchId }) {
   const [cardPlayed, setCardPlayed] = useState(false); // 카드 플레이 여부 (향후 턴 종료 로직에서 사용 예정)
   const [energy, setEnergy] = useState(3);
   const [allCards, setAllCards] = useState([]);
+  const [isWaitingForOpponent, setIsWaitingForOpponent] = useState(false);
+
+  const { subscribe } = useWebSocket();
 
   // 매치 정보 및 에너지 로드
   useEffect(() => {
@@ -146,7 +149,94 @@ export default function GameLayout({ matchId }) {
       }
     }
     loadLocations();
+  }, [matchId, user?.participantId]);
+
+  useEffect(() => {
+    if (!matchId) {
+      return undefined;
+    }
+
+    const destination = `/topic/match/${matchId}`;
+    const subscriptionKey = `game-layout-match-${matchId}`;
+
+    const unsubscribe = subscribe(destination, {
+      key: subscriptionKey,
+      onMessage: (entry) => {
+        const body = entry?.body;
+        if (!body?.success) {
+          return;
+        }
+
+        const wsMessage = body.data;
+        const messageType = wsMessage?.type;
+        const payload = wsMessage?.data;
+
+        if (!messageType || !payload) {
+          return;
+        }
+
+        if (messageType === "TURN_WAITING") {
+          const endedGuestId = payload?.endedGuestId;
+          const waitingForOpponent = Boolean(payload?.waitingForOpponent);
+
+          if (endedGuestId === user?.guestId && waitingForOpponent) {
+            setIsWaitingForOpponent(true);
+          } else if (!waitingForOpponent) {
+            setIsWaitingForOpponent(false);
+          } else if (endedGuestId !== user?.guestId) {
+            setIsWaitingForOpponent(false);
+          }
+
+          const scores = payload?.gameState?.participantScores;
+          if (Array.isArray(scores)) {
+            const myParticipantId = user?.participantId;
+            const myGuestId = user?.guestId;
+            const meScore = scores.find(
+              (score) =>
+                score.participantId === myParticipantId || score.guestId === myGuestId
+            );
+            if (meScore && typeof meScore.energy === "number") {
+              setEnergy(meScore.energy);
+            }
+          }
+        }
+
+        if (messageType === "TURN_START") {
+          setIsWaitingForOpponent(false);
+
+          if (typeof payload?.currentTurn === "number") {
+            setTurn(payload.currentTurn);
+          }
+
+          const scores = payload?.gameState?.participantScores;
+          if (Array.isArray(scores)) {
+            const myParticipantId = user?.participantId;
+            const myGuestId = user?.guestId;
+            const meScore = scores.find(
+              (score) =>
+                score.participantId === myParticipantId || score.guestId === myGuestId
+            );
+            if (meScore && typeof meScore.energy === "number") {
+              setEnergy(meScore.energy);
+            }
+          }
+        }
+      },
+    });
+
+    return unsubscribe;
+  }, [matchId, subscribe, user?.guestId, user?.participantId]);
+
+  useEffect(() => {
+    setIsWaitingForOpponent(false);
   }, [matchId]);
+
+  const endTurnButtonLabel = useMemo(() => {
+    if (isWaitingForOpponent) {
+      return "상대의 턴을 기다리는 중...";
+    }
+    return `턴 종료 (${turn} / ${maxTurn})`;
+  }, [isWaitingForOpponent, turn, maxTurn]);
 
   const handleCardClick = (cardData) => {
     setSelectedCard(cardData);
@@ -174,8 +264,6 @@ export default function GameLayout({ matchId }) {
           console.log("턴 종료 후 에너지 업데이트: energy=", response.energy);
         }
 
-        // 턴 증가
-        setTurn((prev) => prev + 1);
         setCardPlayed(false); // 다시 비활성화
 
         setHand((prev) => {
@@ -324,8 +412,8 @@ export default function GameLayout({ matchId }) {
       <div className="gl-buttons-wrap">
         <Energy value={energy} />
         <button className="gl-endBtn" onClick={endTurn}
-            disabled={turn === maxTurn}>
-            턴 종료 ({turn} / {maxTurn})
+            disabled={turn === maxTurn || isWaitingForOpponent}>
+            {endTurnButtonLabel}
         </button>
       </div>
 

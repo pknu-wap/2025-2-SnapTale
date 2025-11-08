@@ -5,11 +5,11 @@ import com.snaptale.backend.card.repository.CardRepository;
 import com.snaptale.backend.common.exceptions.BaseException;
 import com.snaptale.backend.common.response.BaseResponseStatus;
 import com.snaptale.backend.match.entity.*;
-import com.snaptale.backend.match.model.request.MatchUpdateReq;
 import com.snaptale.backend.match.repository.MatchParticipantRepository;
 import com.snaptale.backend.match.repository.MatchRepository;
 import com.snaptale.backend.match.repository.PlayRepository;
 import com.snaptale.backend.match.service.GameCalculationService.LocationPowerResult;
+import com.snaptale.backend.match.service.GameFlowService.TurnStartResult;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +33,7 @@ public class TurnService {
     private final PlayRepository playRepository;
     private final CardRepository cardRepository;
     private final GameCalculationService gameCalculationService;
+    private final GameFlowService gameFlowService;
     private static final int MAX_TURNS = 6;
     private static final int NUM_LOCATIONS = 3;
 
@@ -63,7 +64,8 @@ public class TurnService {
                 matchId, match.getTurnCount(), participant.getGuestId());
 
         if (alreadyEnded) {
-            log.info("이미 이번 턴을 종료한 참가자입니다: matchId={}, guestId={}", matchId, participant.getGuestId());
+            log.info("이미 이번 턴을 종료한 참가자입니다: matchId={}, guestId={}, turnCount={}, play", matchId,
+                    participant.getGuestId(), match.getTurnCount());
             throw new BaseException(BaseResponseStatus.ALREADY_PLAYED_THIS_TURN);
         }
 
@@ -108,6 +110,7 @@ public class TurnService {
 
     // 턴 종료 및 다음 턴 시작
     // 양쪽 플레이어가 모두 턴 종료했을 때 호출
+    //코드레빗 테스트를 위한 주석 달기
     @Transactional
     public TurnEndResult endTurnAndStartNext(Long matchId) {
         log.info("턴 종료 및 다음 턴 시작: matchId={}", matchId);
@@ -132,7 +135,7 @@ public class TurnService {
 
         // 2. 마지막 턴(6턴)인지 확인
         if (currentTurn >= MAX_TURNS) {
-            log.info("마지막 턴 도달, 게임 종료 처리");
+            log.info("마지막 턴 도달");
             return TurnEndResult.builder()
                     .gameEnded(true)
                     .nextTurn(currentTurn)
@@ -140,15 +143,9 @@ public class TurnService {
                     .build();
         }
 
-        // 3. 다음 턴으로 진행
-        int nextTurn = currentTurn + 1;
-        match.apply(new MatchUpdateReq(
-                null,
-                null,
-                nextTurn,
-                null));
-        matchRepository.save(match);
-
+        // 3. 다음 턴으로 진행 (에너지 지급 및 드로우 포함)
+        TurnStartResult turnStartResult = gameFlowService.startNextTurn(matchId);
+        int nextTurn = turnStartResult.getTurn();
         log.info("다음 턴 시작: matchId={}, turn={}", matchId, nextTurn);
 
         return TurnEndResult.builder()
