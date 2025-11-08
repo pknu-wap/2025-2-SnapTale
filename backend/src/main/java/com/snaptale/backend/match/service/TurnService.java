@@ -110,6 +110,7 @@ public class TurnService {
 
     // 턴 종료 및 다음 턴 시작
     // 양쪽 플레이어가 모두 턴 종료했을 때 호출
+    //코드레빗 테스트를 위한 주석 달기
     @Transactional
     public TurnEndResult endTurnAndStartNext(Long matchId) {
         log.info("턴 종료 및 다음 턴 시작: matchId={}", matchId);
