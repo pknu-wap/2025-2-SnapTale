@@ -57,9 +57,11 @@ public class GameCalculationService {
 
         for (int slotIndex = 0; slotIndex < NUM_LOCATIONS; slotIndex++) {
 
-            int p1Power = playRepository.sumPowerSnapshotByMatchAndTurnAndGuestIdAndSlotIndex(matchId, match.getTurnCount(), player1Id, slotIndex);
+            Integer p1Sum = playRepository.sumPowerSnapshotByMatchAndTurnAndGuestIdAndSlotIndex(matchId, match.getTurnCount(), player1Id, slotIndex);
+            int p1Power = p1Sum != null ? p1Sum.intValue() : 0;
 
-            int p2Power = playRepository.sumPowerSnapshotByMatchAndTurnAndGuestIdAndSlotIndex(matchId, match.getTurnCount(), player2Id, slotIndex);
+            Integer p2Sum = playRepository.sumPowerSnapshotByMatchAndTurnAndGuestIdAndSlotIndex(matchId, match.getTurnCount(), player2Id, slotIndex);
+            int p2Power = p2Sum != null ? p2Sum.intValue() : 0;
 
             player1Powers.put(slotIndex, p1Power);
             player2Powers.put(slotIndex, p2Power);

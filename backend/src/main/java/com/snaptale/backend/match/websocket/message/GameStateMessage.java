@@ -38,6 +38,7 @@ public class GameStateMessage {
     @AllArgsConstructor
     public static class ParticipantScore {
         private Long participantId;
+        private Long guestId;
         private String nickname;
         private Integer score;
         private Integer remainingCards;
