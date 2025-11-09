@@ -1,6 +1,5 @@
 // src/Components/GamePlay/GameLayout.jsx
-
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo} from "react";
 import { useUser } from "../../contexts/UserContext";
 import { useWebSocket } from "../../contexts/WebSocketContext";
 import "./GameLayout.css";
@@ -29,8 +28,8 @@ export default function GameLayout({ matchId }) {
   const [locations, setLocations] = useState([]); // 서버에서 불러올 위치 데이터
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [opponentPowers] = useState([0, 0, 0]);
-  const [myPowers] = useState([0, 0, 0]);
+  const [opponentPowers, setOpponentPowers] = useState([0, 0, 0]);
+  const [myPowers, setMyPowers] = useState([0, 0, 0]);
   const [turn, setTurn] = useState(1);
   const [hand, setHand] = useState([]);
   // eslint-disable-next-line no-unused-vars
@@ -220,6 +219,35 @@ export default function GameLayout({ matchId }) {
               setEnergy(meScore.energy);
             }
           }
+          if (payload?.locationPowerResult) {
+            console.log("TURN_START locationPowerResult:", payload.locationPowerResult);
+            const normalizePowers = (source) => {
+              if (Array.isArray(source)) {
+                return source.map((value) => Number(value) || 0);
+              }
+              if (source && typeof source === 'object') {
+                // 객체를 배열로 변환 {0: 4, 1: 0, 2: 0} -> [4, 0, 0]
+                return [0, 1, 2].map(idx => Number(source[idx]) || 0);
+              }
+              return null;
+            };
+            const myGuestId = user?.guestId;
+            const { player1Id, player2Id, player1Powers, player2Powers } = payload.locationPowerResult;
+
+            if (myGuestId && player1Id && player2Id) {
+              if (myGuestId === player1Id) {
+                const myLocationPowers = normalizePowers(player1Powers);
+                const opponentLocationPowers = normalizePowers(player2Powers);
+                if (myLocationPowers) setMyPowers(myLocationPowers);
+                if (opponentLocationPowers) setOpponentPowers(opponentLocationPowers);
+              } else if (myGuestId === player2Id) {
+                const myLocationPowers = normalizePowers(player2Powers);
+                const opponentLocationPowers = normalizePowers(player1Powers);
+                if (myLocationPowers) setMyPowers(myLocationPowers);
+                if (opponentLocationPowers) setOpponentPowers(opponentLocationPowers);
+              }
+            }
+          }
         }
       },
     });
@@ -264,6 +292,14 @@ export default function GameLayout({ matchId }) {
           console.log("턴 종료 후 에너지 업데이트: energy=", response.energy);
         }
 
+        const normalizePowers = (source) =>
+          Array.isArray(source) ? source.map((value) => Number(value) || 0) : null;
+
+        const myLocationPowers = normalizePowers(response?.myLocationPowers);
+        if (myLocationPowers) {
+          setMyPowers(myLocationPowers);
+        }
+
         setCardPlayed(false); // 다시 비활성화
 
         setHand((prev) => {
@@ -281,9 +317,9 @@ export default function GameLayout({ matchId }) {
   };
 
   const SLOT_COUNT = 3;
-  // turn에 따라 슬롯 활성화 상태를 결정
-  const getSlotDisabled = (index) => {
-  // 1번 슬롯은 turn >= 1일 때 활성, 2번은 turn >= 2일 때 활성, 3번은 turn >= 3일 때 활성
+  // turn에 따라 해당 지역의 슬롯 활성화 상태를 결정
+  const getLocationDisabled = (index) => {
+    // 1번째 지역은 turn >= 1일 때 활성, 2번째는 turn >= 2일 때 활성, 3번째는 turn >= 3일 때 활성
     return turn < index + 1;
   };
 
@@ -321,6 +357,11 @@ export default function GameLayout({ matchId }) {
     // 낙관적 업데이트: 먼저 UI 업데이트
     setHand((prevHand) => prevHand.filter((c) => c.cardId !== card.cardId));
     setCardPlayed(true);
+    setMyPowers((prev) => {
+      const next = [...prev];
+      next[laneIndex] = (next[laneIndex] ?? 0) + (card?.power ?? 0);
+      return next;
+    });
 
     try {
       // 서버에 카드 플레이 요청
@@ -341,12 +382,24 @@ export default function GameLayout({ matchId }) {
         console.log("에너지 업데이트: energy=", response.energy);
       }
 
+      const normalizePowers = (source) =>
+        Array.isArray(source) ? source.map((value) => Number(value) || 0) : null;
+
+      const myLocationPowers = normalizePowers(response?.myLocationPowers);
+      if (myLocationPowers) {
+        setMyPowers(myLocationPowers);
+      }
     } catch (error) {
       console.error("playAction 실패:", error);
       console.log("playAction 호출 실패:", matchId, user.participantId, card.cardId, laneIndex, slotIndex, error.energy);
       
       // 실패 시 롤백: 손패 복원
       setHand(prevHand);
+      setMyPowers((prev) => {
+        const next = [...prev];
+        next[laneIndex] = Math.max(0, (next[laneIndex] ?? 0) - (card?.power ?? 0));
+        return next;
+      });
       setCardPlayed(false);
       
       // 사용자에게 에러 알림
@@ -360,8 +413,8 @@ export default function GameLayout({ matchId }) {
     <div className="gl-wrap">
       <section className="gl-lanes3">
         {Array.from({ length: SLOT_COUNT }).map((_, i) => (
-    <Slot key={`enemy-${i}`} isMySide={false} disabled={getSlotDisabled(i)} />
-    ))}
+          <Slot key={`enemy-${i}`} isMySide={false} disabled={getLocationDisabled(i)} />
+        ))}
       </section>
       {/* 중앙 정육각 3개 */}
       <section className="gl-hexRow">
@@ -395,9 +448,9 @@ export default function GameLayout({ matchId }) {
           <Slot 
             key={`ally-${i}`} 
             isMySide={true} 
-            disabled={getSlotDisabled(i)}
+            disabled={getLocationDisabled(i)}
             laneIndex={i}                 
-            onDropCard={handleCardDrop}   
+            onDropCard={handleCardDrop}
           />
         ))}
       </section>

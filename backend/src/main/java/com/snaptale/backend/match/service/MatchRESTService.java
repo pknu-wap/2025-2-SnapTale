@@ -248,11 +248,8 @@ public class MatchRESTService {
 				.orElseThrow(() -> new BaseException(BaseResponseStatus.PARTICIPANT_NOT_FOUND));
 		log.info("카드 플레이 후 참가자 조회: participantId={}, guestId={}, energy={}",
 				participant.getId(), participant.getGuestId(), participant.getEnergy());
-		MatchParticipant opponent = findOpponent(message.getMatchId(), participant.getGuestId());
 		List<Integer> myLocationPowers = calculateLocationPowers(message.getMatchId(), participant.getGuestId());
-		List<Integer> opponentLocationPowers = calculateLocationPowers(message.getMatchId(),
-				opponent != null ? opponent.getGuestId() : null);
-		return PlayActionRes.from(message, participant, myLocationPowers, opponentLocationPowers);
+		return PlayActionRes.from(message, participant, myLocationPowers);
 	}
 
 	// 턴 종료 처리
@@ -281,12 +278,9 @@ public class MatchRESTService {
 		log.info("턴 종료 후 참가자 조회: participantId={}, guestId={}, energy={}",
 				participant.getId(), participant.getGuestId(), participant.getEnergy());
 
-		MatchParticipant opponent = findOpponent(message.getMatchId(), participant.getGuestId());
 		List<Integer> myLocationPowers = calculateLocationPowers(message.getMatchId(), participant.getGuestId());
-		List<Integer> opponentLocationPowers = calculateLocationPowers(message.getMatchId(),
-				opponent != null ? opponent.getGuestId() : null);
 
-		return PlayActionRes.from(message, participant, myLocationPowers, opponentLocationPowers);
+		return PlayActionRes.from(message, participant, myLocationPowers);
 	}
 
 	// 턴 종료 후 다음 턴 시작 로직
@@ -344,13 +338,6 @@ public class MatchRESTService {
 			powers.add(sum != null ? sum : 0);
 		}
 		return powers;
-	}
-
-	private MatchParticipant findOpponent(Long matchId, Long guestId) {
-		return matchParticipantRepository.findByMatch_MatchId(matchId).stream()
-				.filter(p -> !p.getGuestId().equals(guestId))
-				.findFirst()
-				.orElse(null);
 	}
 
 	// 게임 상태 메시지 생성
