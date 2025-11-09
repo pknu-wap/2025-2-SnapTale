@@ -32,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -51,6 +52,7 @@ public class MatchRESTService {
 	private final com.snaptale.backend.deck.repository.DeckPresetRepository deckPresetRepository;
 	private final TurnService turnService;
 	private final MatchWebSocketService matchWebSocketService;
+	private static final int LOCATION_COUNT = 3;
 
 	// 매치 참가 처리
 	@Transactional
@@ -246,7 +248,11 @@ public class MatchRESTService {
 				.orElseThrow(() -> new BaseException(BaseResponseStatus.PARTICIPANT_NOT_FOUND));
 		log.info("카드 플레이 후 참가자 조회: participantId={}, guestId={}, energy={}",
 				participant.getId(), participant.getGuestId(), participant.getEnergy());
-		return PlayActionRes.from(message, participant);
+		MatchParticipant opponent = findOpponent(message.getMatchId(), participant.getGuestId());
+		List<Integer> myLocationPowers = calculateLocationPowers(message.getMatchId(), participant.getGuestId());
+		List<Integer> opponentLocationPowers = calculateLocationPowers(message.getMatchId(),
+				opponent != null ? opponent.getGuestId() : null);
+		return PlayActionRes.from(message, participant, myLocationPowers, opponentLocationPowers);
 	}
 
 	// 턴 종료 처리
@@ -275,7 +281,12 @@ public class MatchRESTService {
 		log.info("턴 종료 후 참가자 조회: participantId={}, guestId={}, energy={}",
 				participant.getId(), participant.getGuestId(), participant.getEnergy());
 
-		return PlayActionRes.from(message, participant);
+		MatchParticipant opponent = findOpponent(message.getMatchId(), participant.getGuestId());
+		List<Integer> myLocationPowers = calculateLocationPowers(message.getMatchId(), participant.getGuestId());
+		List<Integer> opponentLocationPowers = calculateLocationPowers(message.getMatchId(),
+				opponent != null ? opponent.getGuestId() : null);
+
+		return PlayActionRes.from(message, participant, myLocationPowers, opponentLocationPowers);
 	}
 
 	// 턴 종료 후 다음 턴 시작 로직
@@ -313,6 +324,33 @@ public class MatchRESTService {
 			log.error("slotIndex 파싱 실패: {}", additionalData, e);
 			return null;
 		}
+	}
+
+	private List<Integer> createZeroLocationList() {
+		List<Integer> zeros = new ArrayList<>(LOCATION_COUNT);
+		for (int i = 0; i < LOCATION_COUNT; i++) {
+			zeros.add(0);
+		}
+		return zeros;
+	}
+
+	private List<Integer> calculateLocationPowers(Long matchId, Long guestId) {
+		if (guestId == null) {
+			return createZeroLocationList();
+		}
+		List<Integer> powers = new ArrayList<>(LOCATION_COUNT);
+		for (int slotIndex = 0; slotIndex < LOCATION_COUNT; slotIndex++) {
+			Integer sum = playRepository.sumPowerSnapshotByMatchAndGuestIdAndSlotIndex(matchId, guestId, slotIndex);
+			powers.add(sum != null ? sum : 0);
+		}
+		return powers;
+	}
+
+	private MatchParticipant findOpponent(Long matchId, Long guestId) {
+		return matchParticipantRepository.findByMatch_MatchId(matchId).stream()
+				.filter(p -> !p.getGuestId().equals(guestId))
+				.findFirst()
+				.orElse(null);
 	}
 
 	// 게임 상태 메시지 생성
