@@ -38,16 +38,27 @@ body,
   overflow: hidden;
   color: #fff;
   text-align: center;
-  background: url("./assets/initpageBG.png") center / cover no-repeat;
+  background: var(--app-bg) center / cover no-repeat;
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
   transition: width 320ms ease, padding 320ms ease, border-radius 320ms ease, box-shadow 320ms ease;
+}
+
+.app-bg-image.bg-default {
+  --app-bg: url("./assets/initpageBG.png");
+}
+
+.app-bg-image.bg-default::after {
+  background: linear-gradient(280deg, rgba(24, 26, 43, 0.55), rgba(24, 26, 43, 0.75));
+}
+
+.app-bg-image.bg-gameplay {
+  --app-bg: url("./assets/bg_gamepage.png");
 }
 
 .app-bg-image::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(280deg, rgba(24, 26, 43, 0.55), rgba(24, 26, 43, 0.75));
   pointer-events: none;
 }
 

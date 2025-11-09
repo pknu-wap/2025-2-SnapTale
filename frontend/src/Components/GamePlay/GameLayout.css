@@ -5,9 +5,7 @@
   display:flex;
   flex-direction:column;
   align-items:center;
-  background:#e3e6eb;
   justify-content: flex-start;
-  background: url("../../assets/bg_gamepage.png") center / cover no-repeat;
   padding-top: calc(
     clamp(32px, 4vw, 56px) +
     clamp(8px, 2vw, 24px) * 2 +
