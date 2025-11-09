@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useUser } from "../../contexts/UserContext.jsx";
 import TopBar from "../TopBar/TopBar.jsx";
+
 const NICK_RULE = /^[가-힣a-zA-Z0-9]{2,8}$/;
 
 const Init = () => {
@@ -97,9 +98,9 @@ const Init = () => {
   }
 
   return (
-    
+    <>
+    <TopBar/ >
     <main className="init-wrap">
-      <TopBar />
       <div className="init-logo"></div>
       {/* 5. UI 렌더링 로직 변경: 전역 user 상태에 따라 UI를 결정합니다. */}
       {user ? (
@@ -152,6 +153,7 @@ const Init = () => {
         </form>
       )}
     </main>
+    </>
   );
 };
 

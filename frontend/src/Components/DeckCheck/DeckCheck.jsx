@@ -116,8 +116,9 @@ const DeckCheck = () => {
     };
 
   return (
+    <>
+    <TopBar screenType="deckcheck" onSave={handleSaveClick} />
     <div className="DeckCheck-container">
-        <TopBar screenType="deckcheck" onSave={handleSaveClick} />
         {/* 한중일 지역 선택 아이콘, 텍스트*/}
         <div className="deck-select">
             <div className="faction-icons">
@@ -177,6 +178,7 @@ const DeckCheck = () => {
             <EnlargedCard card={selectedCard} onClose={null} />
         </div>
     </div>
+    </>
     );
 };
 export default DeckCheck;

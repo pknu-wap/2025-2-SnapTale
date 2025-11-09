@@ -10,13 +10,15 @@ const GamePlay = () => {
   const opponentName = user.enemyPlayer ? user.enemyPlayer.nickname : "상대방";
   console.log("GamePlay opponentName:", opponentName);
   return (
-    <div className="gameplay-container">
+    <>
       <TopBar screenType="gameplay" onExit={() => navigate("/home")} />
-      <header className="gameplay-header">
-        <div className="gl-oppo-chip">{opponentName}</div>
-      </header>
-      <GameLayout matchId={matchId} />
-    </div>
+      <div className="gameplay-container">
+        <header className="gameplay-header">
+          <div className="gl-oppo-chip">{opponentName}</div>
+        </header>
+        <GameLayout matchId={matchId} />
+      </div>
+    </>
   );
 };
 

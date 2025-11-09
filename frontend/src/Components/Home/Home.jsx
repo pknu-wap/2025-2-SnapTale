@@ -164,61 +164,62 @@ const Home = () => {
   };
 
   return (
-    <div className="home-container">
-      
+    <>
       <TopBar screenType="home" />
+      <div className="home-container">
 
-      {/* 메인 버튼 영역 */}
-      <main className= "matching-buttons">
-          <Button 
-            text={"랜덤 매치"} 
-            onClick={handleRandomMatch}
-            disabled={showDeckModal || openRDModal || openFriendlyModal || openCreateModal || openJoinModal} 
-          />
-          <Button 
-            text={"친선전"} 
-            onClick={() => {
-              if (!user) {
-                alert("로그인이 필요합니다.");
-                return;
-              }
-              setOpenFriendlyModal(true);
-            }}
-            disabled={showDeckModal || openRDModal || openFriendlyModal || openCreateModal || openJoinModal} 
-          />
-          <Button 
-            text={"튜토리얼"} 
-            disabled={showDeckModal || openRDModal || openFriendlyModal || openCreateModal || openJoinModal} 
-          />
-        {showDeckModal && <DCModal />}
+        {/* 메인 버튼 영역 */}
+        <main className= "matching-buttons">
+            <Button 
+              text={"랜덤 매치"} 
+              onClick={handleRandomMatch}
+              disabled={showDeckModal || openRDModal || openFriendlyModal || openCreateModal || openJoinModal} 
+            />
+            <Button 
+              text={"친선전"} 
+              onClick={() => {
+                if (!user) {
+                  alert("로그인이 필요합니다.");
+                  return;
+                }
+                setOpenFriendlyModal(true);
+              }}
+              disabled={showDeckModal || openRDModal || openFriendlyModal || openCreateModal || openJoinModal} 
+            />
+            <Button 
+              text={"튜토리얼"} 
+              disabled={showDeckModal || openRDModal || openFriendlyModal || openCreateModal || openJoinModal} 
+            />
+          {showDeckModal && <DCModal />}
 
-        {openRDModal && 
-          <RDModal 
-            setOpenRDModal={setOpenRDModal} 
-            matchCode={matchCode}
-            currentMatchId={currentMatchId} />
-        }
+          {openRDModal && 
+            <RDModal 
+              setOpenRDModal={setOpenRDModal} 
+              matchCode={matchCode}
+              currentMatchId={currentMatchId} />
+          }
 
-        {openFriendlyModal && 
-          <FriendlyMatchModal 
-            setOpenFriendlyModal={setOpenFriendlyModal}
-            setOpenJoinModal={setOpenJoinModal}
-            onCreateMatch={handleCreateFriendlyMatch} />
-        }
+          {openFriendlyModal && 
+            <FriendlyMatchModal 
+              setOpenFriendlyModal={setOpenFriendlyModal}
+              setOpenJoinModal={setOpenJoinModal}
+              onCreateMatch={handleCreateFriendlyMatch} />
+          }
 
-        {openCreateModal && 
-          <CreateMatchModal 
-            setOpenCreateModal={setOpenCreateModal}
-            matchId={currentMatchId} />
-        }
+          {openCreateModal && 
+            <CreateMatchModal 
+              setOpenCreateModal={setOpenCreateModal}
+              matchId={currentMatchId} />
+          }
 
-        {openJoinModal && 
-          <JoinMatchModal 
-            setOpenJoinModal={setOpenJoinModal}
-            onJoinMatch={handleJoinFriendlyMatch} />
-        }
-      </main>
-    </div>
+          {openJoinModal && 
+            <JoinMatchModal 
+              setOpenJoinModal={setOpenJoinModal}
+              onJoinMatch={handleJoinFriendlyMatch} />
+          }
+        </main>
+      </div>
+    </>
   );
 };
 export default Home;
