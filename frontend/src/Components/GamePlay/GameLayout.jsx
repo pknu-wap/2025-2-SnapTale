@@ -73,6 +73,14 @@ export default function GameLayout({ matchId }) {
     loadMatchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matchId, user?.guestId]);
+  const shuffleArray = (arr) => {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  };
 
 
   // 선택한 덱의 카드들을 불러와 hand와 allCards 구성
@@ -105,9 +113,17 @@ export default function GameLayout({ matchId }) {
           createdAt: item.createdAt,
           updatedAt: item.updatedAt,
         }));
+        // 덱 셔플링 
+        const shuffledDeck = shuffleArray([...mapped]); // 12장 섞기
+        //이제 매 플레이마다 새로운 카드들이 기본 패로 등장합니다.
 
-        setAllCards(mapped);
-        setHand(mapped.slice(0, 3));
+        // 손패와 덱 분리
+        const initialHand = shuffledDeck.slice(0, 3);   // 섞인 덱의 0~2번 (3장)
+        const remainingDeck = shuffledDeck.slice(3); // 섞인 덱의 3번부터 끝까지 (9장)
+
+        // 분리된 상태로 저장
+        setHand(initialHand);
+        setAllCards(remainingDeck); // 12장이 아닌, 손패를 제외한 9장이 덱에 저장됨
       } catch (e) {
         console.error("덱 카드 불러오기 실패:", e);
       }
