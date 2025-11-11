@@ -81,8 +81,6 @@ export default function GameLayout({ matchId }) {
     }
     return a;
   };
-
-
   // 선택한 덱의 카드들을 불러와 hand와 allCards 구성
   useEffect(() => {
     async function loadDeckCards() {
@@ -323,13 +321,19 @@ export default function GameLayout({ matchId }) {
 
         setCardPlayed(false); // 다시 비활성화
 
-        setHand((prev) => {
-          const nextIndex = prev.length;
-          if (nextIndex < Math.min(handCount, allCards.length)) {
-            return [...prev, allCards[nextIndex]];
+        if (allCards.length > 0) {
+          // 덱의 맨 위 카드(0번 인덱스)를 뽑을 카드로 지정합니다.
+          const cardToDraw = allCards[0];
+
+          // 덱에서 뽑힌 카드를 제외한 나머지 덱을 준비합니다.
+          const newDeck = allCards.slice(1);
+
+          // 손패(hand) 상태를 업데이트: 기존 손패에 뽑은 카드를 추가합니다.
+          setHand((prevHand) => [...prevHand, cardToDraw]);
+
+          // 덱(allCards) 상태를 업데이트: 카드가 제거된 새 덱으로 교체합니다.
+          setAllCards(newDeck);
           }
-          return prev;
-        });
       } catch (error) {
         console.error("턴 종료 실패:", error);
         alert(`턴 종료에 실패했습니다: ${error.message || "알 수 없는 오류"}`);
