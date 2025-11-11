@@ -1,3 +1,5 @@
+import exitButton from "../../../assets/exitButton.png";
+
 const ExitButton = ({ onClick }) => {
   const handleClick = () => {
     if (typeof onClick === "function") {
@@ -7,7 +9,7 @@ const ExitButton = ({ onClick }) => {
 
   return (
     <button type="button" className="exit-btn" onClick={handleClick}>
-      나가기
+      <img src={exitButton} alt="exit" className="exit-icon" />
     </button>
   );
 };

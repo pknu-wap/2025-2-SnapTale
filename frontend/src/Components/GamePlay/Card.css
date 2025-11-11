@@ -1,177 +1,144 @@
 .card-container {
   position: relative;
-  width: 46px;
-  height: 76px; 
+  width: clamp(2.1rem, 5.4vw, 3.4rem);
+  aspect-ratio: 2 / 3;
   cursor: grab;
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-/* 마우스를 올렸을 때 약간 확대되는 효과 추가 */
 .card-container:hover {
-  transform: scale(1.05);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  transform: translateY(clamp(-0.15rem, -0.5vw, -0.25rem)) scale(1.03);
+  box-shadow: 0 clamp(0.5rem, 2vw, 1.4rem) clamp(1.2rem, 3.4vw, 2.2rem) rgba(0, 0, 0, 0.35);
 }
 
 .card-image {
-  width: 40px;
-  height: 70px; 
-  border: 2px solid transparent;
-  border-radius: 5px;
-  object-fit: cover;
   position: absolute;
-  top: 2px;
-  left: 1px;
+  inset: clamp(0.1rem, 0.32vw, 0.22rem);
+  border: clamp(0.1rem, 0.28vw, 0.18rem) solid transparent;
+  border-radius: clamp(0.26rem, 0.68vw, 0.42rem);
+  object-fit: cover;
+  width: calc(100% - clamp(0.24rem, 0.76vw, 0.44rem));
+  height: calc(100% - clamp(0.24rem, 0.76vw, 0.44rem));
   z-index: 1;
 }
-.card-border-korea { border-color: #26437B; }
-.card-border-china { border-color: #329A88; }
-.card-border-japan { border-color: #C4512F; }
-.card-border-default { border-color: transparent }
 
+.card-border-korea { border-color: #26437b; }
+.card-border-china { border-color: #329a88; }
+.card-border-japan { border-color: #c4512f; }
+.card-border-default { border-color: transparent; }
 
 /* 아이콘 공통 스타일 */
 .icon {
-  width: 18px;
-  height: 18px;
+  width: clamp(0.76rem, 1.9vw, 1.15rem);
+  height: clamp(0.76rem, 1.9vw, 1.15rem);
   display: block;
   position: relative;
   z-index: 3;
 }
 
 /* cost, power 컨테이너 공통 */
-.card-cost-container, .card-power-container {
+.card-cost-container,
+.card-power-container {
   position: absolute;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  width: 18px;
-  height: 18px;
+  justify-content: center;
+  width: clamp(0.76rem, 1.9vw, 1.12rem);
+  height: clamp(0.76rem, 1.9vw, 1.12rem);
   z-index: 5;
+  filter: drop-shadow(0 0 clamp(0.18rem, 0.5vw, 0.3rem) rgba(0, 0, 0, 0.55));
 }
 
-/* cost: 우측 상단 위치 조절 */
 .card-cost-container {
-  top: -3px;
-  right: -1px;
+  top: clamp(0.1rem, 0.32vw, 0.2rem);
+  left: clamp(0.1rem, 0.32vw, 0.2rem);
 }
 
-/* power: 좌측 상단 위치 조절*/
 .card-power-container {
-  top: -3px;
-  left: -1px;
+  top: clamp(0.1rem, 0.32vw, 0.2rem);
+  right: clamp(0.1rem, 0.32vw, 0.2rem);
 }
 
-/* cost, power 텍스트 (아이콘 중앙에 위치) */
 .icon-text {
   position: absolute;
-  font-size: 12px;
-  color: #FFFFFF;
+  font-size: clamp(0.54rem, 1.3vw, 0.74rem);
+  color: #ffffff;
   user-select: none;
   pointer-events: none;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 10;
+  text-shadow: 0 0 clamp(0.22rem, 0.7vw, 0.42rem) rgba(0, 0, 0, 0.45);
 }
 
-/* name 하단 중앙 고정 */
 .card-name {
   position: absolute;
-  width: 40px;
-  height: 20px;
+  width: 72%;
+  min-height: clamp(0.72rem, 1.8vw, 0.94rem);
   left: 50%;
-  bottom: 0px;
+  bottom: clamp(0.16rem, 0.46vw, 0.28rem);
   transform: translateX(-50%);
-  display: flex;               
-  align-items: center;         
-  justify-content: center;    
-  font-size: 12px;
-  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(0.5rem, 1.18vw, 0.7rem);
+  color: #ffffff;
   z-index: 6;
   text-align: center;
-  white-space: nowrap;
+  line-height: 1.12;
+  text-shadow: 0 0 clamp(0.2rem, 0.62vw, 0.36rem) rgba(0, 0, 0, 0.6);
+  padding-inline: clamp(0.16rem, 0.46vw, 0.26rem);
 }
-
 
 .enlarged-card-container {
   position: relative;
-  width: 138px;  
-  height: 228px; 
+  width: clamp(10.5rem, 28vw, 13rem);
+  aspect-ratio: 2 / 3;
   animation: zoomIn 0.3s ease-out;
 }
 
-.modal-backdrop {
-  position: absolute; 
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-/* 확대된 카드 컨테이너 */
 .enlarged-card-container .card-image {
-  width: 120px;     
-  height: 210px;   
-  border-width: 6px;
-  border-radius: 15px; 
-  top: 6px;        
-  left: 3px;      
+  inset: clamp(0.4rem, 1vw, 0.6rem);
+  border-width: clamp(0.3rem, 0.9vw, 0.55rem);
+  border-radius: clamp(0.8rem, 2vw, 1.2rem);
+  width: calc(100% - clamp(0.8rem, 2vw, 1.2rem));
+  height: calc(100% - clamp(0.8rem, 2vw, 1.2rem));
 }
 
-/* cost: 우측 상단 위치 조절 */
-.enlarged-card-container .card-cost-container {
-  top: -3px;
-  right: -3px;
-}
-
-/* power: 좌측 상단 위치 조절*/
-.enlarged-card-container .card-power-container {
-  top: -3px;
-  left: -3px;
-}
-.enlarged-card-container .card-cost-container, 
+.enlarged-card-container .card-cost-container,
 .enlarged-card-container .card-power-container,
-.enlarged-card-container .icon
-{
-  width: 54px;     
-  height: 54px; 
+.enlarged-card-container .icon {
+  width: clamp(2.7rem, 6.4vw, 3.3rem);
+  height: clamp(2.7rem, 6.4vw, 3.3rem);
+}
+
+.enlarged-card-container .card-cost-container,
+.enlarged-card-container .card-power-container {
+  top: clamp(-0.35rem, -0.8vw, -0.15rem);
 }
 
 .enlarged-card-container .icon-text {
-  font-size: 30px;  
+  font-size: clamp(1.5rem, 3.4vw, 1.9rem);
 }
 
 .enlarged-card-container .card-name {
-  width: 120px;     
-  height: 60px;     
-  font-size: 36px;  
-  white-space: nowrap;
-  display: flex; /* 세로 중앙 정렬을 위해 추가 */
-  align-items: center;
-  justify-content: center;
+  width: 80%;
+  font-size: clamp(1.2rem, 3vw, 1.6rem);
 }
 
-/* 확대된 카드 위에 표시될 설명 텍스트 스타일 */
 .enlarged-card-container .card-desc {
   position: absolute;
-  width: 250px;
-  height: 37px;
+  width: clamp(12rem, 32vw, 16rem);
   left: 50%;
-  bottom: -61px;
+  bottom: clamp(-4.2rem, -12vw, -2.8rem);
   transform: translateX(-50%);
-  font-size: 24px;
-  color: #FFECDE;
+  font-size: clamp(1rem, 2.6vw, 1.4rem);
+  color: #ffecde;
   z-index: 6;
   text-align: center;
-  white-space: nowrap;
 }
 
-/* 간단한 줌인 애니메이션 효과 */
 @keyframes zoomIn {
   from {
     transform: scale(0.5);

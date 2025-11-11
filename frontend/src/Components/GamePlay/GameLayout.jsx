@@ -243,85 +243,98 @@ export default function GameLayout({ matchId }) {
 
   return (
     <>
-    <div className="gl-wrap">
-      <section className="gl-lanes3">
-        {Array.from({ length: SLOT_COUNT }).map((_, i) => (
-    <Slot key={`enemy-${i}`} isMySide={false} disabled={getSlotDisabled(i)} />
-    ))}
-      </section>
-      {/* 중앙 정육각 3개 */}
-      <section className="gl-hexRow">
-        {loading && <div className="loading">위치 불러오는 중...</div>}
-        {error && <div className="error">⚠ {error}</div>}
-        {!loading && !error && locations.length === 3 && (
-    <>
-      {locations.map((loc, i) => {
-        const turnsLeft = i + 1 - turn; // 남은 턴 계산 (예: turn=1일 때 i=1 → 1턴 뒤 활성)
-        return (
-          <Location
-            key={loc.locationId}
-            locationId={loc.locationId}
-            name={loc.name}
-            imageUrl={loc.imageUrl}
-            effectDesc={loc.effectDesc}
-            active={loc.isActive}
-            turnsLeft={turnsLeft > 0 ? turnsLeft : 0}
-            opponentPower={opponentPowers[i]}
-            myPower={myPowers[i]}
-            onLocationClick={() => handleLocationClick(loc, i)}
-          />
-        );
-      })}
-    </>
-    )}
-    </section>
+    <div className="gameplay-shell">
+        <div className="gameplay-body">
+          <aside className="hud-panel" aria-label="턴 정보">
+            <Energy value={energy} />
+            <div className="turn-panel">
+              <span className="turn-panel__label">TURN</span>
+              <span className="turn-panel__value">
+                {turn}
+                <span className="turn-panel__max"> / {maxTurn}</span>
+              </span>
+            </div>
+            <button
+              className="end-turn-button"
+              onClick={endTurn}
+              disabled={turn === maxTurn}
+            >
+              턴 종료
+            </button>
+          </aside>
 
-      <section className="gl-lanes3">
-        {Array.from({ length: SLOT_COUNT }).map((_, i) => (
-          <Slot 
-            key={`ally-${i}`} 
-            isMySide={true} 
-            disabled={getSlotDisabled(i)}
-            laneIndex={i}                 
-            onDropCard={handleCardDrop}   
-          />
-        ))}
-      </section>
+          <main className="board-wrapper" aria-label="게임 보드">
+            <div className="board-grid" role="group" aria-label="슬롯 및 지역">
+              {Array.from({ length: SLOT_COUNT }).map((_, i) => (
+                <div className="board-cell board-cell--slot board-cell--enemy" key={`enemy-slot-${i}`}>
+                  <Slot key={`enemy-${i}`} isMySide={false} disabled={getSlotDisabled(i)} />
+                </div>
+              ))}
 
-      {/* <div className="gl-buttons-wrap">
-        <Energy value={energy} />
-        <button className="gl-endBtn" onClick={endTurn}
-            disabled={!cardPlayed || turn === maxTurn}>
-            턴 종료 ({turn} / {maxTurn})
-        </button>
-      </div> */}
-      <div className="gl-buttons-wrap">
-        <Energy value={energy} />
-        <button className="gl-endBtn" onClick={endTurn}
-            disabled={turn === maxTurn}>
-            턴 종료 ({turn} / {maxTurn})
-        </button>
+              {loading && (
+                <div className="board-message board-message--full">위치 불러오는 중…</div>
+              )}
+              {error && (
+                <div className="board-message board-message--error board-message--full">⚠ {error}</div>
+              )}
+              {!loading && !error && locations.length === SLOT_COUNT &&
+                locations.map((loc, i) => {
+                  const turnsLeft = i + 1 - turn;
+                  return (
+                    <div className="board-cell board-cell--location" key={`location-${loc.locationId}`}>
+                      <Location
+                        locationId={loc.locationId}
+                        name={loc.name}
+                        imageUrl={loc.imageUrl}
+                        effectDesc={loc.effectDesc}
+                        active={loc.isActive}
+                        turnsLeft={turnsLeft > 0 ? turnsLeft : 0}
+                        opponentPower={opponentPowers[i]}
+                        myPower={myPowers[i]}
+                        onLocationClick={() => handleLocationClick(loc, i)}
+                      />
+                    </div>
+                  );
+                })}
+              {!loading && !error && locations.length !== SLOT_COUNT && (
+                <div className="board-message board-message--full">위치 정보가 없습니다.</div>
+              )}
+
+              {Array.from({ length: SLOT_COUNT }).map((_, i) => (
+                <div className="board-cell board-cell--slot board-cell--ally" key={`ally-slot-${i}`}>
+                  <Slot
+                    key={`ally-${i}`}
+                    isMySide={true}
+                    disabled={getSlotDisabled(i)}
+                    laneIndex={i}
+                    onDropCard={handleCardDrop}
+                  />
+                </div>
+              ))}
+            </div>
+
+            <section className="hand-row" aria-label="내 손패">
+              <div className="hand-grid">
+                {hand.map((card) => (
+                  <div
+                    key={card.cardId}
+                    className="hand-card"
+                    draggable
+                    onDragStart={(e) =>
+                      e.dataTransfer.setData("application/json", JSON.stringify(card))
+                    }
+                  >
+                    <Card {...card} onCardClick={() => handleCardClick(card)} />
+                  </div>
+                ))}
+              </div>
+            </section>
+          </main>
+        </div>
       </div>
 
-      {/* 손패 */}
-        <section className="gl-hand12">
-          {hand.map((card) => (
-            <div
-              key={card.cardId}
-              draggable
-              onDragStart={(e) =>
-                e.dataTransfer.setData("application/json", JSON.stringify(card))
-              }
-            >
-              <Card {...card} onCardClick={() => handleCardClick(card)} />
-            </div>
-          ))}
-        </section>
+      <GameChatFloatingButton matchId={matchId} />
 
-    </div>
-
-    <GameChatFloatingButton matchId={matchId} />
-    
       {selectedCard && (
         <div className="modal-backdrop">
           <EnlargedCard card={selectedCard} onClose={handleCloseModal} />
