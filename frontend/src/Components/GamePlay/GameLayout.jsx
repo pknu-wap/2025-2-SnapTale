@@ -540,7 +540,7 @@ export default function GameLayout({ matchId }) {
           onTouchStart={(e) => handlePressStart(card, setSelectedCard, e)}
           onTouchEnd={handlePressEnd}
           onTouchMove={handlePressEnd}
-          onContextMenu={(e) => e.preventDefault()}
+          onContextMenu={(e) => e.preventDefault()} //배포
         >
       <Card {...card} />
     </div>
