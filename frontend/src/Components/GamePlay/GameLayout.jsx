@@ -19,7 +19,6 @@ import { playAction } from "./api/matchTurn";
 
 
 export default function GameLayout({ matchId }) {
-  const handCount = 12;
   const maxTurn = 6;
 
   const { user, updateUser } = useUser();
@@ -89,7 +88,8 @@ export default function GameLayout({ matchId }) {
         const resDeck = await fetch(`${import.meta.env.VITE_API_BASE}/api/deck-presets/${user.selectedDeckPresetId}`);
         if (!resDeck.ok) throw new Error(`Failed to load deck preset: ${resDeck.status}`);
         const deckData = await resDeck.json();
-        const deck = deckData.result ?? deckData; //cardId는 중복없이 받고 있는 중
+        const deck = deckData.result ?? deckData; //cardId는 중복없이 12장 받고 있는 중
+        //중복 없이 12장을 받는지 검증하는 로직은 없음
         const cardIds = (deck.cards ?? []).map(c => c.cardId);
 
         const cardPromises = cardIds.map(cardId =>
