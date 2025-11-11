@@ -20,10 +20,8 @@ import { playAction } from "./api/matchTurn";
 let pressTimer = null;
 
 const handlePressStart = (card, setSelectedCard, e) => {
-  if (e.button === 2) {
-    // 우클릭만 방지
+  if (e.type === "touchstart" || e.button === 2) { //모바일에서 터치할 때, 또는 우클릭일 때 메뉴 방지
     e.preventDefault();
-    return;
   }
   pressTimer = setTimeout(() => {
     setSelectedCard(card);
@@ -541,6 +539,8 @@ export default function GameLayout({ matchId }) {
           onMouseLeave={handlePressEnd}
           onTouchStart={(e) => handlePressStart(card, setSelectedCard, e)}
           onTouchEnd={handlePressEnd}
+          onTouchMove={handlePressEnd}
+          onContextMenu={(e) => e.preventDefault()} //배포
         >
       <Card {...card} />
     </div>
