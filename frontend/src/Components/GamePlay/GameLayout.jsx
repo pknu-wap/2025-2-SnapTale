@@ -1,7 +1,7 @@
 // src/Components/GamePlay/GameLayout.jsx
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo} from "react";
 import { useUser } from "../../contexts/UserContext";
+import { useWebSocket } from "../../contexts/WebSocketContext";
 import "./GameLayout.css";
 import Card from "./Card";
 import Location from "./Location";
@@ -15,11 +15,24 @@ import DCI from "../../assets/defaultCardImg.svg";
 import GameChatFloatingButton from "./GameChatFloatingButton";
 import { getMatch } from "../Home/api/match";
 import { fetchLocationsByMatchId } from "./api/location";
-// import { playAction, startNextTurn } from "./api/matchTurn";
+import { playAction } from "./api/matchTurn";
 
+let pressTimer = null;
+
+const handlePressStart = (card, setSelectedCard, e) => {
+  if (e.type === "touchstart" || e.button === 2) { //모바일에서 터치할 때, 또는 우클릭일 때 메뉴 방지
+    e.preventDefault();
+  }
+  pressTimer = setTimeout(() => {
+    setSelectedCard(card);
+  }, 500);
+};
+
+const handlePressEnd = () => {
+  clearTimeout(pressTimer);
+};
 
 export default function GameLayout({ matchId }) {
-  const handCount = 12;
   const maxTurn = 6;
 
   const { user, updateUser } = useUser();
@@ -28,33 +41,59 @@ export default function GameLayout({ matchId }) {
   const [locations, setLocations] = useState([]); // 서버에서 불러올 위치 데이터
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [opponentPowers] = useState([0, 0, 0]);
-  const [myPowers] = useState([0, 0, 0]);
+  const [opponentPowers, setOpponentPowers] = useState([0, 0, 0]);
+  const [myPowers, setMyPowers] = useState([0, 0, 0]);
   const [turn, setTurn] = useState(1);
   const [hand, setHand] = useState([]);
-  const [cardPlayed, setCardPlayed] = useState(false);
-  const [energy] = useState(3);
+  const [boardLanes, setBoardLanes] = useState([
+    [null, null, null, null], // SLOT_COUNT 0
+    [null, null, null, null], // SLOT_COUNT 1
+    [null, null, null, null], // SLOT_COUNT 2
+  ]);
+  // eslint-disable-next-line no-unused-vars
+  const [cardPlayed, setCardPlayed] = useState(false); // 카드 플레이 여부 (향후 턴 종료 로직에서 사용 예정)
+  const [energy, setEnergy] = useState(3);
   const [allCards, setAllCards] = useState([]);
+  const [isWaitingForOpponent, setIsWaitingForOpponent] = useState(false);
 
+  const { subscribe } = useWebSocket();
+
+  // 매치 정보 및 에너지 로드
   useEffect(() => {
-    async function ensureParticipant() {
+    async function loadMatchData() {
       if (!matchId || !user?.guestId) return;
-      if (user.participantId) return; // 이미 있으면 스킵
 
       try {
         const match = await getMatch(matchId);
         const me = match?.participants?.find(p => p.guestId === user.guestId);
-        if (me?.participantId) {
-          // UserContext 메모리에만 저장(로컬스토리지는 기존 필드만 저장됨)
-          updateUser({ participantId: me.participantId });
+        
+        if (me) {
+          // participantId 설정
+          if (me.participantId && !user.participantId) {
+            updateUser({ participantId: me.participantId });
+          }
+          
+          // 에너지 설정 (항상 최신 값으로 업데이트)
+          if (me.energy !== undefined && me.energy !== null) {
+            setEnergy(me.energy);
+            console.log("에너지 로드: energy=", me.energy);
+          }
         }
       } catch (e) {
-        console.warn("participantId 조회 실패:", e);
+        console.warn("매치 정보 조회 실패:", e);
       }
     }
-    ensureParticipant();
-  }, [matchId, user?.guestId, user?.participantId, updateUser]);
-
+    loadMatchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [matchId, user?.guestId]);
+  const shuffleArray = (arr) => {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  };
   // 선택한 덱의 카드들을 불러와 hand와 allCards 구성
   useEffect(() => {
     async function loadDeckCards() {
@@ -63,7 +102,8 @@ export default function GameLayout({ matchId }) {
         const resDeck = await fetch(`${import.meta.env.VITE_API_BASE}/api/deck-presets/${user.selectedDeckPresetId}`);
         if (!resDeck.ok) throw new Error(`Failed to load deck preset: ${resDeck.status}`);
         const deckData = await resDeck.json();
-        const deck = deckData.result ?? deckData;
+        const deck = deckData.result ?? deckData; //cardId는 중복없이 12장 받고 있는 중
+        //중복 없이 12장을 받는지 검증하는 로직은 없음
         const cardIds = (deck.cards ?? []).map(c => c.cardId);
 
         const cardPromises = cardIds.map(cardId =>
@@ -85,9 +125,17 @@ export default function GameLayout({ matchId }) {
           createdAt: item.createdAt,
           updatedAt: item.updatedAt,
         }));
+        // 덱 셔플링 
+        const shuffledDeck = shuffleArray([...mapped]); // 12장 섞기
+        //이제 매 플레이마다 새로운 카드들이 기본 패로 등장합니다.
 
-        setAllCards(mapped);
-        setHand(mapped.slice(0, 3));
+        // 손패와 덱 분리
+        const initialHand = shuffledDeck.slice(0, 3);   // 섞인 덱의 0~2번 (3장)
+        const remainingDeck = shuffledDeck.slice(3); // 섞인 덱의 3번부터 끝까지 (9장)
+
+        // 분리된 상태로 저장
+        setHand(initialHand);
+        setAllCards(remainingDeck); // 12장이 아닌, 손패를 제외한 9장이 덱에 저장됨
       } catch (e) {
         console.error("덱 카드 불러오기 실패:", e);
       }
@@ -133,82 +181,184 @@ export default function GameLayout({ matchId }) {
       }
     }
     loadLocations();
+  }, [matchId, user?.participantId]);
+
+  useEffect(() => {
+    if (!matchId) {
+      return undefined;
+    }
+
+    const destination = `/topic/match/${matchId}`;
+    const subscriptionKey = `game-layout-match-${matchId}`;
+
+    const unsubscribe = subscribe(destination, {
+      key: subscriptionKey,
+      onMessage: (entry) => {
+        const body = entry?.body;
+        if (!body?.success) {
+          return;
+        }
+
+        const wsMessage = body.data;
+        const messageType = wsMessage?.type;
+        const payload = wsMessage?.data;
+
+        if (!messageType || !payload) {
+          return;
+        }
+
+        if (messageType === "TURN_WAITING") {
+          const endedGuestId = payload?.endedGuestId;
+          const waitingForOpponent = Boolean(payload?.waitingForOpponent);
+
+          if (endedGuestId === user?.guestId && waitingForOpponent) {
+            setIsWaitingForOpponent(true);
+          } else if (!waitingForOpponent) {
+            setIsWaitingForOpponent(false);
+          } else if (endedGuestId !== user?.guestId) {
+            setIsWaitingForOpponent(false);
+          }
+
+          const scores = payload?.gameState?.participantScores;
+          if (Array.isArray(scores)) {
+            const myParticipantId = user?.participantId;
+            const myGuestId = user?.guestId;
+            const meScore = scores.find(
+              (score) =>
+                score.participantId === myParticipantId || score.guestId === myGuestId
+            );
+            if (meScore && typeof meScore.energy === "number") {
+              setEnergy(meScore.energy);
+            }
+          }
+        }
+
+        if (messageType === "TURN_START") {
+          setIsWaitingForOpponent(false);
+
+          if (typeof payload?.currentTurn === "number") {
+            setTurn(payload.currentTurn);
+          }
+
+          const scores = payload?.gameState?.participantScores;
+          if (Array.isArray(scores)) {
+            const myParticipantId = user?.participantId;
+            const myGuestId = user?.guestId;
+            const meScore = scores.find(
+              (score) =>
+                score.participantId === myParticipantId || score.guestId === myGuestId
+            );
+            if (meScore && typeof meScore.energy === "number") {
+              setEnergy(meScore.energy);
+            }
+          }
+          if (payload?.locationPowerResult) {
+            console.log("TURN_START locationPowerResult:", payload.locationPowerResult);
+            const normalizePowers = (source) => {
+              if (Array.isArray(source)) {
+                return source.map((value) => Number(value) || 0);
+              }
+              if (source && typeof source === 'object') {
+                // 객체를 배열로 변환 {0: 4, 1: 0, 2: 0} -> [4, 0, 0]
+                return [0, 1, 2].map(idx => Number(source[idx]) || 0);
+              }
+              return null;
+            };
+            const myGuestId = user?.guestId;
+            const { player1Id, player2Id, player1Powers, player2Powers } = payload.locationPowerResult;
+
+            if (myGuestId && player1Id && player2Id) {
+              if (myGuestId === player1Id) {
+                const myLocationPowers = normalizePowers(player1Powers);
+                const opponentLocationPowers = normalizePowers(player2Powers);
+                if (myLocationPowers) setMyPowers(myLocationPowers);
+                if (opponentLocationPowers) setOpponentPowers(opponentLocationPowers);
+              } else if (myGuestId === player2Id) {
+                const myLocationPowers = normalizePowers(player2Powers);
+                const opponentLocationPowers = normalizePowers(player1Powers);
+                if (myLocationPowers) setMyPowers(myLocationPowers);
+                if (opponentLocationPowers) setOpponentPowers(opponentLocationPowers);
+              }
+            }
+          }
+        }
+      },
+    });
+
+    return unsubscribe;
+  }, [matchId, subscribe, user?.guestId, user?.participantId]);
+
+  useEffect(() => {
+    setIsWaitingForOpponent(false);
   }, [matchId]);
 
-  const handleCardClick = (cardData) => {
-    setSelectedCard(cardData);
-  };
+  const endTurnButtonLabel = useMemo(() => {
+    if (isWaitingForOpponent) {
+      return "상대의 턴을 기다리는 중...";
+    }
+    return `턴 종료 (${turn} / ${maxTurn})`;
+  }, [isWaitingForOpponent, turn, maxTurn]);
+
+  // const handleCardClick = (cardData) => {
+  //   setSelectedCard(cardData);
+  // };
 
   const handleCloseModal = () => {
     setSelectedCard(null);
   };
-//laneIndex, slotIndex
-// const handleDropCard = async ({  card }) => {
-//   // if (!user?.participantId) {
-//   //   console.warn("participantId 없음 → play-action 전송 스킵");
-//   //   return;
-//   // }
-//   const prevHand = hand;
-//   setHand((h) => h.filter((c) => c.cardId !== card.cardId));
 
-//   try {
-//     // await playAction(matchId, {
-//     //   participantId: user.participantId,
-//     //   cardId: card.cardId,
-//     //   actionType: "PLAY_CARD",
-//     //   additionalData: JSON.stringify({ laneIndex, slotIndex, turn }),
-//     // });
-//     setCardPlayed(true);
-//   } catch (e) {
-//       console.error("playAction 실패:", e);
-//       setHand(prevHand);
-//     }
-//   };
-
-
-  const endTurn = () => {
+  const endTurn = async () => {
     if (turn < maxTurn) {
-      setTurn((prev) => prev + 1);
-      setCardPlayed(false); // 다시 비활성화
+      try {
+        // 서버에 턴 종료 요청
+        const response = await playAction(matchId, {
+          participantId: user.guestId,
+          actionType: "END_TURN",
+          additionalData: null,
+        });
 
-      setHand((prev) => {
-        const nextIndex = prev.length;
-        if (nextIndex < Math.min(handCount, allCards.length)) {
-          return [...prev, allCards[nextIndex]];
+        console.log("턴 종료 응답:", response);
+        
+        // 에너지 업데이트
+        if (response.energy !== undefined) {
+          setEnergy(response.energy);
+          console.log("턴 종료 후 에너지 업데이트: energy=", response.energy);
         }
-        return prev;
-      });
+
+        const normalizePowers = (source) =>
+          Array.isArray(source) ? source.map((value) => Number(value) || 0) : null;
+
+        const myLocationPowers = normalizePowers(response?.myLocationPowers);
+        if (myLocationPowers) {
+          setMyPowers(myLocationPowers);
+        }
+
+        setCardPlayed(false); // 다시 비활성화
+
+        if (allCards.length > 0) {
+          // 덱의 맨 위 카드(0번 인덱스)를 뽑을 카드로 지정합니다.
+          const cardToDraw = allCards[0];
+
+          // 덱에서 뽑힌 카드를 제외한 나머지 덱을 준비합니다.
+          const newDeck = allCards.slice(1);
+
+          // 손패(hand) 상태를 업데이트: 기존 손패에 뽑은 카드를 추가합니다.
+          setHand((prevHand) => [...prevHand, cardToDraw]);
+
+          // 덱(allCards) 상태를 업데이트: 카드가 제거된 새 덱으로 교체합니다.
+          setAllCards(newDeck);
+          }
+      } catch (error) {
+        console.error("턴 종료 실패:", error);
+        alert(`턴 종료에 실패했습니다: ${error.message || "알 수 없는 오류"}`);
+      }
     }
   };
 
-//   const endTurn = async () => {
-//   if (!cardPlayed || turn === maxTurn) return;
-
-//   const prev = { turn, hand };
-//   setTurn((t) => t + 1);
-//   setCardPlayed(false);
-
-//   try {
-//     console.log("🎯 startNextTurn 호출:", matchId);
-//     const data = await startNextTurn(matchId);
-//     console.log("✅ startNextTurn 응답:", data);
-
-//     if (!data.success) throw new Error(data.message || "turn start failed");
-
-//     setTurn(data.result.turn);
-//     const drawn = Object.values(data.result.drawnCards ?? {});
-//     setHand((h) => [...h, ...drawn]);
-//   } catch (e) {
-//     console.error("❌ startNextTurn 실패:", e);
-//     setTurn(prev.turn);
-//     setHand(prev.hand);
-//     setCardPlayed(true);
-//   }
-// };
   const SLOT_COUNT = 3;
-  // turn에 따라 슬롯 활성화 상태를 결정
-  const getSlotDisabled = (index) => {
-  // 1번 슬롯은 turn >= 1일 때 활성, 2번은 turn >= 2일 때 활성, 3번은 turn >= 3일 때 활성
+  // turn에 따라 해당 지역의 슬롯 활성화 상태를 결정
+  const getLocationDisabled = (index) => {
+    // 1번째 지역은 turn >= 1일 때 활성, 2번째는 turn >= 2일 때 활성, 3번째는 turn >= 3일 때 활성
     return turn < index + 1;
   };
 
@@ -227,17 +377,87 @@ export default function GameLayout({ matchId }) {
     setSelectedLocation(null);
   };
 
-  const handleCardDrop = ({ card, laneIndex, slotIndex }) => {
-    
-    if (card && card.cardId) {
-      setHand((prevHand) => prevHand.filter((c) => c.cardId !== card.cardId));
-
-      setCardPlayed(true); 
-
-      console.log(`[GameLayout] 카드 ${card.name}가 lane ${laneIndex}, slot ${slotIndex}에 놓였습니다.`);
-
-    } else {
+  const handleCardDrop = async ({ card, laneIndex}) => {
+    if (!card || !card.cardId) {
       console.warn("[GameLayout] Slot에서 유효하지 않은 카드 데이터를 받았습니다.", { card, laneIndex, slotIndex });
+      return;
+    }
+
+    // participantId가 없으면 요청 불가
+    if (!user?.participantId) {
+      console.warn("participantId 없음 → play-action 전송 스킵");
+      alert("참가자 정보가 없습니다. 페이지를 새로고침해주세요.");
+      return;
+    }
+    const targetLane = boardLanes[laneIndex]; //이 레인의 첫 번째 빈 슬롯(0~3)을 찾습니다.
+    const slotIndex = targetLane.findIndex(c => !c); // 0~3 사이의 인덱스
+
+    if (slotIndex === -1) {
+    return; 
+  }
+
+    // 이전 상태 저장 (실패 시 롤백용)
+    const prevHand = hand;
+    const prevBoardLanes = boardLanes;
+    // 낙관적 업데이트: 먼저 UI 업데이트
+    setHand((prevHand) => prevHand.filter((c) => c.cardId !== card.cardId));
+    setBoardLanes((prevLanes) => {
+    const newLanes = [...prevLanes]; // 전체 레인 배열 복사
+    const newTargetLane = [...newLanes[laneIndex]]; // 현재 레인 복사
+    newTargetLane[slotIndex] = card; // 빈 슬롯에 카드 배치
+    newLanes[laneIndex] = newTargetLane; // 변경된 레인으로 교체
+    return newLanes;
+  });
+    setCardPlayed(true);
+    setMyPowers((prev) => {
+      const next = [...prev];
+      next[laneIndex] = (next[laneIndex] ?? 0) + (card?.power ?? 0);
+      return next;
+    });
+
+    try {
+      // 서버에 카드 플레이 요청
+      // 백엔드의 slotIndex는 Location 슬롯 (0~2)을 의미하므로 laneIndex를 사용
+      // participantId는 guestId를 의미함
+      const response = await playAction(matchId, {
+        participantId: user.guestId,
+        cardId: card.cardId,
+        actionType: "PLAY_CARD",
+        additionalData: JSON.stringify({ slotIndex: laneIndex }),
+      });
+
+      console.log(`[GameLayout] 카드 ${card.name}가 lane ${laneIndex} (slotIndex: ${laneIndex}), 슬롯 내부 위치 ${slotIndex}에 놓였습니다.`, response);
+      
+      console.log("response.energy=", response.energy);
+      if (response.energy !== undefined) {
+        setEnergy(response.energy);
+        console.log("에너지 업데이트: energy=", response.energy);
+      }
+
+      const normalizePowers = (source) =>
+        Array.isArray(source) ? source.map((value) => Number(value) || 0) : null;
+
+      const myLocationPowers = normalizePowers(response?.myLocationPowers);
+      if (myLocationPowers) {
+        setMyPowers(myLocationPowers);
+      }
+    } catch (error) {
+      console.error("playAction 실패:", error);
+      console.log("playAction 호출 실패:", matchId, user.participantId, card.cardId, laneIndex, slotIndex, error.energy);
+      
+      // 실패 시 롤백: 손패 복원
+      setHand(prevHand);
+      setBoardLanes(prevBoardLanes);
+      setMyPowers((prev) => {
+        const next = [...prev];
+        next[laneIndex] = Math.max(0, (next[laneIndex] ?? 0) - (card?.power ?? 0));
+        return next;
+      });
+      setCardPlayed(false);
+      
+      // 사용자에게 에러 알림
+      const errorMessage = error.message || "카드 제출에 실패했습니다.";
+      alert(`카드 제출 실패: ${errorMessage}`);
     }
   };
 

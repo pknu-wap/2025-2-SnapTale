@@ -10,6 +10,7 @@ import com.snaptale.backend.match.repository.MatchParticipantRepository;
 import com.snaptale.backend.match.repository.MatchRepository;
 import com.snaptale.backend.match.repository.PlayRepository;
 import com.snaptale.backend.match.service.GameCalculationService;
+import com.snaptale.backend.match.service.TurnService;
 import com.snaptale.backend.match.websocket.message.*;
 import com.snaptale.backend.user.entity.User;
 import com.snaptale.backend.user.repository.UserRepository;
@@ -25,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 // Match 도메인 WebSocket 비즈니스 로직 처리
@@ -75,6 +77,8 @@ public class MatchWebSocketService {
 
 					return GameStateMessage.ParticipantScore.builder()
 							.participantId(p.getId())
+							.guestId(p.getGuestId())
+							.guestId(p.getGuestId())
 							.nickname(nickname)
 							.score(totalPower)
 							.remainingCards(0) // 실제 구현 시 덱에서 계산 가능
@@ -131,6 +135,69 @@ public class MatchWebSocketService {
 		// /queue/participant/{participantId} 구독자에게 전송
 		messagingTemplate.convertAndSend("/queue/participant/" + participantId,
 				WebSocketResponse.success(wsMessage));
+	}
+
+	// 턴 종료 대기
+	@Transactional(readOnly = true)
+	public void notifyTurnEndWaiting(Long matchId, MatchParticipant endedParticipant) {
+		Match match = matchRepository.findById(matchId)
+				.orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_NOT_FOUND));
+
+		List<MatchParticipant> participants = matchParticipantRepository.findByMatch_MatchId(matchId);
+		GameStateMessage gameState = createGameStateMessage(match, participants);
+
+		String nickname = userRepository.findById(endedParticipant.getGuestId())
+				.map(User::getNickname)
+				.orElse("Player " + endedParticipant.getPlayerIndex());
+
+		Set<Long> endedGuestIds = playRepository.findTurnEndsByMatchAndTurn(matchId, match.getTurnCount())
+				.stream()
+				.map(Play::getGuestId)
+				.collect(Collectors.toSet());
+
+		List<Long> waitingGuestIds = participants.stream()
+				.map(MatchParticipant::getGuestId)
+				.filter(id -> !endedGuestIds.contains(id))
+				.collect(Collectors.toList());
+
+		gameState.setLastPlayInfo(nickname + "님이 턴을 종료했습니다. 상대 종료 대기 중");
+
+		TurnStatusMessage payload = TurnStatusMessage.builder()
+				.matchId(matchId)
+				.currentTurn(match.getTurnCount())
+				.endedParticipantId(endedParticipant.getId())
+				.endedGuestId(endedParticipant.getGuestId())
+				.waitingGuestIds(waitingGuestIds)
+				.waitingForOpponent(!waitingGuestIds.isEmpty())
+				.bothPlayersEnded(false)
+				.nextTurn(null)
+				.gameState(gameState)
+				.build();
+
+		broadcastToMatch(matchId, "TURN_WAITING", payload, nickname + "님이 턴을 종료했습니다.");
+	}
+
+	@Transactional(readOnly = true)
+	public void notifyTurnStart(Long matchId, TurnService.TurnEndResult turnResult) {
+		Match match = matchRepository.findById(matchId)
+				.orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_NOT_FOUND));
+
+		List<MatchParticipant> participants = matchParticipantRepository.findByMatch_MatchId(matchId);
+		GameStateMessage gameState = createGameStateMessage(match, participants);
+		gameState.setLastPlayInfo("턴 " + turnResult.getNextTurn() + "이 시작되었습니다.");
+
+		TurnStatusMessage payload = TurnStatusMessage.builder()
+				.matchId(matchId)
+				.currentTurn(match.getTurnCount())
+				.waitingGuestIds(List.of())
+				.waitingForOpponent(false)
+				.bothPlayersEnded(true)
+				.nextTurn(turnResult.getNextTurn())
+				.gameState(gameState)
+				.locationPowerResult(turnResult.getLocationPowerResult())
+				.build();
+
+		broadcastToMatch(matchId, "TURN_START", payload, "턴 " + turnResult.getNextTurn() + "이 시작되었습니다.");
 	}
 
 	// 매치 채팅 처리
@@ -194,158 +261,6 @@ public class MatchWebSocketService {
 				.build();
 	}
 
-	// api로 대체됨.
-	// @Transactional
-	// public void handleJoin(MatchJoinMessage message) {
-	// log.info("매치 참가 처리: matchId={}, userId={}, sessionId={}",
-	// message.getMatchId(), message.getUserId(), message.getSessionId());
-
-	// // 매치 존재 여부 확인
-	// Match match = matchRepository.findById(message.getMatchId())
-	// .orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_NOT_FOUND));
-
-	// // 세션 등록
-	// sessionManager.registerSession(
-	// message.getSessionId(),
-	// message.getUserId(),
-	// message.getMatchId());
-
-	// // 참가자 정보 조회
-	// List<MatchParticipant> participants = matchParticipantRepository
-	// .findByMatch_MatchId(message.getMatchId());
-
-	// // 게임 상태 메시지 생성 및 브로드캐스트
-	// GameStateMessage gameState = createGameStateMessage(match, participants);
-	// broadcastToMatch(message.getMatchId(), "JOIN", gameState,
-	// message.getNickname() + "님이 입장했습니다.");
-	// }
-
-	// // api로 대체됨.
-	// @Transactional
-	// public void handleStart(MatchStartMessage message) {
-	// log.info("매치 시작 처리: matchId={}", message.getMatchId());
-
-	// // 게임 시작 로직 실행
-	// gameFlowService.startGame(message.getMatchId());
-
-	// // 게임 상태 브로드캐스트
-	// Match match = matchRepository.findById(message.getMatchId())
-	// .orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_NOT_FOUND));
-	// List<MatchParticipant> participants = matchParticipantRepository
-	// .findByMatch_MatchId(message.getMatchId());
-
-	// GameStateMessage gameState = createGameStateMessage(match, participants);
-	// broadcastToMatch(message.getMatchId(), "START", gameState,
-	// "게임이 시작되었습니다!");
-	// }
-
-	// 플레이 액션 처리
-	// @Transactional
-	// public void handlePlayAction(PlayActionMessage message) {
-	// log.info("플레이 액션 처리: matchId={}, participantId={}, actionType={}",
-	// message.getMatchId(), message.getParticipantId(), message.getActionType());
-
-	// PlayActionType actionType = message.getActionType();
-
-	// if (actionType == null) {
-	// throw new BaseException(BaseResponseStatus.INVALID_ACTION_TYPE);
-	// }
-
-	// switch (actionType) {
-	// case PLAY_CARD:
-	// handlePlayCard(message);
-	// break;
-	// case END_TURN:
-	// handleEndTurn(message);
-	// break;
-	// default:
-	// throw new BaseException(BaseResponseStatus.INVALID_ACTION_TYPE);
-	// }
-	// }
-
-	// 카드 플레이 처리
-	// @Transactional
-	// public void handlePlayCard(PlayActionMessage message) {
-	// log.info("카드 플레이: matchId={}, participantId={}, cardId={}",
-	// message.getMatchId(), message.getParticipantId(), message.getCardId());
-
-	// // 슬롯 인덱스 파싱
-	// Integer slotIndex = parseSlotIndex(message.getAdditionalData());
-	// if (slotIndex == null) {
-	// throw new BaseException(BaseResponseStatus.INVALID_SLOT_INDEX);
-	// }
-
-	// // 카드 제출
-	// TurnService.PlaySubmissionResult result = turnService.submitPlay(
-	// message.getMatchId(),
-	// message.getParticipantId(),
-	// message.getCardId(),
-	// slotIndex);
-
-	// // 매치 정보 조회
-	// Match match = matchRepository.findById(message.getMatchId())
-	// .orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_NOT_FOUND));
-	// List<MatchParticipant> participants = matchParticipantRepository
-	// .findByMatch_MatchId(message.getMatchId());
-
-	// // 게임 상태 업데이트
-	// GameStateMessage gameState = createGameStateMessage(match, participants);
-	// gameState.setLastPlayInfo("참가자 " + message.getParticipantId() + "가 카드를
-	// 플레이했습니다.");
-
-	// // 상태 브로드캐스트
-	// broadcastToMatch(message.getMatchId(), "PLAY_CARD", gameState,
-	// "카드가 플레이되었습니다.");
-
-	// // 양쪽 플레이어가 모두 제출했으면 턴 종료 처리
-	// if (result.isBothPlayersSubmitted()) {
-	// processTurnEnd(message.getMatchId());
-	// }
-	// }
-
-	// // 턴 종료 처리
-	// @Transactional
-	// public void handleEndTurn(PlayActionMessage message) {
-	// log.info("턴 종료 요청: matchId={}", message.getMatchId());
-
-	// // 양쪽 플레이어가 모두 제출했는지 확인
-	// Match match = matchRepository.findById(message.getMatchId())
-	// .orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_NOT_FOUND));
-
-	// boolean bothSubmitted = turnService.checkBothPlayersSubmitted(
-	// message.getMatchId(), match.getTurnCount());
-
-	// if (!bothSubmitted) {
-	// throw new BaseException(BaseResponseStatus.WAITING_FOR_OTHER_PLAYER);
-	// }
-
-	// processTurnEnd(message.getMatchId());
-	// }
-
-	// 턴 종료 처리 로직
-	// @Transactional
-	// public void processTurnEnd(Long matchId) {
-	// log.info("턴 종료 처리: matchId={}", matchId);
-
-	// // 턴 종료 및 다음 턴 시작
-	// TurnService.TurnEndResult result = turnService.endTurnAndStartNext(matchId);
-
-	// if (result.isGameEnded()) {
-	// // 게임 종료 처리
-	// processGameEnd(matchId);
-	// } else {
-	// // 다음 턴 시작 알림
-	// Match match = matchRepository.findById(matchId)
-	// .orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_NOT_FOUND));
-	// List<MatchParticipant> participants = matchParticipantRepository
-	// .findByMatch_MatchId(matchId);
-
-	// GameStateMessage gameState = createGameStateMessage(match, participants);
-	// broadcastToMatch(matchId, "TURN_START", gameState,
-	// "턴 " + result.getNextTurn() + "이(가) 시작되었습니다.");
-	// }
-	// }
-
 	// 게임 종료 처리
 	@Transactional
 	public void processGameEnd(Long matchId) {
@@ -384,20 +299,4 @@ public class MatchWebSocketService {
 		// 게임 종료 브로드캐스트
 		broadcastToMatch(matchId, "GAME_END", gameState, winnerMessage);
 	}
-
-	// additionalData에서 slotIndex 파싱
-	// private Integer parseSlotIndex(String additionalData) {
-	// if (additionalData == null || additionalData.isEmpty()) {
-	// return null;
-	// }
-	// try {
-	// // JSON 파싱 (간단한 경우)
-	// // 예: {"slotIndex": 0}
-	// String value = additionalData.replaceAll("[^0-9]", "");
-	// return Integer.parseInt(value);
-	// } catch (Exception e) {
-	// log.error("slotIndex 파싱 실패: {}", additionalData, e);
-	// return null;
-	// }
-	// }
 }

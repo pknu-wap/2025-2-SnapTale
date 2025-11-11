@@ -23,12 +23,16 @@ import com.snaptale.backend.match.websocket.message.MatchStartMessage;
 import com.snaptale.backend.user.entity.User;
 import com.snaptale.backend.user.repository.UserRepository;
 import com.snaptale.backend.websocket.service.WebSocketSessionManager;
+import com.snaptale.backend.match.websocket.service.MatchWebSocketService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -47,6 +51,8 @@ public class MatchRESTService {
 	private final WebSocketSessionManager sessionManager;
 	private final com.snaptale.backend.deck.repository.DeckPresetRepository deckPresetRepository;
 	private final TurnService turnService;
+	private final MatchWebSocketService matchWebSocketService;
+	private static final int LOCATION_COUNT = 3;
 
 	// 매치 참가 처리
 	@Transactional
@@ -210,14 +216,11 @@ public class MatchRESTService {
 			throw new BaseException(BaseResponseStatus.INVALID_ACTION_TYPE);
 		}
 
-		switch (actionType) {
-			case PLAY_CARD:
-				return handlePlayCard(message);
-			case END_TURN:
-				return handleEndTurn(message);
-			default:
-				throw new BaseException(BaseResponseStatus.INVALID_ACTION_TYPE);
-		}
+		return switch (actionType) {
+			case PLAY_CARD -> handlePlayCard(message);
+			case END_TURN -> handleEndTurn(message);
+			default -> throw new BaseException(BaseResponseStatus.INVALID_ACTION_TYPE);
+		};
 	}
 
 	// 카드 플레이 처리
@@ -239,10 +242,14 @@ public class MatchRESTService {
 				message.getCardId(),
 				slotIndex);
 
-		// 참가자 정보 조회 (에너지 포함)
-		MatchParticipant participant = matchParticipantRepository.findById(message.getParticipantId())
+		// 참가자 정보 조회 (에너지 포함) - participantId는 guestId를 의미함
+		MatchParticipant participant = matchParticipantRepository.findByMatch_MatchIdAndGuestId(
+				message.getMatchId(), message.getParticipantId())
 				.orElseThrow(() -> new BaseException(BaseResponseStatus.PARTICIPANT_NOT_FOUND));
-		return PlayActionRes.from(message, participant);
+		log.info("카드 플레이 후 참가자 조회: participantId={}, guestId={}, energy={}",
+				participant.getId(), participant.getGuestId(), participant.getEnergy());
+		List<Integer> myLocationPowers = calculateLocationPowers(message.getMatchId(), participant.getGuestId());
+		return PlayActionRes.from(message, participant, myLocationPowers);
 	}
 
 	// 턴 종료 처리
@@ -259,11 +266,21 @@ public class MatchRESTService {
 			processTurnEnd(message.getMatchId());
 		}
 
-		// 참가자 정보 조회 (에너지 포함)
-		MatchParticipant participant = matchParticipantRepository.findById(message.getParticipantId())
+		// 참가자 정보 조회 (에너지 포함) - participantId는 guestId를 의미함
+		MatchParticipant participant = matchParticipantRepository.findByMatch_MatchIdAndGuestId(
+				message.getMatchId(), message.getParticipantId())
 				.orElseThrow(() -> new BaseException(BaseResponseStatus.PARTICIPANT_NOT_FOUND));
 
-		return PlayActionRes.from(message, participant);
+		if (!result.isBothPlayersEnded()) {
+			matchWebSocketService.notifyTurnEndWaiting(message.getMatchId(), participant);
+		}
+
+		log.info("턴 종료 후 참가자 조회: participantId={}, guestId={}, energy={}",
+				participant.getId(), participant.getGuestId(), participant.getEnergy());
+
+		List<Integer> myLocationPowers = calculateLocationPowers(message.getMatchId(), participant.getGuestId());
+
+		return PlayActionRes.from(message, participant, myLocationPowers);
 	}
 
 	// 턴 종료 후 다음 턴 시작 로직
@@ -271,8 +288,13 @@ public class MatchRESTService {
 	public void processTurnEnd(Long matchId) {
 		log.info("턴 종료 처리: matchId={}", matchId);
 
-		// 턴 종료 및 다음 턴 시작
-		turnService.endTurnAndStartNext(matchId);
+		TurnService.TurnEndResult result = turnService.endTurnAndStartNext(matchId);
+
+		if (result.isGameEnded()) {
+			matchWebSocketService.processGameEnd(matchId);
+		} else {
+			matchWebSocketService.notifyTurnStart(matchId, result);
+		}
 	}
 
 	// additionalData에서 slotIndex 파싱
@@ -281,14 +303,41 @@ public class MatchRESTService {
 			return null;
 		}
 		try {
-			// JSON 파싱 (간단한 경우)
-			// 예: {"slotIndex": 0}
-			String value = additionalData.replaceAll("[^0-9]", "");
-			return Integer.parseInt(value);
+			// JSON 파싱
+			// 프론트엔드에서 JSON.stringify({ slotIndex: laneIndex })로 보내므로
+			// "{\"slotIndex\":0}" 형태로 들어옴
+			ObjectMapper objectMapper = new ObjectMapper();
+			JsonNode jsonNode = objectMapper.readTree(additionalData);
+			JsonNode slotIndexNode = jsonNode.get("slotIndex");
+			if (slotIndexNode != null && slotIndexNode.isNumber()) {
+				return slotIndexNode.asInt();
+			}
+			log.warn("slotIndex를 찾을 수 없음: {}", additionalData);
+			return null;
 		} catch (Exception e) {
 			log.error("slotIndex 파싱 실패: {}", additionalData, e);
 			return null;
 		}
+	}
+
+	private List<Integer> createZeroLocationList() {
+		List<Integer> zeros = new ArrayList<>(LOCATION_COUNT);
+		for (int i = 0; i < LOCATION_COUNT; i++) {
+			zeros.add(0);
+		}
+		return zeros;
+	}
+
+	private List<Integer> calculateLocationPowers(Long matchId, Long guestId) {
+		if (guestId == null) {
+			return createZeroLocationList();
+		}
+		List<Integer> powers = new ArrayList<>(LOCATION_COUNT);
+		for (int slotIndex = 0; slotIndex < LOCATION_COUNT; slotIndex++) {
+			Integer sum = playRepository.sumPowerSnapshotByMatchAndGuestIdAndSlotIndex(matchId, guestId, slotIndex);
+			powers.add(sum != null ? sum : 0);
+		}
+		return powers;
 	}
 
 	// 게임 상태 메시지 생성
@@ -337,7 +386,7 @@ public class MatchRESTService {
 				.map(p -> {
 					User user = userRepository.findById(p.getGuestId()).orElse(null);
 					String nickname = user != null ? user.getNickname() : ("Player " + p.getPlayerIndex());
-					return new MatchDetailRes.ParticipantInfo(p.getGuestId(), nickname, p.getEnergy());
+					return new MatchDetailRes.ParticipantInfo(p.getId(), p.getGuestId(), nickname, p.getEnergy());
 				})
 				.toList();
 

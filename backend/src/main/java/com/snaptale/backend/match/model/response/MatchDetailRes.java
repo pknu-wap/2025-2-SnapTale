@@ -14,6 +14,7 @@ public record MatchDetailRes(
                 LocalDateTime endedAt,
                 List<ParticipantInfo> participants) {
         public record ParticipantInfo(
+                        Long participantId,
                         Long guestId,
                         String nickname,
                         Integer energy) {

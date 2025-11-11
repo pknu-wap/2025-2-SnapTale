@@ -48,18 +48,17 @@ public class GameCalculationService {
         Long player1Id = participants.get(0).getGuestId();
         Long player2Id = participants.get(1).getGuestId();
 
-        Match match = matchRepository.findById(matchId)
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_NOT_FOUND));
-
         // 각 Location별 파워 계산
         Map<Integer, Integer> player1Powers = new HashMap<>();
         Map<Integer, Integer> player2Powers = new HashMap<>();
 
         for (int slotIndex = 0; slotIndex < NUM_LOCATIONS; slotIndex++) {
 
-            int p1Power = playRepository.sumPowerSnapshotByMatchAndTurnAndGuestIdAndSlotIndex(matchId, match.getTurnCount(), player1Id, slotIndex);
+            Integer p1Sum = playRepository.sumPowerSnapshotByMatchAndGuestIdAndSlotIndex(matchId, player1Id, slotIndex);
+            int p1Power = p1Sum != null ? p1Sum.intValue() : 0;
 
-            int p2Power = playRepository.sumPowerSnapshotByMatchAndTurnAndGuestIdAndSlotIndex(matchId, match.getTurnCount(), player2Id, slotIndex);
+            Integer p2Sum = playRepository.sumPowerSnapshotByMatchAndGuestIdAndSlotIndex(matchId, player2Id, slotIndex);
+            int p2Power = p2Sum != null ? p2Sum.intValue() : 0;
 
             player1Powers.put(slotIndex, p1Power);
             player2Powers.put(slotIndex, p2Power);
