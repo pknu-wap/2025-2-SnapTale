@@ -17,6 +17,22 @@ import { getMatch } from "../Home/api/match";
 import { fetchLocationsByMatchId } from "./api/location";
 import { playAction } from "./api/matchTurn";
 
+let pressTimer = null;
+
+const handlePressStart = (card, setSelectedCard, e) => {
+  if (e.button === 2) {
+    // 우클릭만 방지
+    e.preventDefault();
+    return;
+  }
+  pressTimer = setTimeout(() => {
+    setSelectedCard(card);
+  }, 500);
+};
+
+const handlePressEnd = () => {
+  clearTimeout(pressTimer);
+};
 
 export default function GameLayout({ matchId }) {
   const maxTurn = 6;
@@ -285,9 +301,9 @@ export default function GameLayout({ matchId }) {
     return `턴 종료 (${turn} / ${maxTurn})`;
   }, [isWaitingForOpponent, turn, maxTurn]);
 
-  const handleCardClick = (cardData) => {
-    setSelectedCard(cardData);
-  };
+  // const handleCardClick = (cardData) => {
+  //   setSelectedCard(cardData);
+  // };
 
   const handleCloseModal = () => {
     setSelectedCard(null);
@@ -513,16 +529,22 @@ export default function GameLayout({ matchId }) {
       {/* 손패 */}
         <section className="gl-hand12">
           {hand.map((card) => (
-            <div
-              key={card.cardId}
-              draggable
-              onDragStart={(e) =>
-                e.dataTransfer.setData("application/json", JSON.stringify(card))
-              }
-            >
-              <Card {...card} onCardClick={() => handleCardClick(card)} />
-            </div>
-          ))}
+        <div
+          key={card.cardId}
+          draggable
+          onDragStart={(e) => {
+            handlePressEnd(); // 드래그 시 타이머 해제
+            e.dataTransfer.setData("application/json", JSON.stringify(card));
+          }}
+          onMouseDown={(e) => handlePressStart(card, setSelectedCard, e)}
+          onMouseUp={handlePressEnd}
+          onMouseLeave={handlePressEnd}
+          onTouchStart={(e) => handlePressStart(card, setSelectedCard, e)}
+          onTouchEnd={handlePressEnd}
+        >
+      <Card {...card} />
+    </div>
+  ))}
         </section>
 
     </div>
