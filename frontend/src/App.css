@@ -48,7 +48,7 @@ body,
 }
 
 .app-bg-image.bg-default::after {
-  background: linear-gradient(280deg, rgba(24, 26, 43, 0.55), rgba(24, 26, 43, 0.75));
+  background: linear-gradient(280deg, rgba(24, 26, 43, 0.25), rgba(24, 26, 43, 0.45));
 }
 
 .app-bg-image.bg-gameplay {
