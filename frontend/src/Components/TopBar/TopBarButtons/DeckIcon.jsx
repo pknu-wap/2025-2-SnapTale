@@ -1,19 +1,24 @@
+import { useNavigate } from "react-router-dom";
 import deckIcon from "../../../assets/DeckIcon.png";
-import { useNavigate } from 'react-router-dom';
+import "./buttonCommon.css";
 
 const DeckIcon = () => {
   const navigate = useNavigate();
+
   const handleClick = () => {
-    navigate('/deck');
+    navigate("/deck");
   };
+
   return (
-      <img
-        src={deckIcon}
-        alt="Deck Icon"
-        width={80}
-        height={80}
-        onClick={handleClick}
-      />
+    <button
+      type="button"
+      className="common-btn"
+      onClick={handleClick}
+      aria-label="덱 확인"
+    >
+      <img src={deckIcon} alt="Deck Icon" />
+    </button>
   );
 };
+
 export default DeckIcon;

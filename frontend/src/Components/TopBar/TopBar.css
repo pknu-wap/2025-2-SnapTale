@@ -21,8 +21,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: clamp(44px, 11vw, 72px);
-  height: clamp(44px, 11vw, 72px);
+  width: clamp(54px, 14vw, 84px);
+  height: clamp(54px, 14vw, 84px);
   flex: 0 0 auto;
 }
 
@@ -49,8 +49,8 @@
   }
 
   .icon-btn {
-    width: clamp(52px, 8vw, 88px);
-    height: clamp(52px, 8vw, 88px);
+    width: clamp(64px, 8vw, 96px);
+    height: clamp(64px, 8vw, 96px);
   }
 }
 
@@ -62,7 +62,7 @@
   }
 
   .icon-btn {
-    width: clamp(60px, 6vw, 104px);
-    height: clamp(60px, 6vw, 104px);
+    width: clamp(72px, 6vw, 112px);
+    height: clamp(72px, 6vw, 112px);
   }
 }
