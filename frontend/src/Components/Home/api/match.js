@@ -36,14 +36,16 @@ export async function joinMatch(matchId, userId, nickname, deckPresetId) {
   return parseJsonResponse(res);
 }
 // 매치 생성
-// MatchCreateReq: status (필수), winnerId (선택), turnCount (필수), endedAt (선택)
+// MatchCreateReq: status (필수), matchType (필수), winnerId (선택), turnCount (필수), endedAt (선택)
 // MatchStatus: QUEUED, MATCHED, PLAYING, ENDED
-export async function createMatch(status = "QUEUED", turnCount = 0) {
+// MatchType: RANDOM, FRIENDLY
+export async function createMatch(status = "QUEUED", matchType = "RANDOM", turnCount = 0) {
   const res = await fetch(`${API_BASE}/api/matches`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       status,
+      matchType,
       turnCount,
       winnerId: null,
       endedAt: null

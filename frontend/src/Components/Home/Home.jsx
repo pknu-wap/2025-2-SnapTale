@@ -82,9 +82,9 @@ const Home = () => {
         return;
       }
 
-      // 1. 새로운 매치 생성 (QUEUED 상태)
+      // 1. 새로운 매치 생성 (QUEUED 상태, FRIENDLY 타입)
       console.log("친선전 매치 생성 시도 - userId:", user.guestId);
-      const createResponse = await createMatch("QUEUED", 0);
+      const createResponse = await createMatch("QUEUED", "FRIENDLY", 0);
       console.log("친선전 매치 생성 완료 - 전체 응답:", createResponse);
 
       const matchId = createResponse.matchId || createResponse.result?.matchId;
@@ -118,7 +118,6 @@ const Home = () => {
   };
 
   // 친선전 매치 참가 핸들러
-  //todo: 확인 한 번 하기
   const handleJoinFriendlyMatch = async (matchId) => {
     try {
       if (!user) {

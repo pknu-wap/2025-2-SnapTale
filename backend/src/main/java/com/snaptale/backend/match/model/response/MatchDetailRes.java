@@ -1,6 +1,7 @@
 package com.snaptale.backend.match.model.response;
 
 import com.snaptale.backend.match.entity.MatchStatus;
+import com.snaptale.backend.match.entity.MatchType;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.List;
 public record MatchDetailRes(
                 Long matchId,
                 MatchStatus status,
+                MatchType matchType,
                 Long winnerId,
                 Integer turnCount,
                 LocalDateTime endedAt,
