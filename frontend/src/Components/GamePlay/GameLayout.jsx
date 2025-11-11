@@ -17,9 +17,24 @@ import { getMatch } from "../Home/api/match";
 import { fetchLocationsByMatchId } from "./api/location";
 import { playAction } from "./api/matchTurn";
 
+let pressTimer = null;
+
+const handlePressStart = (card, setSelectedCard, e) => {
+  if (e.button === 2) {
+    // 우클릭만 방지
+    e.preventDefault();
+    return;
+  }
+  pressTimer = setTimeout(() => {
+    setSelectedCard(card);
+  }, 500);
+};
+
+const handlePressEnd = () => {
+  clearTimeout(pressTimer);
+};
 
 export default function GameLayout({ matchId }) {
-  const handCount = 12;
   const maxTurn = 6;
 
   const { user, updateUser } = useUser();
@@ -32,6 +47,11 @@ export default function GameLayout({ matchId }) {
   const [myPowers, setMyPowers] = useState([0, 0, 0]);
   const [turn, setTurn] = useState(1);
   const [hand, setHand] = useState([]);
+  const [boardLanes, setBoardLanes] = useState([
+    [null, null, null, null], // SLOT_COUNT 0
+    [null, null, null, null], // SLOT_COUNT 1
+    [null, null, null, null], // SLOT_COUNT 2
+  ]);
   // eslint-disable-next-line no-unused-vars
   const [cardPlayed, setCardPlayed] = useState(false); // 카드 플레이 여부 (향후 턴 종료 로직에서 사용 예정)
   const [energy, setEnergy] = useState(3);
@@ -68,8 +88,14 @@ export default function GameLayout({ matchId }) {
     loadMatchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matchId, user?.guestId]);
-
-
+  const shuffleArray = (arr) => {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  };
   // 선택한 덱의 카드들을 불러와 hand와 allCards 구성
   useEffect(() => {
     async function loadDeckCards() {
@@ -78,7 +104,8 @@ export default function GameLayout({ matchId }) {
         const resDeck = await fetch(`${import.meta.env.VITE_API_BASE}/api/deck-presets/${user.selectedDeckPresetId}`);
         if (!resDeck.ok) throw new Error(`Failed to load deck preset: ${resDeck.status}`);
         const deckData = await resDeck.json();
-        const deck = deckData.result ?? deckData;
+        const deck = deckData.result ?? deckData; //cardId는 중복없이 12장 받고 있는 중
+        //중복 없이 12장을 받는지 검증하는 로직은 없음
         const cardIds = (deck.cards ?? []).map(c => c.cardId);
 
         const cardPromises = cardIds.map(cardId =>
@@ -100,9 +127,17 @@ export default function GameLayout({ matchId }) {
           createdAt: item.createdAt,
           updatedAt: item.updatedAt,
         }));
+        // 덱 셔플링 
+        const shuffledDeck = shuffleArray([...mapped]); // 12장 섞기
+        //이제 매 플레이마다 새로운 카드들이 기본 패로 등장합니다.
 
-        setAllCards(mapped);
-        setHand(mapped.slice(0, 3));
+        // 손패와 덱 분리
+        const initialHand = shuffledDeck.slice(0, 3);   // 섞인 덱의 0~2번 (3장)
+        const remainingDeck = shuffledDeck.slice(3); // 섞인 덱의 3번부터 끝까지 (9장)
+
+        // 분리된 상태로 저장
+        setHand(initialHand);
+        setAllCards(remainingDeck); // 12장이 아닌, 손패를 제외한 9장이 덱에 저장됨
       } catch (e) {
         console.error("덱 카드 불러오기 실패:", e);
       }
@@ -266,9 +301,9 @@ export default function GameLayout({ matchId }) {
     return `턴 종료 (${turn} / ${maxTurn})`;
   }, [isWaitingForOpponent, turn, maxTurn]);
 
-  const handleCardClick = (cardData) => {
-    setSelectedCard(cardData);
-  };
+  // const handleCardClick = (cardData) => {
+  //   setSelectedCard(cardData);
+  // };
 
   const handleCloseModal = () => {
     setSelectedCard(null);
@@ -302,13 +337,19 @@ export default function GameLayout({ matchId }) {
 
         setCardPlayed(false); // 다시 비활성화
 
-        setHand((prev) => {
-          const nextIndex = prev.length;
-          if (nextIndex < Math.min(handCount, allCards.length)) {
-            return [...prev, allCards[nextIndex]];
+        if (allCards.length > 0) {
+          // 덱의 맨 위 카드(0번 인덱스)를 뽑을 카드로 지정합니다.
+          const cardToDraw = allCards[0];
+
+          // 덱에서 뽑힌 카드를 제외한 나머지 덱을 준비합니다.
+          const newDeck = allCards.slice(1);
+
+          // 손패(hand) 상태를 업데이트: 기존 손패에 뽑은 카드를 추가합니다.
+          setHand((prevHand) => [...prevHand, cardToDraw]);
+
+          // 덱(allCards) 상태를 업데이트: 카드가 제거된 새 덱으로 교체합니다.
+          setAllCards(newDeck);
           }
-          return prev;
-        });
       } catch (error) {
         console.error("턴 종료 실패:", error);
         alert(`턴 종료에 실패했습니다: ${error.message || "알 수 없는 오류"}`);
@@ -338,7 +379,7 @@ export default function GameLayout({ matchId }) {
     setSelectedLocation(null);
   };
 
-  const handleCardDrop = async ({ card, laneIndex, slotIndex }) => {
+  const handleCardDrop = async ({ card, laneIndex}) => {
     if (!card || !card.cardId) {
       console.warn("[GameLayout] Slot에서 유효하지 않은 카드 데이터를 받았습니다.", { card, laneIndex, slotIndex });
       return;
@@ -350,12 +391,25 @@ export default function GameLayout({ matchId }) {
       alert("참가자 정보가 없습니다. 페이지를 새로고침해주세요.");
       return;
     }
+    const targetLane = boardLanes[laneIndex]; //이 레인의 첫 번째 빈 슬롯(0~3)을 찾습니다.
+    const slotIndex = targetLane.findIndex(c => !c); // 0~3 사이의 인덱스
+
+    if (slotIndex === -1) {
+    return; 
+  }
 
     // 이전 상태 저장 (실패 시 롤백용)
     const prevHand = hand;
-
+    const prevBoardLanes = boardLanes;
     // 낙관적 업데이트: 먼저 UI 업데이트
     setHand((prevHand) => prevHand.filter((c) => c.cardId !== card.cardId));
+    setBoardLanes((prevLanes) => {
+    const newLanes = [...prevLanes]; // 전체 레인 배열 복사
+    const newTargetLane = [...newLanes[laneIndex]]; // 현재 레인 복사
+    newTargetLane[slotIndex] = card; // 빈 슬롯에 카드 배치
+    newLanes[laneIndex] = newTargetLane; // 변경된 레인으로 교체
+    return newLanes;
+  });
     setCardPlayed(true);
     setMyPowers((prev) => {
       const next = [...prev];
@@ -395,6 +449,7 @@ export default function GameLayout({ matchId }) {
       
       // 실패 시 롤백: 손패 복원
       setHand(prevHand);
+      setBoardLanes(prevBoardLanes);
       setMyPowers((prev) => {
         const next = [...prev];
         next[laneIndex] = Math.max(0, (next[laneIndex] ?? 0) - (card?.power ?? 0));
@@ -451,6 +506,7 @@ export default function GameLayout({ matchId }) {
             disabled={getLocationDisabled(i)}
             laneIndex={i}                 
             onDropCard={handleCardDrop}
+            cards={boardLanes[i]}
           />
         ))}
       </section>
@@ -473,16 +529,22 @@ export default function GameLayout({ matchId }) {
       {/* 손패 */}
         <section className="gl-hand12">
           {hand.map((card) => (
-            <div
-              key={card.cardId}
-              draggable
-              onDragStart={(e) =>
-                e.dataTransfer.setData("application/json", JSON.stringify(card))
-              }
-            >
-              <Card {...card} onCardClick={() => handleCardClick(card)} />
-            </div>
-          ))}
+        <div
+          key={card.cardId}
+          draggable
+          onDragStart={(e) => {
+            handlePressEnd(); // 드래그 시 타이머 해제
+            e.dataTransfer.setData("application/json", JSON.stringify(card));
+          }}
+          onMouseDown={(e) => handlePressStart(card, setSelectedCard, e)}
+          onMouseUp={handlePressEnd}
+          onMouseLeave={handlePressEnd}
+          onTouchStart={(e) => handlePressStart(card, setSelectedCard, e)}
+          onTouchEnd={handlePressEnd}
+        >
+      <Card {...card} />
+    </div>
+  ))}
         </section>
 
     </div>

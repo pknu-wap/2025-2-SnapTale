@@ -3,30 +3,28 @@ import "./Slot.css";
 import Card from "./Card";
 
 
-export default function Slot({ isMySide = false, laneIndex, onDropCard, disabled = false, onChange }) {
-  // 4칸(인덱스 0~3), null = 비어있음
-  const [cells, setCells] = useState([null, null, null, null]);
+export default function Slot({ isMySide = false, laneIndex, onDropCard, disabled = false, cards = [null, null, null, null] }) {
   const [isOver, setIsOver] = useState(false);
 
-  const firstEmpty = useMemo(() => cells.findIndex((c) => !c), [cells]);
+  const firstEmpty = useMemo(() => cards.findIndex((c) => !c), [cards]); //cards 배열에서 첫 번째 빈 칸의 인덱스 찾기
   const isFull = firstEmpty === -1;
   const allowDrop = isMySide && !disabled && !isFull;
 
 
-  const handleDragEnter = (e) => {
+  const handleDragEnter = (e) => { //slot 영역에 드래그 요소가 진입했을 때
     if (!allowDrop) return;
-    e.preventDefault(); // 드롭 가능
+    e.preventDefault(); // 드롭 가능임을 표시
     setIsOver(true);
   };
 
-  const handleDragOver = (e) => {
+  const handleDragOver = (e) => { //slot 영역 위에서 드래그 중일 때
     if (!allowDrop) return;
     e.preventDefault();
   };
 
-  const handleDragLeave = () => setIsOver(false);
+  const handleDragLeave = () => setIsOver(false); //slot 영역에서 드래그 요소가 벗어났을 때
 
-  const handleDrop = (e) => {
+  const handleDrop = (e) => { //slot 영역에 드롭했을 때
     setIsOver(false);
     if (!allowDrop) return;
     e.preventDefault();
@@ -43,16 +41,7 @@ export default function Slot({ isMySide = false, laneIndex, onDropCard, disabled
       return;
     }
 
-    if (firstEmpty === -1) return;
-    const slotIndex = firstEmpty;
-
-    const next = [...cells];
-    next[slotIndex] = card;
-
-    setCells(next);
-
-    onChange?.(next);
-    onDropCard?.({ laneIndex, slotIndex, card});
+    onDropCard?.({ laneIndex, card});
   };
 
   return (
@@ -69,7 +58,7 @@ export default function Slot({ isMySide = false, laneIndex, onDropCard, disabled
       onDrop={handleDrop}
     >
       <div className="slot__grid">
-        {cells.map((card, i) => (
+        {cards.map((card, i) => (
           <div className="slot__cell" key={i}>
             {card && (
               <Card
