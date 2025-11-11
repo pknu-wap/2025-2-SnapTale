@@ -474,12 +474,9 @@ export default function GameLayout({ matchId }) {
                 <span className="turn-panel__max"> / {maxTurn}</span>
               </span>
             </div>
-            <button
-              className="end-turn-button"
-              onClick={endTurn}
-              disabled={turn === maxTurn}
-            >
-              턴 종료
+            <button className="end-turn-button" onClick={endTurn}
+              disabled={turn === maxTurn || isWaitingForOpponent}>
+              {endTurnButtonLabel}
             </button>
           </aside>
 
@@ -487,7 +484,7 @@ export default function GameLayout({ matchId }) {
             <div className="board-grid" role="group" aria-label="슬롯 및 지역">
               {Array.from({ length: SLOT_COUNT }).map((_, i) => (
                 <div className="board-cell board-cell--slot board-cell--enemy" key={`enemy-slot-${i}`}>
-                  <Slot key={`enemy-${i}`} isMySide={false} disabled={getSlotDisabled(i)} />
+                  <Slot key={`enemy-${i}`} isMySide={false} disabled={getLocationDisabled(i)} />
                 </div>
               ))}
 
@@ -522,12 +519,13 @@ export default function GameLayout({ matchId }) {
 
               {Array.from({ length: SLOT_COUNT }).map((_, i) => (
                 <div className="board-cell board-cell--slot board-cell--ally" key={`ally-slot-${i}`}>
-                  <Slot
-                    key={`ally-${i}`}
-                    isMySide={true}
-                    disabled={getSlotDisabled(i)}
-                    laneIndex={i}
+                  <Slot 
+                    key={`ally-${i}`} 
+                    isMySide={true} 
+                    disabled={getLocationDisabled(i)}
+                    laneIndex={i}                 
                     onDropCard={handleCardDrop}
+                    cards={boardLanes[i]}
                   />
                 </div>
               ))}
@@ -536,15 +534,23 @@ export default function GameLayout({ matchId }) {
             <section className="hand-row" aria-label="내 손패">
               <div className="hand-grid">
                 {hand.map((card) => (
-                  <div
-                    key={card.cardId}
-                    className="hand-card"
-                    draggable
-                    onDragStart={(e) =>
-                      e.dataTransfer.setData("application/json", JSON.stringify(card))
-                    }
-                  >
-                    <Card {...card} onCardClick={() => handleCardClick(card)} />
+                <div
+                  key={card.cardId}
+                  className="hand-card"
+                  draggable
+                  onDragStart={(e) => {
+                    handlePressEnd(); // 드래그 시 타이머 해제
+                    e.dataTransfer.setData("application/json", JSON.stringify(card));
+                  }}
+                  onMouseDown={(e) => handlePressStart(card, setSelectedCard, e)}
+                  onMouseUp={handlePressEnd}
+                  onMouseLeave={handlePressEnd}
+                  onTouchStart={(e) => handlePressStart(card, setSelectedCard, e)}
+                  onTouchEnd={handlePressEnd}
+                  onTouchMove={handlePressEnd}
+                  onContextMenu={(e) => e.preventDefault()} //배포
+                >
+              <Card {...card} />
                   </div>
                 ))}
               </div>
