@@ -1,20 +1,22 @@
 import './App.css'
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import  Init  from "./Components/Init/Init";
 import  Home  from "./Components/Home/Home";
 import  DeckCheck from "./Components/DeckCheck/DeckCheck";
 import  GameLoading from "./Components/Home/GameLoading";
 import  GamePlay  from "./Components/GamePlay/Index";
-import  GameResult  from "./Components/GameResult";
+import  GameResult  from "./Components/GameResult/GameResult";
 import { WebSocketLayout } from "./contexts/WebSocketContext.jsx";
 
-function App() {
+function AppShell() {
+  const { pathname } = useLocation();
+  const isGameplay = pathname.startsWith("/gameplay");
+
   return (
     <div className="app-background">
-      <div className="app-bg-image">
-        <Router>
-          <Routes>
-            {/* 초기 화면 */}
+      <div className={`app-bg-image ${isGameplay ? "bg-gameplay" : "bg-default"}`}>
+        <Routes>
+          {/* 초기 화면 */}
             <Route path="/" element={<Init />} />
             {/* 메인 홈 화면 */}
             <Route path="/home" element={<Home />} />
@@ -28,10 +30,16 @@ function App() {
             </Route>
             {/* 게임 결과 확인 화면 */}
             <Route path="/gameresult" element={<GameResult />} />
-          </Routes>
-        </Router>
+        </Routes>
       </div>
     </div>
   );
 }
-export default App;
+
+export default function App() {
+  return (
+    <Router>
+      <AppShell />
+    </Router>
+  );
+}

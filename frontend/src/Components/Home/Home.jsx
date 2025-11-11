@@ -1,7 +1,6 @@
 import './Home.css'
 import Button from "./Button"
-import DeckIcon from "./DeckIcon";
-import SoundIcon from "./SoundIcon";
+import TopBar from '../TopBar/TopBar';
 import RDModal from "./RDModal";
 import FriendlyMatchModal from "./FriendlyMatchModal";
 import CreateMatchModal from "./CreateMatchModal";
@@ -165,65 +164,62 @@ const Home = () => {
   };
 
   return (
-    <div className="home-container">
-      
-      {/* 상단 메뉴 (사운드바, 프로필) */}
-      <header className="top-menu">
-        <SoundIcon />
-        <DeckIcon />
-      </header>
+    <>
+      <TopBar screenType="home" />
+      <div className="home-container">
 
-      {/* 메인 버튼 영역 */}
-      <main className= "matching-buttons">
-          <Button 
-            text={"랜덤 매치"} 
-            onClick={handleRandomMatch}
-            disabled={showDeckModal || openRDModal || openFriendlyModal || openCreateModal || openJoinModal} 
-          />
-          <Button 
-            text={"친선전"} 
-            onClick={() => {
-              if (!user) {
-                alert("로그인이 필요합니다.");
-                return;
-              }
-              setOpenFriendlyModal(true);
-            }}
-            disabled={showDeckModal || openRDModal || openFriendlyModal || openCreateModal || openJoinModal} 
-          />
-          <Button 
-            text={"튜토리얼"} 
-            disabled={showDeckModal || openRDModal || openFriendlyModal || openCreateModal || openJoinModal} 
-          />
-        {showDeckModal && <DCModal />}
+        {/* 메인 버튼 영역 */}
+        <main className= "matching-buttons">
+            <Button 
+              text={"랜덤 매치"} 
+              onClick={handleRandomMatch}
+              disabled={showDeckModal || openRDModal || openFriendlyModal || openCreateModal || openJoinModal} 
+            />
+            <Button 
+              text={"친선전"} 
+              onClick={() => {
+                if (!user) {
+                  alert("로그인이 필요합니다.");
+                  return;
+                }
+                setOpenFriendlyModal(true);
+              }}
+              disabled={showDeckModal || openRDModal || openFriendlyModal || openCreateModal || openJoinModal} 
+            />
+            <Button 
+              text={"튜토리얼"} 
+              disabled={showDeckModal || openRDModal || openFriendlyModal || openCreateModal || openJoinModal} 
+            />
+          {showDeckModal && <DCModal />}
 
-        {openRDModal && 
-          <RDModal 
-            setOpenRDModal={setOpenRDModal} 
-            matchCode={matchCode}
-            currentMatchId={currentMatchId} />
-        }
+          {openRDModal && 
+            <RDModal 
+              setOpenRDModal={setOpenRDModal} 
+              matchCode={matchCode}
+              currentMatchId={currentMatchId} />
+          }
 
-        {openFriendlyModal && 
-          <FriendlyMatchModal 
-            setOpenFriendlyModal={setOpenFriendlyModal}
-            setOpenJoinModal={setOpenJoinModal}
-            onCreateMatch={handleCreateFriendlyMatch} />
-        }
+          {openFriendlyModal && 
+            <FriendlyMatchModal 
+              setOpenFriendlyModal={setOpenFriendlyModal}
+              setOpenJoinModal={setOpenJoinModal}
+              onCreateMatch={handleCreateFriendlyMatch} />
+          }
 
-        {openCreateModal && 
-          <CreateMatchModal 
-            setOpenCreateModal={setOpenCreateModal}
-            matchId={currentMatchId} />
-        }
+          {openCreateModal && 
+            <CreateMatchModal 
+              setOpenCreateModal={setOpenCreateModal}
+              matchId={currentMatchId} />
+          }
 
-        {openJoinModal && 
-          <JoinMatchModal 
-            setOpenJoinModal={setOpenJoinModal}
-            onJoinMatch={handleJoinFriendlyMatch} />
-        }
-      </main>
-    </div>
+          {openJoinModal && 
+            <JoinMatchModal 
+              setOpenJoinModal={setOpenJoinModal}
+              onJoinMatch={handleJoinFriendlyMatch} />
+          }
+        </main>
+      </div>
+    </>
   );
 };
 export default Home;

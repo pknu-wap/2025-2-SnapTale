@@ -2,102 +2,138 @@
 .location-container {
   position: relative;
   cursor: pointer;
-  width: 130px;
-  height: 200px;
-  top: calc(-40px); /*부모의 크기가 120px인데 자식이 200px이라서 위로 40px 튀어나오게 임시 설정 */
-  flex: 0 0 130px; /* flexbox 높이 고정 */
+  width: clamp(6rem, 17vw, 9rem);
+  aspect-ratio: 7 / 10;
+  padding: 0;
+  border-radius: clamp(1.05rem, 2.4vw, 1.65rem);
+  background: transparent;
+  box-shadow: none;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  overflow: hidden;
+}
+
+.location-container:hover {
+  transform: translateY(clamp(-0.16rem, -0.45vw, -0.26rem));
+  box-shadow: 0 clamp(0.45rem, 1.4vw, 1.1rem) clamp(1.1rem, 2.8vw, 1.9rem) rgba(0, 0, 0, 0.22);
 }
 
 /* 배경 이미지 */
-.location-image {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 130px;
-  height: 180px;
-  object-fit: cover;
-  transform: translate(-50%, -50%);
-  filter: brightness(0.8);
-  clip-path: polygon(
-    50% 0%,
-    100% 25%,
-    100% 75%,
-    50% 100%,
-    0% 75%,
-    0% 25%
-  );
-  z-index: 1;
-}
-/* 비활성화된 회색 배경 */
-.location-container.locked .location-image {
-  display: none; /* 이미지 숨김 */
-}
-.locked-overlay {
+.location-image-wrap {
   position: absolute;
   inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
   display: flex;
-  justify-content: center;
   align-items: center;
-  background: #888; /* 완전히 회색 배경 */
-  border-radius: 12px;
-  z-index: 5;
+  justify-content: center;
+  background: transparent;
 }
-.locked-text {
-  color: #fff; /* 밝은 글씨 */
-  font-size: 18px;
-  font-weight: 600;
-  text-align: center;
-  text-shadow: 0 0 5px rgba(0, 0, 0, 0.6);
+
+.location-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.94);
+  clip-path: polygon(
+    50% 0%,
+    100% 22%,
+    100% 78%,
+    50% 100%,
+    0% 78%,
+    0% 22%
+  );
+  transition: filter 0.3s ease;
 }
-/* 비활성화 상태 클릭 불가 */
+
+.location-container::before {
+  content: "";
+  position: absolute;
+  inset: clamp(0.12rem, 0.32vw, 0.22rem);
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(15, 9, 3, 0.45), rgba(15, 9, 3, 0));
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 1;
+  clip-path: polygon(
+    50% 0%,
+    100% 22%,
+    100% 78%,
+    50% 100%,
+    0% 78%,
+    0% 22%
+  );
+}
+
+.location-container:hover .location-image {
+  filter: brightness(1);
+}
+
+/* 비활성화 상태 */
 .location-container.locked {
   pointer-events: none;
 }
 
-/* 이름을 상단으로 */
+.location-container.locked .location-image {
+  display: none;
+}
+
+.locked-overlay {
+  position: absolute;
+  inset: clamp(0.35rem, 1vw, 0.7rem);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(120, 120, 120, 0.92);
+  border-radius: inherit;
+  color: #fff;
+  text-align: center;
+  padding: clamp(0.5rem, 1.3vw, 0.85rem);
+  z-index: 5;
+}
+
+.locked-text {
+  font-size: clamp(0.85rem, 2.2vw, 1.1rem);
+  font-weight: 600;
+  line-height: 1.4;
+  text-shadow: 0 0 clamp(0.35rem, 1vw, 0.65rem) rgba(0, 0, 0, 0.45);
+}
+
+/* 이름과 설명 */
 .location-name {
   position: absolute;
-  top: 60px;
+  top: 40%;
   left: 50%;
-  width: 130px;
-  height: 30px;
+  width: clamp(5.6rem, 14vw, 7.6rem);
   transform: translate(-50%, -50%);
-  font-size: 24px;
+  font-size: clamp(0.86rem, 2vw, 1.16rem);
   color: #fff;
   text-align: center;
   z-index: 5;
   pointer-events: none;
+  text-shadow: 0 0 clamp(0.35rem, 1vw, 0.6rem) rgba(0, 0, 0, 0.6);
+  line-height: 1.3;
+  padding-inline: clamp(0.3rem, 0.8vw, 0.5rem);
 }
-.location-desc{
+
+.location-desc {
   position: absolute;
-  top: 60%;
+  top: 67%;
   left: 50%;
-  width: 130px;
-  height: 50px;
+  width: clamp(5.8rem, 15vw, 8.4rem);
   transform: translate(-50%, -50%);
-  font-size: 12px;
-  color: #fff;
+  font-size: clamp(0.52rem, 1.3vw, 0.82rem);
+  color: #f7ede2;
   z-index: 5;
   text-align: center;
   pointer-events: none;
+  line-height: 1.35;
+  padding-inline: clamp(0.2rem, 0.5vw, 0.35rem);
 }
 
-/* 위쪽 파워 (상대방) */
-.opponentPower-container {
-  position: absolute;
-  top: 0px; /* 컨테이너 맨 위 */
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 6;
-}
-
-/* 아래쪽 파워 (내 것) */
+/* 파워 정보 */
+.opponentPower-container,
 .myPower-container {
   position: absolute;
-  bottom: 0px; /* 컨테이너 맨 아래 */
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -106,79 +142,63 @@
   z-index: 6;
 }
 
-/* 아이콘 */
-.location-icon {
-  width: 40px;
-  height: 40px;
-  position: relative;
-  z-index: 3;
+.opponentPower-container {
+  top: clamp(0.65rem, 1.3vw, 0.95rem);
+  transform: translate(-50%, -50%);
 }
 
-/* 아이콘 안 숫자 */
+.myPower-container {
+  bottom: clamp(0.65rem, 1.3vw, 0.95rem);
+  transform: translate(-50%, 50%);
+}
+
+.location-icon {
+  width: clamp(1.6rem, 3.6vw, 2.35rem);
+  height: clamp(1.6rem, 3.6vw, 2.35rem);
+  position: relative;
+}
+
 .location-icon-text {
   position: absolute;
-  font-size: 20px;
+  font-size: clamp(0.78rem, 2vw, 1.12rem);
   color: #ffffff;
   user-select: none;
   pointer-events: none;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 10;
+  text-shadow: 0 0 clamp(0.3rem, 1vw, 0.55rem) rgba(0, 0, 0, 0.45);
 }
 
 .enlarged-location-container {
   position: relative;
-  width: 195px;  
-  height: 300px; 
+  width: clamp(12rem, 32vw, 16rem);
+  aspect-ratio: 7 / 10;
   animation: zoomIn 0.3s ease-out;
 }
+
 .enlarged-location-container .location-image {
-   width: 195px;
-  height: 270px;   
-}
-.enlarged-location-container .location-name {
-  position: absolute;
-  top: 80px;
-  left: 50%;
-  width: 195px;
-  height: 30px;
-  transform: translate(-50%, -50%);
-  font-size: 32px;
-  color: #fff;
-  text-align: center;
-  z-index: 5;
-  pointer-events: none;
-}
-.enlarged-location-container .location-icon {
-  width: 60px;
-  height: 60px;
-  position: relative;
-  z-index: 3;
+  width: 100%;
+  height: 100%;
 }
 
-/* 아이콘 안 숫자 */
-.enlarged-location-container .location-icon-text {
-  position: absolute;
-  font-size: 30px;
-  color: #ffffff;
-  user-select: none;
-  pointer-events: none;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 10;
+.enlarged-location-container .location-name {
+  top: clamp(32%, 33%, 34%);
+  width: 100%;
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
 }
-.enlarged-location-container .location-desc{
-  position: absolute;
-  top: 60%;
-  left: 50%;
-  width: 300px;
-  height: 100px;
-  transform: translate(-50%, -50%);
-  font-size: 24px;
-  color: #fff;
-  z-index: 5;
-  text-align: center;
-  pointer-events: none;
+
+.enlarged-location-container .location-desc {
+  top: clamp(60%, 58%, 56%);
+  width: clamp(12rem, 32vw, 18rem);
+  font-size: clamp(1.1rem, 2.6vw, 1.4rem);
+}
+
+.enlarged-location-container .location-icon {
+  width: clamp(3.5rem, 7vw, 4.25rem);
+  height: clamp(3.5rem, 7vw, 4.25rem);
+}
+
+.enlarged-location-container .location-icon-text {
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
 }

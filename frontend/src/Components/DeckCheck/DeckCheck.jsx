@@ -4,7 +4,7 @@ import { fetchDeckPresetCards, updateSelectedDeck } from "./api/DeckPresetCard.j
 import { useUser } from "../../contexts/UserContext"
 import Card from "../GamePlay/Card";
 import EnlargedCard from "../GamePlay/EnlargedCard";
-import StoreButton from "./storeButton.jsx";
+import TopBar from "../TopBar/TopBar.jsx";
 import FactionIcon from "./FactionIcon"
 //import DCI from "../../assets/defaultCardImg.svg";
 import koreaIcon from "../../assets/koreaIcon.png";
@@ -116,11 +116,9 @@ const DeckCheck = () => {
     };
 
   return (
+    <>
+    <TopBar screenType="deckcheck" onSave={handleSaveClick} />
     <div className="DeckCheck-container">
-        {/* 상단 메뉴 (나가기 버튼) */}
-        <header className="deck-top-menu">
-            <StoreButton onClick={handleSaveClick}/>
-        </header>
         {/* 한중일 지역 선택 아이콘, 텍스트*/}
         <div className="deck-select">
             <div className="faction-icons">
@@ -180,6 +178,7 @@ const DeckCheck = () => {
             <EnlargedCard card={selectedCard} onClose={null} />
         </div>
     </div>
+    </>
     );
 };
 export default DeckCheck;

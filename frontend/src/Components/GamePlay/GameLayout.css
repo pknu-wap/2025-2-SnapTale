@@ -1,250 +1,248 @@
-.gameplay-container{
+.gameplay-shell {
   position: relative;
-  width: 100%;
-  height: 100%;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  background:#e3e6eb;
-  justify-content: center;
-  background: url("../../assets/bg_gamepage.png") center / cover no-repeat;
-}
-
-.gameplay-header{
-  width: 90%;
-  max-width: 90%;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-.gl-oppo-chip{
-  width: 150px;
-  height: 40px;
-  background: url("../../assets/uiBtn.png") center / 100% 100% no-repeat;
-  font-size: 18px;
-  font-weight: bold;
-  display: flex;
-  justify-content: center; /* 수평 중앙 정렬 */
-  align-items: center;
-  color: #2c1105;
-}
-
-.exit-btn{
-  background:#444;
-  color:#fff;
-  border:none;
-  padding:.45rem .9rem;
-  border-radius:8px;
-  margin-top: 2%;
-}
-
-.gl-wrap{
-  width: 100%;
-  max-width: 860px;
-  margin: 0 auto;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap: clamp(8px, 1.6vh, 14px);
-}
-
-.gl-wrap .gl-lanes3{
-  width:100%;
-  display:grid !important;
-  grid-template-columns: repeat(3, 1fr);
-  gap: clamp(8px, 1.2vw, 16px);
-  justify-items: center;
-}
-
-.gl-laneCol{
-  --card-w: clamp(64px, 11vw, 86px);
-  width:100%;
-
-  display:grid !important;
-  grid-template-columns: repeat(2, minmax(0, auto));
-  grid-auto-rows: auto;
-  justify-items: center;
-  align-items: center;
-  gap: clamp(6px, .9vw, 12px);
-  position: relative; 
-  padding: clamp(6px, .9vw, 12px); 
-  border-radius: 16px;  
-}
-
-.gl-laneCol::after{
-  content: "";
-  position: absolute;
-  inset: 2px;
-  border: 1px solid #534943; 
-  border-radius: 16px;
-  pointer-events: none;
-  opacity: 0;
-  transform: scale(0.985);
-  transition: opacity .15s ease, transform .15s ease, box-shadow .15s ease;
-  box-shadow: 0 0 0 4px rgba(211,196,170,.0); /* 외곽빛 기본 꺼둠 */
-}
-
-.gl-laneCol:hover::after,
-.gl-laneCol:has(.gl-card:hover)::after{
-  opacity: 1;
-  transform: scale(1);
-  box-shadow: 0 0 0 4px rgba(211,196,170,.25);
-}
-
-.gl-card{
-  width: 15px;
-  aspect-ratio: 2 / 3;
-  background: transparent;
-  border: 2px solid transparent;
-  border-radius: 8px;
-  transition: border 0.2s ease;
-}
-
-.gl-wrap .gl-hexRow{
-  width:100%;
-  display:grid !important;
-  grid-template-columns: repeat(3, 1fr);
-  gap: clamp(8px, 1.2vw, 16px);
-  justify-items: center;
-}
-.gl-hexRow{
-  height: 120px; /*크기 임시로 조정 */
-  align-items: center;
-}
-.gl-hex{
-  width: clamp(56px, 9vw, 84px);
-  aspect-ratio: 7 / 8;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  border: none;
-  transition: transform 0.25s ease, filter 0.25s ease;
-}
-
-.gl-hex:hover {
-  transform: scale(1.05);
-  filter: brightness(1.2);
-}
-
-.gl-wrap .gl-hand12{
-  width:100%;
-  display:grid !important;
-  grid-template-columns: repeat(auto-fit, var(--hand-w, 64px)); /* 손패 크기 12(고정) -> auto-fit으로 수정 */
-  justify-content: center; /* 손패 영역을 중앙 정렬 */
-  place-items: center; /* 영역 안에 카드가 중앙에 위치하도록 */
-  gap: clamp(8px, 1.2vw, 14px);
-  min-height: 76px;
-  --hand-w: clamp(50px, 9.2vw, 76px);
-}
-
-.gl-handCard{
-  width: var(--hand-w, 64px);
-  aspect-ratio: 2 / 3;
-}
-
-.gl-buttons-wrap{
-  position: relative;
-  width:100%;
-  height: 60px;
-  display:flex;
-  justify-content: center;
-  margin-top: -5vw;
-  left: -35vw;
-}
-
-/* 턴 종료 버튼 */
-.gl-endBtn{
   display: grid;
-  position: absolute;
-  padding:.4rem 1rem;
-  background: url("../../assets/uiBtn.png") center/contain no-repeat;
-  font-weight:800;
-  color: #2c1105;
-  letter-spacing: 0.05em;
-  border: none;
-  bottom: 10px;
+  grid-template-rows: auto 1fr;
+  min-height: 100dvh;
+  width: 100%;
+  color: #f7ede2;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
-/* 카드 확대 */
-.enlarged-card-container {
-  position: relative;
-  width: 138px;  
-  height: 228px; 
-  animation: zoomIn 0.3s ease-out;
+.gameplay-shell .top-bar {
+  height: clamp(3.2rem, 6vw, 5rem);
+  padding: 0 clamp(1.25rem, 3vw, 2.75rem);
+}
+
+.gameplay-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1.2rem, 3vw, 2.6rem);
+  padding: clamp(1.2rem, 3vh, 2rem) clamp(1.2rem, 3vw, 2.8rem);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.hud-panel {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.65rem, 2vw, 1.15rem);
+  padding: clamp(0.6rem, 1.5vw, 1rem) clamp(0.4rem, 1vw, 0.8rem);
+  border-radius: clamp(1rem, 2.6vw, 1.6rem);
+  background: rgba(22, 13, 5, 0.22);
+  box-shadow: 0 0 clamp(1rem, 3vw, 1.8rem) rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(6px);
+  max-width: clamp(5.8rem, 11vw, 7.2rem);
+}
+
+.turn-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(0.16rem, 0.5vw, 0.35rem);
+  letter-spacing: 0.05em;
+}
+
+.turn-panel__label {
+  font-size: clamp(0.68rem, 1.5vw, 0.88rem);
+  opacity: 0.75;
+}
+
+.turn-panel__value {
+  font-size: clamp(1.18rem, 2.8vw, 1.65rem);
+  font-weight: 700;
+}
+
+.turn-panel__max {
+  font-size: clamp(0.82rem, 2vw, 1.05rem);
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+.end-turn-button {
+  width: clamp(4.4rem, 8.6vw, 6rem);
+  padding: clamp(0.5rem, 1.4vw, 0.85rem) clamp(0.9rem, 2vw, 1.25rem);
+  border-radius: clamp(0.8rem, 1.8vw, 1.2rem);
+  border: none;
+  color: #2c1105;
+  font-weight: 800;
+  font-size: clamp(0.9rem, 2.2vw, 1.15rem);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.end-turn-button:hover {
+  transform: translateY(clamp(-0.08rem, -0.4vw, -0.18rem)) scale(1.03);
+  filter: brightness(1.05);
+}
+
+.end-turn-button:active {
+  transform: scale(0.98);
+}
+
+.end-turn-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.3);
+  transform: none;
+}
+
+.board-wrapper {
+  flex: 1 1 auto;
+  max-width: clamp(28rem, 78vw, 56rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1.1rem, 3vh, 1.8rem);
+  padding: clamp(0.4rem, 1vw, 0.8rem) 0;
+}
+
+.board-grid {
+  width: min(100%, clamp(20rem, 74vw, 52rem));
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, clamp(6rem, 18vw, 9.2rem)));
+  grid-auto-rows: auto;
+  column-gap: clamp(0.8rem, 2vw, 1.4rem);
+  row-gap: clamp(0.75rem, 2.2vw, 1.6rem);
+  justify-content: center;
+  align-content: center;
+}
+
+.board-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
+.board-cell--slot {
+  padding: clamp(0.1rem, 0.4vw, 0.25rem);
+}
+
+.board-cell--location {
+  padding: 0;
+}
+
+.board-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: clamp(0.55rem, 1.4vw, 0.9rem);
+  border-radius: clamp(0.8rem, 1.8vw, 1.2rem);
+  background: rgba(255, 255, 255, 0.08);
+  color: #f7ede2;
+  font-size: clamp(0.82rem, 1.8vw, 1rem);
+}
+
+.board-message--error {
+  background: rgba(206, 68, 47, 0.18);
+  color: #ffb9a7;
+}
+
+.board-message--full {
+  grid-column: 1 / -1;
+  min-height: clamp(3.5rem, 10vh, 5rem);
+}
+
+.hand-row {
+  width: min(100%, clamp(22rem, 80vw, 48rem));
+  display: flex;
+  justify-content: center;
+}
+
+.hand-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(clamp(2.4rem, 6.5vw, 3.4rem), 1fr));
+  gap: clamp(0.4rem, 1.2vw, 0.75rem);
+  justify-items: center;
+}
+
+.hand-card {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.hand-card:active .card-container {
+  transform: scale(0.96);
+}
+
+@media (max-width: 1024px) {
+  .gameplay-body {
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(1rem, 4vw, 2rem);
+  }
+
+  .hud-panel {
+    flex-direction: row;
+    gap: clamp(0.8rem, 3vw, 1.5rem);
+    max-width: none;
+    width: min(100%, clamp(16rem, 72vw, 26rem));
+    justify-content: space-around;
+  }
+
+  .turn-panel {
+    flex-direction: row;
+    gap: clamp(0.35rem, 1.2vw, 0.6rem);
+  }
+
+  .board-wrapper {
+    max-width: clamp(24rem, 86vw, 48rem);
+  }
+
+  .board-grid {
+    width: min(100%, clamp(18rem, 88vw, 44rem));
+    grid-template-columns: repeat(3, minmax(0, clamp(5.6rem, 20vw, 8rem)));
+  }
+}
+
+@media (max-width: 768px) {
+  .gameplay-shell .top-bar {
+    padding-inline: clamp(0.8rem, 5vw, 1.6rem);
+  }
+
+  .hud-panel {
+    flex-wrap: wrap;
+    row-gap: clamp(0.6rem, 3vw, 1.1rem);
+  }
+
+  .board-grid {
+    grid-template-columns: repeat(3, minmax(0, clamp(4.9rem, 28vw, 6.2rem)));
+    column-gap: clamp(0.5rem, 3vw, 1rem);
+    row-gap: clamp(0.6rem, 3vw, 1.1rem);
+  }
+
+  .hand-grid {
+    grid-template-columns: repeat(auto-fit, minmax(clamp(2.1rem, 8vw, 3rem), 1fr));
+    gap: clamp(0.35rem, 2vw, 0.6rem);
+  }
+}
+
+@media (max-width: 540px) {
+  .board-wrapper {
+    gap: clamp(0.9rem, 4vw, 1.4rem);
+  }
+
+  .board-grid {
+    width: min(100%, clamp(16rem, 92vw, 34rem));
+  }
 }
 
 .modal-backdrop {
-  position: absolute; 
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  position: fixed;
+  inset: 0;
   background-color: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-}
-
-/* 확대된 카드 컨테이너 */
-.enlarged-card-container .card-image {
-  width: 120px;     
-  height: 210px;   
-  border-width: 6px;
-  border-radius: 15px; 
-  top: 6px;        
-  left: 3px;      
-}
-
-/* cost: 우측 상단 위치 조절 */
-.enlarged-card-container .card-cost-container {
-  top: -3px;
-  right: -3px;
-}
-
-/* power: 좌측 상단 위치 조절*/
-.enlarged-card-container .card-power-container {
-  top: -3px;
-  left: -3px;
-}
-.enlarged-card-container .card-cost-container, 
-.enlarged-card-container .card-power-container,
-.enlarged-card-container .icon
-{
-  width: 54px;     
-  height: 54px; 
-}
-
-.enlarged-card-container .icon-text {
-  font-size: 30px;  
-}
-
-.enlarged-card-container .card-name {
-  width: 120px;     
-  height: 60px;     
-  font-size: 36px;  
-  display: flex; /* 세로 중앙 정렬을 위해 추가 */
-  align-items: center;
-  justify-content: center;
-}
-
-/* 확대된 카드 위에 표시될 설명 텍스트 스타일 */
-.enlarged-card-container .card-desc {
-  position: absolute;
-  width: 250px;
-  height: 37px;
-  left: 50%;
-  bottom: -61px;
-  transform: translateX(-50%);
-  font-size: 24px;
-  color: #FFECDE;
-  z-index: 6;
-  text-align: center;
-  white-space: nowrap;
-}
-
-@media (min-width: 900px){
-  .gl-laneCol{ --card-w: clamp(72px, 10vw, 100px); }
-  .gl-hand12{ --hand-w: clamp(58px, 8.5vw, 88px); }
 }

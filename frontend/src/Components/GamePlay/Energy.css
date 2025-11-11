@@ -1,18 +1,22 @@
-.energy{
+.energy {
   position: relative;
-  display: grid; 
+  display: grid;
   place-items: center;
-  width: 100px;
-  height: 100px;
+  width: clamp(2.6rem, 5.4vw, 3.8rem);
+  aspect-ratio: 1;
   font-weight: 900;
   background: url("../../assets/energy.png") center/contain no-repeat;
-  bottom: 100px;
+  transition: transform 0.25s ease;
 }
 
-.energy-value{
+.energy:hover {
+  transform: scale(1.05);
+}
+
+.energy-value {
   position: absolute;
-  font-size: 20px;
-  font-weight: 600;
+  font-size: clamp(0.95rem, 2.1vw, 1.45rem);
+  font-weight: 700;
   color: #2c1105;
-  text-shadow: 0 0 4px #fff;
+  text-shadow: 0 0 clamp(0.25rem, 0.8vw, 0.5rem) rgba(255, 255, 255, 0.95);
 }
