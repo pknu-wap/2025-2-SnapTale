@@ -1,4 +1,5 @@
 import exitButton from "../../../assets/exitButton.png";
+import "./buttonCommon.css";
 
 const ExitButton = ({ onClick }) => {
   const handleClick = () => {
@@ -8,8 +9,13 @@ const ExitButton = ({ onClick }) => {
   };
 
   return (
-    <button type="button" className="exit-btn" onClick={handleClick}>
-      <img src={exitButton} alt="exit" className="exit-icon" />
+    <button
+      type="button"
+      className="common-btn exit-btn"
+      onClick={handleClick}
+      aria-label="Exit"
+    >
+      <img src={exitButton} alt="Exit" />
     </button>
   );
 };

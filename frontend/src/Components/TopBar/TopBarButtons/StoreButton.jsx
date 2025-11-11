@@ -1,14 +1,17 @@
 import storeButton from "../../../assets/storeButton.png";
-import "./storeButton.css"
+import "./buttonCommon.css";
 
-const StoreButton = ({onClick}) => {
-    return (
-    <div className="deckStore-button-container">
-        <button type="button"  onClick={onClick}>
-            <img src={storeButton} alt="exit" />
-        </button>
-    </div>
-    );
+const StoreButton = ({ onClick }) => {
+  return (
+    <button
+      type="button"
+      className="common-btn"
+      onClick={onClick}
+      aria-label="Open store"
+    >
+      <img src={storeButton} alt="Store" />
+    </button>
+  );
 };
 
 export default StoreButton;
