@@ -28,6 +28,7 @@ public class MatchService {
     public MatchRes createMatch(MatchCreateReq request) {
         Match match = Match.builder()
                 .status(request.status())
+                .matchType(request.matchType())
                 .winnerId(request.winnerId())
                 .turnCount(request.turnCount() != null ? request.turnCount() : 0) // 기본값 0
                 .endedAt(request.endedAt())

@@ -27,6 +27,10 @@ public class Match extends BaseEntity {
     @Column(name = "status", length = 20, nullable = false)
     private MatchStatus status;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "match_type", length = 20, nullable = false)
+    private MatchType matchType;
+
     @Column(name = "winner_id")
     private Long winnerId;
 

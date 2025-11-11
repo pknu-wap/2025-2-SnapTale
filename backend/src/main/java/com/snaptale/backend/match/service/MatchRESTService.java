@@ -6,6 +6,7 @@ import com.snaptale.backend.deck.entity.DeckPreset;
 import com.snaptale.backend.match.entity.Match;
 import com.snaptale.backend.match.entity.MatchParticipant;
 import com.snaptale.backend.match.entity.MatchStatus;
+import com.snaptale.backend.match.entity.MatchType;
 import com.snaptale.backend.match.entity.Play;
 import com.snaptale.backend.match.entity.PlayActionType;
 import com.snaptale.backend.match.model.request.MatchUpdateReq;
@@ -64,6 +65,11 @@ public class MatchRESTService {
 			match = matchRepository.findById(message.getMatchId())
 					.orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_NOT_FOUND));
 
+			// 매치 타입이 FRIENDLY가 아니면 참가 불가
+			if (match.getMatchType() != MatchType.FRIENDLY) {
+				throw new BaseException(BaseResponseStatus.INVALID_MATCH_TYPE);
+			}
+
 			// 매치 상태가 QUEUED가 아니면 참가 불가
 			if (match.getStatus() != MatchStatus.QUEUED) {
 				throw new BaseException(BaseResponseStatus.INVALID_MATCH_STATUS);
@@ -72,20 +78,25 @@ public class MatchRESTService {
 			log.info("친선전 매치 참가: matchId={}, userId={}, nickname={}",
 					message.getMatchId(), message.getUserId(), message.getNickname());
 		} else {
-			// matchId가 0인 경우: 랜덤 매치 (가장 낮은 QUEUED 매치 선택)
-			match = matchRepository.findFirstByStatusOrderByMatchIdAsc(MatchStatus.QUEUED)
+			// matchId가 0인 경우: 랜덤 매치 (가장 낮은 QUEUED RANDOM 매치 선택)
+			match = matchRepository
+					.findFirstByStatusAndMatchTypeOrderByMatchIdAsc(MatchStatus.QUEUED,
+							MatchType.RANDOM)
 					.orElse(null);
 
 			if (match == null) {
 				// 없으면 새로 생성
 				Match newMatch = Match.builder()
 						.status(MatchStatus.QUEUED)
+						.matchType(MatchType.RANDOM)
 						.turnCount(0)
 						.build();
 				match = matchRepository.save(newMatch);
 
 				// 다른 요청이 동시에 더 낮은 ID로 생성했을 수 있음
-				Match existingMatch = matchRepository.findFirstByStatusOrderByMatchIdAsc(MatchStatus.QUEUED)
+				Match existingMatch = matchRepository
+						.findFirstByStatusAndMatchTypeOrderByMatchIdAsc(MatchStatus.QUEUED,
+								MatchType.RANDOM)
 						.orElse(null);
 
 				// 다른 요청이 더 낮은 ID로 매치를 만들었다면 그것을 사용
@@ -393,6 +404,7 @@ public class MatchRESTService {
 		return new MatchDetailRes(
 				match.getMatchId(),
 				match.getStatus(),
+				match.getMatchType(),
 				match.getWinnerId(),
 				match.getTurnCount(),
 				match.getEndedAt(),
