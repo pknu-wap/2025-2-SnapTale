@@ -8,25 +8,25 @@ export default function Slot({ isMySide = false, laneIndex, onDropCard, disabled
   const [cells, setCells] = useState([null, null, null, null]);
   const [isOver, setIsOver] = useState(false);
 
-  const firstEmpty = useMemo(() => cells.findIndex((c) => !c), [cells]);
+  const firstEmpty = useMemo(() => cells.findIndex((c) => !c), [cells]); //cells 배열에서 첫 번째 빈 칸의 인덱스 찾기
   const isFull = firstEmpty === -1;
   const allowDrop = isMySide && !disabled && !isFull;
 
 
-  const handleDragEnter = (e) => {
+  const handleDragEnter = (e) => { //slot 영역에 드래그 요소가 진입했을 때
     if (!allowDrop) return;
-    e.preventDefault(); // 드롭 가능
+    e.preventDefault(); // 드롭 가능임을 표시
     setIsOver(true);
   };
 
-  const handleDragOver = (e) => {
+  const handleDragOver = (e) => { //slot 영역 위에서 드래그 중일 때
     if (!allowDrop) return;
     e.preventDefault();
   };
 
-  const handleDragLeave = () => setIsOver(false);
+  const handleDragLeave = () => setIsOver(false); //slot 영역에서 드래그 요소가 벗어났을 때
 
-  const handleDrop = (e) => {
+  const handleDrop = (e) => { //slot 영역에 드롭했을 때
     setIsOver(false);
     if (!allowDrop) return;
     e.preventDefault();
