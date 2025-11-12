@@ -98,6 +98,21 @@ public class MatchController {
         return new BaseResponse<>(BaseResponseStatus.SUCCESS);
     }
 
+    // 매치 참가자 검증
+    @Operation(summary = "매치 참가자 검증", description = "해당 사용자가 매치의 참가자인지 확인합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "참가자 확인 성공"),
+            @ApiResponse(responseCode = "403", description = "참가자가 아닙니다"),
+            @ApiResponse(responseCode = "404", description = "매치를 찾을 수 없습니다"),
+    })
+    @GetMapping("/{matchId}/verify-participant/{guestId}")
+    public BaseResponse<Boolean> verifyParticipant(
+            @PathVariable Long matchId,
+            @PathVariable Long guestId) {
+        boolean isParticipant = matchRESTService.verifyParticipant(matchId, guestId);
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS, isParticipant);
+    }
+
     // 매치 참가
     @Operation(summary = "매치 참가", description = "매치에 참가합니다.")
     @ApiResponses({

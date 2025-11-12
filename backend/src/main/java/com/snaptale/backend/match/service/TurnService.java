@@ -40,9 +40,9 @@ public class TurnService {
     // 카드 제출 처리
     @Transactional
     public void submitPlay(Long matchId, Long participantId,
-            Long cardId, Integer slotIndex) {
-        log.info("카드 제출: matchId={}, participantId={}, cardId={}, slotIndex={}",
-                matchId, participantId, cardId, slotIndex);
+            Long cardId, Integer slotIndex, Integer cardPosition) {
+        log.info("카드 제출: matchId={}, participantId={}, cardId={}, slotIndex={}, cardPosition={}",
+                matchId, participantId, cardId, slotIndex, cardPosition);
 
         // 1. 매치 및 참가자 확인
         Match match = matchRepository.findById(matchId)
@@ -99,6 +99,7 @@ public class TurnService {
                 .guestId(participant.getGuestId())
                 .card(card)
                 .slotIndex(slotIndex)
+                .cardPosition(cardPosition) // 지역 내에서의 위치 (0~3)
                 .powerSnapshot(powerSnapshot) // 현재 파워 스냅샷 저장
                 .isTurnEnd(false) // 카드 제출
                 .build();
@@ -110,7 +111,7 @@ public class TurnService {
 
     // 턴 종료 및 다음 턴 시작
     // 양쪽 플레이어가 모두 턴 종료했을 때 호출
-    //코드레빗 테스트를 위한 주석 달기
+    // 코드레빗 테스트를 위한 주석 달기
     @Transactional
     public TurnEndResult endTurnAndStartNext(Long matchId) {
         log.info("턴 종료 및 다음 턴 시작: matchId={}", matchId);

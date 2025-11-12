@@ -2,6 +2,7 @@
 import { useState, useEffect, useMemo} from "react";
 import { useUser } from "../../contexts/UserContext";
 import { useWebSocket } from "../../contexts/WebSocketContext";
+import { useNavigate } from "react-router-dom";
 import "./GameLayout.css";
 import Card from "./Card";
 import Location from "./Location";
@@ -13,7 +14,7 @@ import defaultImg from "../../assets/koreaIcon.png";
 import DCI from "../../assets/defaultCardImg.svg";
 // import { fetchLocations } from "./api/location";
 import GameChatFloatingButton from "./GameChatFloatingButton";
-import { getMatch } from "../Home/api/match";
+import { getMatch, verifyParticipant } from "../Home/api/match";
 import { fetchLocationsByMatchId } from "./api/location";
 import { playAction } from "./api/matchTurn";
 
@@ -34,6 +35,7 @@ const handlePressEnd = () => {
 
 export default function GameLayout({ matchId }) {
   const maxTurn = 6;
+  const navigate = useNavigate();
 
   const { user, updateUser } = useUser();
   const [selectedCard, setSelectedCard] = useState(null);
@@ -49,6 +51,11 @@ export default function GameLayout({ matchId }) {
     [null, null, null, null], // SLOT_COUNT 0
     [null, null, null, null], // SLOT_COUNT 1
     [null, null, null, null], // SLOT_COUNT 2
+  ]);
+  const [opponentBoardLanes, setOpponentBoardLanes] = useState([
+    [], // 상대 지역 0의 카드들
+    [], // 상대 지역 1의 카드들
+    [], // 상대 지역 2의 카드들
   ]);
   // eslint-disable-next-line no-unused-vars
   const [cardPlayed, setCardPlayed] = useState(false); // 카드 플레이 여부 (향후 턴 종료 로직에서 사용 예정)
@@ -142,6 +149,32 @@ export default function GameLayout({ matchId }) {
     }
     loadDeckCards();
   }, [user?.selectedDeckPresetId]);
+
+  // 참가자 검증
+  useEffect(() => {
+    async function checkParticipant() {
+      if (!matchId || !user?.guestId) {
+        alert("잘못된 접근입니다. 메인 화면으로 돌아갑니다.");
+        navigate("/home");
+        return;
+      }
+
+      try {
+        const isParticipant = await verifyParticipant(matchId, user.guestId);
+        
+        if (!isParticipant) {
+          alert("접근 권한이 없습니다. 메인 화면으로 돌아갑니다.");
+          navigate("/home");
+        }
+      } catch (error) {
+        console.error("참가자 검증 중 오류:", error);
+        alert("접근 권한 확인에 실패했습니다. 메인 화면으로 돌아갑니다.");
+        navigate("/home");
+      }
+    }
+
+    checkParticipant();
+  }, [matchId, user?.guestId, navigate]);
 
   useEffect(() => {
     async function loadLocations() {
@@ -281,6 +314,48 @@ export default function GameLayout({ matchId }) {
               }
             }
           }
+
+          // 상대 카드 배치 정보 처리
+          if (payload?.playerCardPlays) {
+            console.log("TURN_START playerCardPlays:", payload.playerCardPlays);
+            const myGuestId = user?.guestId;
+            
+            // 상대 guestId 찾기
+            const allGuestIds = Object.keys(payload.playerCardPlays).map(id => parseInt(id));
+            const opponentGuestId = allGuestIds.find(id => id !== myGuestId);
+            
+            if (opponentGuestId) {
+              const opponentCards = payload.playerCardPlays[opponentGuestId];
+              console.log("상대 카드 정보:", opponentCards);
+              
+              // 지역별로 카드 그룹핑 (slotIndex 0, 1, 2)
+              const cardsByLocation = [[], [], []];
+
+              if (Array.isArray(opponentCards)) {
+                opponentCards.forEach(card => {
+                  if (card.slotIndex !== null && card.slotIndex !== undefined) {
+                    const locationIndex = card.slotIndex;
+                    const position = card.position !== null && card.position !== undefined ? card.position : 0;
+                    
+                    // 정확한 위치에 카드 배치
+                    if (locationIndex >= 0 && locationIndex < 3 && position >= 0 && position < 4) {
+                      cardsByLocation[locationIndex][position] = {
+                        cardId: card.cardId,
+                        name: card.cardName,
+                        imageUrl: card.cardImageUrl,
+                        cost: card.cost,
+                        power: card.power,
+                        faction: card.faction,
+                      };
+                    }
+                  }
+                });
+              }
+              
+              console.log("정확한 위치의 상대 카드:", cardsByLocation);
+              setOpponentBoardLanes(cardsByLocation);
+            }
+          }
         }
       },
     });
@@ -399,6 +474,7 @@ export default function GameLayout({ matchId }) {
     // 이전 상태 저장 (실패 시 롤백용)
     const prevHand = hand;
     const prevBoardLanes = boardLanes;
+    const prevEnergy = energy;
     // 낙관적 업데이트: 먼저 UI 업데이트
     setHand((prevHand) => prevHand.filter((c) => c.cardId !== card.cardId));
     setBoardLanes((prevLanes) => {
@@ -414,16 +490,22 @@ export default function GameLayout({ matchId }) {
       next[laneIndex] = (next[laneIndex] ?? 0) + (card?.power ?? 0);
       return next;
     });
+    // 에너지 낙관적 업데이트: 카드 비용 즉시 차감
+    setEnergy((prev) => Math.max(0, (prev ?? 0) - (card?.cost ?? 0)));
 
     try {
       // 서버에 카드 플레이 요청
       // 백엔드의 slotIndex는 Location 슬롯 (0~2)을 의미하므로 laneIndex를 사용
+      // cardPosition은 해당 지역 내에서의 위치 (0~3)
       // participantId는 guestId를 의미함
       const response = await playAction(matchId, {
         participantId: user.guestId,
         cardId: card.cardId,
         actionType: "PLAY_CARD",
-        additionalData: JSON.stringify({ slotIndex: laneIndex }),
+        additionalData: JSON.stringify({ 
+          slotIndex: laneIndex,
+          cardPosition: slotIndex 
+        }),
       });
 
       console.log(`[GameLayout] 카드 ${card.name}가 lane ${laneIndex} (slotIndex: ${laneIndex}), 슬롯 내부 위치 ${slotIndex}에 놓였습니다.`, response);
@@ -445,7 +527,7 @@ export default function GameLayout({ matchId }) {
       console.error("playAction 실패:", error);
       console.log("playAction 호출 실패:", matchId, user.participantId, card.cardId, laneIndex, slotIndex, error.energy);
       
-      // 실패 시 롤백: 손패 복원
+      // 실패 시 롤백: 손패, 보드, 파워, 에너지 복원
       setHand(prevHand);
       setBoardLanes(prevBoardLanes);
       setMyPowers((prev) => {
@@ -453,6 +535,7 @@ export default function GameLayout({ matchId }) {
         next[laneIndex] = Math.max(0, (next[laneIndex] ?? 0) - (card?.power ?? 0));
         return next;
       });
+      setEnergy(prevEnergy); // 에너지 롤백
       setCardPlayed(false);
       
       // 사용자에게 에러 알림
@@ -484,7 +567,12 @@ export default function GameLayout({ matchId }) {
             <div className="board-grid" role="group" aria-label="슬롯 및 지역">
               {Array.from({ length: SLOT_COUNT }).map((_, i) => (
                 <div className="board-cell board-cell--slot board-cell--enemy" key={`enemy-slot-${i}`}>
-                  <Slot key={`enemy-${i}`} isMySide={false} disabled={getLocationDisabled(i)} />
+                  <Slot 
+                    key={`enemy-${i}`} 
+                    isMySide={false} 
+                    disabled={getLocationDisabled(i)}
+                    cards={opponentBoardLanes[i]}
+                  />
                 </div>
               ))}
 
