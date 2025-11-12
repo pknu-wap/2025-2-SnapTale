@@ -474,6 +474,7 @@ export default function GameLayout({ matchId }) {
     // 이전 상태 저장 (실패 시 롤백용)
     const prevHand = hand;
     const prevBoardLanes = boardLanes;
+    const prevEnergy = energy;
     // 낙관적 업데이트: 먼저 UI 업데이트
     setHand((prevHand) => prevHand.filter((c) => c.cardId !== card.cardId));
     setBoardLanes((prevLanes) => {
@@ -489,6 +490,8 @@ export default function GameLayout({ matchId }) {
       next[laneIndex] = (next[laneIndex] ?? 0) + (card?.power ?? 0);
       return next;
     });
+    // 에너지 낙관적 업데이트: 카드 비용 즉시 차감
+    setEnergy((prev) => Math.max(0, (prev ?? 0) - (card?.cost ?? 0)));
 
     try {
       // 서버에 카드 플레이 요청
@@ -524,7 +527,7 @@ export default function GameLayout({ matchId }) {
       console.error("playAction 실패:", error);
       console.log("playAction 호출 실패:", matchId, user.participantId, card.cardId, laneIndex, slotIndex, error.energy);
       
-      // 실패 시 롤백: 손패 복원
+      // 실패 시 롤백: 손패, 보드, 파워, 에너지 복원
       setHand(prevHand);
       setBoardLanes(prevBoardLanes);
       setMyPowers((prev) => {
@@ -532,6 +535,7 @@ export default function GameLayout({ matchId }) {
         next[laneIndex] = Math.max(0, (next[laneIndex] ?? 0) - (card?.power ?? 0));
         return next;
       });
+      setEnergy(prevEnergy); // 에너지 롤백
       setCardPlayed(false);
       
       // 사용자에게 에러 알림
