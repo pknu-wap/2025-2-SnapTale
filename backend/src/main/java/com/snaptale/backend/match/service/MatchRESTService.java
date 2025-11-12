@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 // REST API용 매치 서비스
@@ -251,9 +252,9 @@ public class MatchRESTService {
 		log.info("카드 플레이: matchId={}, participantId={}, cardId={}",
 				message.getMatchId(), message.getParticipantId(), message.getCardId());
 
-		// 슬롯 인덱스 파싱
-		Integer slotIndex = parseSlotIndex(message.getAdditionalData());
-		if (slotIndex == null) {
+		// 슬롯 인덱스 및 카드 위치 파싱
+		CardPlayData playData = parseCardPlayData(message.getAdditionalData());
+		if (playData == null || playData.slotIndex == null) {
 			throw new BaseException(BaseResponseStatus.INVALID_SLOT_INDEX);
 		}
 
@@ -262,7 +263,8 @@ public class MatchRESTService {
 				message.getMatchId(),
 				message.getParticipantId(),
 				message.getCardId(),
-				slotIndex);
+				playData.slotIndex,
+				playData.cardPosition);
 
 		// 참가자 정보 조회 (에너지 포함) - participantId는 guestId를 의미함
 		MatchParticipant participant = matchParticipantRepository.findByMatch_MatchIdAndGuestId(
@@ -319,26 +321,49 @@ public class MatchRESTService {
 		}
 	}
 
-	// additionalData에서 slotIndex 파싱
-	private Integer parseSlotIndex(String additionalData) {
+	// additionalData에서 slotIndex와 cardPosition 파싱
+	private CardPlayData parseCardPlayData(String additionalData) {
 		if (additionalData == null || additionalData.isEmpty()) {
 			return null;
 		}
+
 		try {
 			// JSON 파싱
-			// 프론트엔드에서 JSON.stringify({ slotIndex: laneIndex })로 보내므로
-			// "{\"slotIndex\":0}" 형태로 들어옴
-			ObjectMapper objectMapper = new ObjectMapper();
-			JsonNode jsonNode = objectMapper.readTree(additionalData);
-			JsonNode slotIndexNode = jsonNode.get("slotIndex");
-			if (slotIndexNode != null && slotIndexNode.isNumber()) {
-				return slotIndexNode.asInt();
+			// 프론트엔드에서 JSON.stringify({ slotIndex: laneIndex, cardPosition: slotIndex })로
+			// 보내므로
+			// "{\"slotIndex\":0,\"cardPosition\":1}" 형태로 들어옴
+			JsonNode jsonNode = new ObjectMapper().readTree(additionalData);
+
+			Integer slotIndex = Optional.ofNullable(jsonNode.get("slotIndex"))
+					.filter(JsonNode::isNumber)
+					.map(JsonNode::asInt)
+					.orElse(null);
+
+			Integer cardPosition = Optional.ofNullable(jsonNode.get("cardPosition"))
+					.filter(JsonNode::isNumber)
+					.map(JsonNode::asInt)
+					.orElse(null);
+
+			if (slotIndex == null || cardPosition == null) {
+				log.warn("필수 필드 누락 - slotIndex: {}, cardPosition: {}", slotIndex, cardPosition);
+				return null;
 			}
-			log.warn("slotIndex를 찾을 수 없음: {}", additionalData);
-			return null;
+
+			return new CardPlayData(slotIndex, cardPosition);
 		} catch (Exception e) {
-			log.error("slotIndex 파싱 실패: {}", additionalData, e);
+			log.error("카드 플레이 데이터 파싱 실패: {}", additionalData, e);
 			return null;
+		}
+	}
+
+	// 카드 플레이 데이터를 담는 내부 클래스
+	private static class CardPlayData {
+		Integer slotIndex;
+		Integer cardPosition;
+
+		CardPlayData(Integer slotIndex, Integer cardPosition) {
+			this.slotIndex = slotIndex;
+			this.cardPosition = cardPosition;
 		}
 	}
 

@@ -38,6 +38,8 @@ public class TurnStatusMessage {
         private String cardName;
         private String cardImageUrl;
         private Integer slotIndex; // 어느 지역 (0, 1, 2)
+        private Integer position; // 지역 내에서의 위치 (0, 1, 2, 3)
+        private Integer cost; // 카드 코스트
         private Integer power;
         private String faction;
     }

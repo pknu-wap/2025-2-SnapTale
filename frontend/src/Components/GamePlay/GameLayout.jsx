@@ -330,21 +330,29 @@ export default function GameLayout({ matchId }) {
               
               // 지역별로 카드 그룹핑 (slotIndex 0, 1, 2)
               const cardsByLocation = [[], [], []];
+
               if (Array.isArray(opponentCards)) {
                 opponentCards.forEach(card => {
                   if (card.slotIndex !== null && card.slotIndex !== undefined) {
-                    cardsByLocation[card.slotIndex].push({
-                      cardId: card.cardId,
-                      name: card.cardName,
-                      imageUrl: card.cardImageUrl,
-                      power: card.power,
-                      faction: card.faction,
-                    });
+                    const locationIndex = card.slotIndex;
+                    const position = card.position !== null && card.position !== undefined ? card.position : 0;
+                    
+                    // 정확한 위치에 카드 배치
+                    if (locationIndex >= 0 && locationIndex < 3 && position >= 0 && position < 4) {
+                      cardsByLocation[locationIndex][position] = {
+                        cardId: card.cardId,
+                        name: card.cardName,
+                        imageUrl: card.cardImageUrl,
+                        cost: card.cost,
+                        power: card.power,
+                        faction: card.faction,
+                      };
+                    }
                   }
                 });
               }
               
-              console.log("지역별 상대 카드:", cardsByLocation);
+              console.log("정확한 위치의 상대 카드:", cardsByLocation);
               setOpponentBoardLanes(cardsByLocation);
             }
           }
@@ -485,12 +493,16 @@ export default function GameLayout({ matchId }) {
     try {
       // 서버에 카드 플레이 요청
       // 백엔드의 slotIndex는 Location 슬롯 (0~2)을 의미하므로 laneIndex를 사용
+      // cardPosition은 해당 지역 내에서의 위치 (0~3)
       // participantId는 guestId를 의미함
       const response = await playAction(matchId, {
         participantId: user.guestId,
         cardId: card.cardId,
         actionType: "PLAY_CARD",
-        additionalData: JSON.stringify({ slotIndex: laneIndex }),
+        additionalData: JSON.stringify({ 
+          slotIndex: laneIndex,
+          cardPosition: slotIndex 
+        }),
       });
 
       console.log(`[GameLayout] 카드 ${card.name}가 lane ${laneIndex} (slotIndex: ${laneIndex}), 슬롯 내부 위치 ${slotIndex}에 놓였습니다.`, response);

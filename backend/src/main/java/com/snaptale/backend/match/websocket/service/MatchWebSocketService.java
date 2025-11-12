@@ -201,6 +201,8 @@ public class MatchWebSocketService {
 							.cardName(play.getCard().getName())
 							.cardImageUrl(play.getCard().getImageUrl())
 							.slotIndex(play.getSlotIndex())
+							.position(play.getCardPosition())
+							.cost(play.getCard().getCost())
 							.power(play.getPowerSnapshot())
 							.faction(play.getCard().getFaction())
 							.build())
