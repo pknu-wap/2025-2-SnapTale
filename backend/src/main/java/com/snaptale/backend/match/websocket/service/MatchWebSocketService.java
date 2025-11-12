@@ -24,7 +24,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -186,6 +188,27 @@ public class MatchWebSocketService {
 		GameStateMessage gameState = createGameStateMessage(match, participants);
 		gameState.setLastPlayInfo("턴 " + turnResult.getNextTurn() + "이 시작되었습니다.");
 
+		// 각 플레이어의 카드 배치 정보 수집
+		Map<Long, List<TurnStatusMessage.CardPlayInfo>> playerCardPlays = new HashMap<>();
+		for (MatchParticipant participant : participants) {
+			List<Play> plays = playRepository.findByMatch_MatchIdAndGuestId(matchId, participant.getGuestId());
+
+			// isTurnEnd가 false인 플레이만 필터링 (실제 카드 플레이)
+			List<TurnStatusMessage.CardPlayInfo> cardPlays = plays.stream()
+					.filter(play -> !play.getIsTurnEnd() && play.getCard() != null)
+					.map(play -> TurnStatusMessage.CardPlayInfo.builder()
+							.cardId(play.getCard().getCardId())
+							.cardName(play.getCard().getName())
+							.cardImageUrl(play.getCard().getImageUrl())
+							.slotIndex(play.getSlotIndex())
+							.power(play.getPowerSnapshot())
+							.faction(play.getCard().getFaction())
+							.build())
+					.toList();
+
+			playerCardPlays.put(participant.getGuestId(), cardPlays);
+		}
+
 		TurnStatusMessage payload = TurnStatusMessage.builder()
 				.matchId(matchId)
 				.currentTurn(match.getTurnCount())
@@ -195,6 +218,7 @@ public class MatchWebSocketService {
 				.nextTurn(turnResult.getNextTurn())
 				.gameState(gameState)
 				.locationPowerResult(turnResult.getLocationPowerResult())
+				.playerCardPlays(playerCardPlays)
 				.build();
 
 		broadcastToMatch(matchId, "TURN_START", payload, "턴 " + turnResult.getNextTurn() + "이 시작되었습니다.");

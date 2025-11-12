@@ -55,6 +55,17 @@ public class MatchRESTService {
 	private final MatchWebSocketService matchWebSocketService;
 	private static final int LOCATION_COUNT = 3;
 
+	// 매치 참가자 검증
+	public boolean verifyParticipant(Long matchId, Long guestId) {
+		// 매치가 존재하는지 확인
+		matchRepository.findById(matchId)
+				.orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_NOT_FOUND));
+
+		// 해당 사용자가 참가자인지 확인
+		return matchParticipantRepository.findByMatch_MatchIdAndGuestId(matchId, guestId)
+				.isPresent();
+	}
+
 	// 매치 참가 처리
 	@Transactional
 	public MatchJoinRes joinMatch(MatchJoinMessage message) {

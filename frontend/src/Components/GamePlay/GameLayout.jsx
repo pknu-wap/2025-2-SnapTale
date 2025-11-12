@@ -2,6 +2,7 @@
 import { useState, useEffect, useMemo} from "react";
 import { useUser } from "../../contexts/UserContext";
 import { useWebSocket } from "../../contexts/WebSocketContext";
+import { useNavigate } from "react-router-dom";
 import "./GameLayout.css";
 import Card from "./Card";
 import Location from "./Location";
@@ -13,7 +14,7 @@ import defaultImg from "../../assets/koreaIcon.png";
 import DCI from "../../assets/defaultCardImg.svg";
 // import { fetchLocations } from "./api/location";
 import GameChatFloatingButton from "./GameChatFloatingButton";
-import { getMatch } from "../Home/api/match";
+import { getMatch, verifyParticipant } from "../Home/api/match";
 import { fetchLocationsByMatchId } from "./api/location";
 import { playAction } from "./api/matchTurn";
 
@@ -34,6 +35,7 @@ const handlePressEnd = () => {
 
 export default function GameLayout({ matchId }) {
   const maxTurn = 6;
+  const navigate = useNavigate();
 
   const { user, updateUser } = useUser();
   const [selectedCard, setSelectedCard] = useState(null);
@@ -49,6 +51,11 @@ export default function GameLayout({ matchId }) {
     [null, null, null, null], // SLOT_COUNT 0
     [null, null, null, null], // SLOT_COUNT 1
     [null, null, null, null], // SLOT_COUNT 2
+  ]);
+  const [opponentBoardLanes, setOpponentBoardLanes] = useState([
+    [], // 상대 지역 0의 카드들
+    [], // 상대 지역 1의 카드들
+    [], // 상대 지역 2의 카드들
   ]);
   // eslint-disable-next-line no-unused-vars
   const [cardPlayed, setCardPlayed] = useState(false); // 카드 플레이 여부 (향후 턴 종료 로직에서 사용 예정)
@@ -142,6 +149,32 @@ export default function GameLayout({ matchId }) {
     }
     loadDeckCards();
   }, [user?.selectedDeckPresetId]);
+
+  // 참가자 검증
+  useEffect(() => {
+    async function checkParticipant() {
+      if (!matchId || !user?.guestId) {
+        alert("잘못된 접근입니다. 메인 화면으로 돌아갑니다.");
+        navigate("/home");
+        return;
+      }
+
+      try {
+        const isParticipant = await verifyParticipant(matchId, user.guestId);
+        
+        if (!isParticipant) {
+          alert("접근 권한이 없습니다. 메인 화면으로 돌아갑니다.");
+          navigate("/home");
+        }
+      } catch (error) {
+        console.error("참가자 검증 중 오류:", error);
+        alert("접근 권한 확인에 실패했습니다. 메인 화면으로 돌아갑니다.");
+        navigate("/home");
+      }
+    }
+
+    checkParticipant();
+  }, [matchId, user?.guestId, navigate]);
 
   useEffect(() => {
     async function loadLocations() {
@@ -279,6 +312,40 @@ export default function GameLayout({ matchId }) {
                 if (myLocationPowers) setMyPowers(myLocationPowers);
                 if (opponentLocationPowers) setOpponentPowers(opponentLocationPowers);
               }
+            }
+          }
+
+          // 상대 카드 배치 정보 처리
+          if (payload?.playerCardPlays) {
+            console.log("TURN_START playerCardPlays:", payload.playerCardPlays);
+            const myGuestId = user?.guestId;
+            
+            // 상대 guestId 찾기
+            const allGuestIds = Object.keys(payload.playerCardPlays).map(id => parseInt(id));
+            const opponentGuestId = allGuestIds.find(id => id !== myGuestId);
+            
+            if (opponentGuestId) {
+              const opponentCards = payload.playerCardPlays[opponentGuestId];
+              console.log("상대 카드 정보:", opponentCards);
+              
+              // 지역별로 카드 그룹핑 (slotIndex 0, 1, 2)
+              const cardsByLocation = [[], [], []];
+              if (Array.isArray(opponentCards)) {
+                opponentCards.forEach(card => {
+                  if (card.slotIndex !== null && card.slotIndex !== undefined) {
+                    cardsByLocation[card.slotIndex].push({
+                      cardId: card.cardId,
+                      name: card.cardName,
+                      imageUrl: card.cardImageUrl,
+                      power: card.power,
+                      faction: card.faction,
+                    });
+                  }
+                });
+              }
+              
+              console.log("지역별 상대 카드:", cardsByLocation);
+              setOpponentBoardLanes(cardsByLocation);
             }
           }
         }
@@ -484,7 +551,12 @@ export default function GameLayout({ matchId }) {
             <div className="board-grid" role="group" aria-label="슬롯 및 지역">
               {Array.from({ length: SLOT_COUNT }).map((_, i) => (
                 <div className="board-cell board-cell--slot board-cell--enemy" key={`enemy-slot-${i}`}>
-                  <Slot key={`enemy-${i}`} isMySide={false} disabled={getLocationDisabled(i)} />
+                  <Slot 
+                    key={`enemy-${i}`} 
+                    isMySide={false} 
+                    disabled={getLocationDisabled(i)}
+                    cards={opponentBoardLanes[i]}
+                  />
                 </div>
               ))}
 
