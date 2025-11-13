@@ -9,10 +9,31 @@
   background: transparent;
   transition: transform 0.25s ease;
   will-change: transform;
+  filter: drop-shadow(
+      0 clamp(0.12rem, 0.32vw, 0.22rem)
+      clamp(0.45rem, 1.2vw, 0.68rem)
+      rgba(11, 8, 2, 0.32)
+    )
+    drop-shadow(
+      0 clamp(0.28rem, 0.75vw, 0.46rem)
+      clamp(0.65rem, 1.6vw, 0.92rem)
+      rgba(9, 5, 0, 0.18)
+    );
+  transition: filter 0.3s ease;
 }
 
 .location-container:hover {
   transform: translate3d(0, clamp(-0.16rem, -0.45vw, -0.26rem), 0);
+  filter: drop-shadow(
+      0 clamp(0.35rem, 0.95vw, 0.58rem)
+      clamp(1.05rem, 2.6vw, 1.52rem)
+      rgba(14, 9, 2, 0.5)
+    )
+    drop-shadow(
+      0 clamp(0.18rem, 0.48vw, 0.3rem)
+      clamp(0.55rem, 1.4vw, 0.82rem)
+      rgba(0, 0, 0, 0.25)
+    );
 }
 
 /* 배경 이미지 */
