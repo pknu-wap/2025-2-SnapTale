@@ -9,6 +9,7 @@ import Energy from "./Energy";
 import Slot from "./Slot";
 import EnlargedCard from "./EnlargedCard";
 import EnlargedLocation from "./EnlargedLocation";
+import CustomDragLayer from "./CustomDragLayer";
 import defaultImg from "../../assets/koreaIcon.png";
 import DCI from "../../assets/defaultCardImg.svg";
 // import { fetchLocations } from "./api/location";
@@ -468,6 +469,7 @@ export default function GameLayout({ matchId }) {
     <>
     <div className="gameplay-shell">
       <DndProvider backend={TouchBackend} options={{ enableMouseEvents: true }}>
+          <CustomDragLayer />
           <div className="gameplay-body">
             <aside className="hud-panel" aria-label="턴 정보">
               <Energy value={energy} />
