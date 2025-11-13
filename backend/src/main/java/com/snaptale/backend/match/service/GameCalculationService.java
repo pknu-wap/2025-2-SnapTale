@@ -149,12 +149,11 @@ public class GameCalculationService {
             int finalScore = participant.getGuestId().equals(powerResult.getPlayer1Id())
                     ? totalPlayer1Power
                     : totalPlayer2Power;
-            participant.apply(new MatchParticipantUpdateReq(
-                    finalScore,
-                    null,
-                    null,
-                    null,
-                    null), null, null);
+            MatchParticipantUpdateReq updateReq = MatchParticipantUpdateReq.builder()
+                    .finalScore(finalScore)
+                    .build();
+            participant.apply(updateReq, null, null);
+            matchParticipantRepository.save(participant);
         }
 
         // 6. 사용자 통계 업데이트

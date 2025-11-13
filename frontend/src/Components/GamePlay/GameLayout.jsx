@@ -274,6 +274,10 @@ export default function GameLayout({ matchId }) {
         }
 
         if (messageType === "TURN_WAITING") {
+          if (!payload) {
+            console.log("payload가 없습니다.");
+            return;
+          }
           const endedGuestId = payload?.endedGuestId;
           const waitingForOpponent = Boolean(payload?.waitingForOpponent);
 
@@ -300,6 +304,11 @@ export default function GameLayout({ matchId }) {
         }
 
         if (messageType === "TURN_START") {
+          if (!payload) {
+            console.log("payload가 없습니다.");
+            return;
+          }
+
           setIsWaitingForOpponent(false);
 
           if (typeof payload?.currentTurn === "number") {
