@@ -9,7 +9,6 @@
   background: transparent;
   box-shadow: none;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
-  overflow: hidden;
 }
 
 .location-container:hover {
