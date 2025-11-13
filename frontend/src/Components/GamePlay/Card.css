@@ -139,6 +139,12 @@
   text-align: center;
 }
 
+.card-dragging {
+  touch-action: none;     /* 모바일 스크롤 차단 */
+  pointer-events: none;   /* 터치/클릭 입력 차단 */
+  user-select: none;      /* 텍스트 드래그 방지 */
+}
+
 @keyframes zoomIn {
   from {
     transform: scale(0.5);

@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { fetchDeckPresetCards, updateSelectedDeck } from "./api/DeckPresetCard.js";
+import { DndProvider } from "react-dnd";
+import { TouchBackend } from "react-dnd-touch-backend";
 import { useUser } from "../../contexts/UserContext"
 import Card from "../GamePlay/Card";
 import EnlargedCard from "../GamePlay/EnlargedCard";
@@ -117,67 +119,70 @@ const DeckCheck = () => {
 
   return (
     <>
-    <TopBar screenType="deckcheck" onSave={handleSaveClick} />
-    <div className="DeckCheck-container">
-        {/* 한중일 지역 선택 아이콘, 텍스트*/}
-        <div className="deck-select">
-            <div className="faction-icons">
-                <div className="faction-item">
-                    <FactionIcon
-                        image={koreaIcon}
-                        selected={selectedFaction === "korea"}
-                        onClick={() => handleFactionClick("korea")}
-                    />
+    <DndProvider backend={TouchBackend} options={{ enableMouseEvents: true }}>
+        <TopBar screenType="deckcheck" onSave={handleSaveClick} />
+        <div className="DeckCheck-container">
+            {/* 한중일 지역 선택 아이콘, 텍스트*/}
+            <div className="deck-select">
+                <div className="faction-icons">
+                    <div className="faction-item">
+                        <FactionIcon
+                            image={koreaIcon}
+                            selected={selectedFaction === "korea"}
+                            onClick={() => handleFactionClick("korea")}
+                        />
+                    </div>
+                    <div className="faction-item">
+                        <FactionIcon
+                            image={chinaIcon}
+                            selected={selectedFaction === "china"}
+                            onClick={() => handleFactionClick("china")}
+                        />
+                    </div>
+                    <div className="faction-item">
+                        <FactionIcon
+                            image={japanIcon}
+                            selected={selectedFaction === "japan"}
+                            onClick={() => handleFactionClick("japan")}
+                        />
+                    </div>
                 </div>
-                <div className="faction-item">
-                    <FactionIcon
-                        image={chinaIcon}
-                        selected={selectedFaction === "china"}
-                        onClick={() => handleFactionClick("china")}
-                    />
-                </div>
-                <div className="faction-item">
-                    <FactionIcon
-                        image={japanIcon}
-                        selected={selectedFaction === "japan"}
-                        onClick={() => handleFactionClick("japan")}
-                    />
+                <div className="faction-text">
+                    {selectedFaction === "korea" && "한국"}
+                    {selectedFaction === "china" && "중국"}
+                    {selectedFaction === "japan" && "일본"}
                 </div>
             </div>
-            <div className="faction-text">
-                {selectedFaction === "korea" && "한국"}
-                {selectedFaction === "china" && "중국"}
-                {selectedFaction === "japan" && "일본"}
+            {/* 덱 카드 전체 보기*/}
+            <section className="deck-section">
+            {cards.length > 0 ? (
+                cards.map((card) => (
+                    <Card
+                        key={card.cardId}
+                        cardId={card.cardId}
+                        name={card.name}
+                        imageUrl={card.imageUrl}
+                        cost={card.cost}
+                        power={card.power}
+                        faction={card.faction}
+                        effectDesc={card.effectDesc}
+                        active={card.active}
+                        createdAt={card.createdAt}
+                        updatedAt={card.updatedAt}
+                        onCardClick={() => handleCardClick(card)}
+                        isDraggable={false}
+                />
+                ))
+            ) : (
+                <p className="loading-text">카드를 불러오는 중...</p>
+            )}
+            </section>
+            {/* 선택된 카드 자세히 보기*/}
+            <div className="selected-card">
+                <EnlargedCard card={selectedCard} onClose={null} />
             </div>
         </div>
-        {/* 덱 카드 전체 보기*/}
-        <section className="deck-section">
-        {cards.length > 0 ? (
-            cards.map((card) => (
-                <Card
-                    key={card.cardId}
-                    cardId={card.cardId}
-                    name={card.name}
-                    imageUrl={card.imageUrl}
-                    cost={card.cost}
-                    power={card.power}
-                    faction={card.faction}
-                    effectDesc={card.effectDesc}
-                    active={card.active}
-                    createdAt={card.createdAt}
-                    updatedAt={card.updatedAt}
-                    onCardClick={() => handleCardClick(card)}
-            />
-            ))
-        ) : (
-            <p className="loading-text">카드를 불러오는 중...</p>
-        )}
-        </section>
-        {/* 선택된 카드 자세히 보기*/}
-        <div className="selected-card">
-            <EnlargedCard card={selectedCard} onClose={null} />
-        </div>
-    </div>
+    </DndProvider>
     </>
     );
 };
