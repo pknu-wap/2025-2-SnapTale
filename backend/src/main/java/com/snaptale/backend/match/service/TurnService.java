@@ -124,9 +124,13 @@ public class TurnService {
         }
 
         int currentTurn = match.getTurnCount() != null ? match.getTurnCount() : 0;
+        log.info("턴 종료 및 다음 턴 시작 - 현재 턴: matchId={}, currentTurn={}, MAX_TURNS={}", 
+                matchId, currentTurn, MAX_TURNS);
 
         // 1. 현재 턴의 턴 종료 확인 (보안을 위해 재확인)
         boolean bothEnded = checkBothPlayersEnded(matchId, currentTurn);
+        log.info("양쪽 플레이어 턴 종료 확인: matchId={}, currentTurn={}, bothEnded={}", 
+                matchId, currentTurn, bothEnded);
         if (!bothEnded) {
             throw new BaseException(BaseResponseStatus.WAITING_FOR_OTHER_PLAYER);
         }
@@ -135,14 +139,18 @@ public class TurnService {
         LocationPowerResult locationPowerResult = gameCalculationService.calculateLocationPowers(matchId);
 
         // 2. 마지막 턴(6턴)인지 확인
+        // 6턴이 끝났을 때 게임 종료 (currentTurn이 6이면 6턴이 끝난 것)
         if (currentTurn >= MAX_TURNS) {
-            log.info("마지막 턴 도달");
+            log.info("마지막 턴 도달 - 게임 종료: matchId={}, currentTurn={}, MAX_TURNS={}", 
+                    matchId, currentTurn, MAX_TURNS);
             return TurnEndResult.builder()
                     .gameEnded(true)
                     .nextTurn(currentTurn)
                     .locationPowerResult(locationPowerResult)
                     .build();
         }
+        
+        log.info("게임 계속 진행 - 다음 턴으로: matchId={}, currentTurn={}", matchId, currentTurn);
 
         // 3. 다음 턴으로 진행 (에너지 지급 및 드로우 포함)
         TurnStartResult turnStartResult = gameFlowService.startNextTurn(matchId);

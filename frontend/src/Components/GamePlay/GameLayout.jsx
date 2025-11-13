@@ -236,8 +236,41 @@ export default function GameLayout({ matchId }) {
         const messageType = wsMessage?.type;
         const payload = wsMessage?.data;
 
-        if (!messageType || !payload) {
+        if (!messageType) {
           return;
+        }
+
+        if (messageType === "GAME_END") {
+          // 게임 종료 메시지 처리
+          const gameState = payload;
+          const message = wsMessage?.message || "게임이 종료되었습니다.";
+          
+          console.log("게임 종료:", message, gameState);
+          
+          // 게임 종료 메시지 표시
+          alert(message);
+          
+          // home으로 리다이렉트
+          setTimeout(() => {
+            navigate("/home");
+          }, 1000); // 1초 후 리다이렉트 (메시지를 볼 시간 제공)
+          return; // GAME_END 처리 후 다른 메시지 처리하지 않음
+        }
+
+        // payload가 없으면 다른 메시지 처리하지 않음
+        if (!payload) {
+          console.log("payload가 없습니다.");
+          return;
+        }
+
+        if (messageType === "LEAVE") {
+          // 상대방이 나간 경우 처리
+          const leaveMessage = wsMessage?.message || "상대방이 나갔습니다.";
+          
+          console.log("상대방 퇴장:", leaveMessage);
+          
+          // GAME_END 메시지가 곧 올 것이므로 여기서는 로그만 남김
+          // (GAME_END에서 처리하도록 함)
         }
 
         if (messageType === "TURN_WAITING") {
@@ -361,7 +394,7 @@ export default function GameLayout({ matchId }) {
     });
 
     return unsubscribe;
-  }, [matchId, subscribe, user?.guestId, user?.participantId]);
+  }, [matchId, subscribe, user?.guestId, user?.participantId, navigate]);
 
   useEffect(() => {
     setIsWaitingForOpponent(false);
@@ -383,7 +416,7 @@ export default function GameLayout({ matchId }) {
   };
 
   const endTurn = async () => {
-    if (turn < maxTurn) {
+    if (turn <= maxTurn) { // 6턴도 종료 가능하도록 변경
       try {
         // 서버에 턴 종료 요청
         const response = await playAction(matchId, {
@@ -410,7 +443,8 @@ export default function GameLayout({ matchId }) {
 
         setCardPlayed(false); // 다시 비활성화
 
-        if (allCards.length > 0) {
+        // 6턴이 끝나면 게임이 종료되므로 카드 드로우하지 않음
+        if (turn < maxTurn && allCards.length > 0) {
           // 덱의 맨 위 카드(0번 인덱스)를 뽑을 카드로 지정합니다.
           const cardToDraw = allCards[0];
 
@@ -422,7 +456,7 @@ export default function GameLayout({ matchId }) {
 
           // 덱(allCards) 상태를 업데이트: 카드가 제거된 새 덱으로 교체합니다.
           setAllCards(newDeck);
-          }
+        }
       } catch (error) {
         console.error("턴 종료 실패:", error);
         alert(`턴 종료에 실패했습니다: ${error.message || "알 수 없는 오류"}`);
@@ -558,7 +592,7 @@ export default function GameLayout({ matchId }) {
               </span>
             </div>
             <button className="end-turn-button" onClick={endTurn}
-              disabled={turn === maxTurn || isWaitingForOpponent}>
+              disabled={turn === maxTurn + 1 || isWaitingForOpponent}>
               {endTurnButtonLabel}
             </button>
           </aside>
