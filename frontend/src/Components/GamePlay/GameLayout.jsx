@@ -65,6 +65,21 @@ export default function GameLayout({ matchId }) {
 
   const { subscribe } = useWebSocket();
 
+  const opponentName = useMemo(() => {
+    if (!user?.enemyPlayer) {
+      return "상대방";
+    }
+
+    return (
+      user.enemyPlayer.nickname ||
+      user.enemyPlayer.userName ||
+      user.enemyPlayer.name ||
+      "상대방"
+    );
+  }, [user?.enemyPlayer]);
+
+  const myNickname = user?.nickname ?? "나";
+
   // 매치 정보 및 에너지 로드
   useEffect(() => {
     async function loadMatchData() {
@@ -549,18 +564,24 @@ export default function GameLayout({ matchId }) {
     <div className="gameplay-shell">
         <div className="gameplay-body">
           <aside className="hud-panel" aria-label="턴 정보">
-            <Energy value={energy} />
-            <div className="turn-panel">
-              <span className="turn-panel__label">TURN</span>
-              <span className="turn-panel__value">
-                {turn}
-                <span className="turn-panel__max"> / {maxTurn}</span>
-              </span>
+            <div className="hud-matchup" aria-label="플레이어 정보">
+              <span className="hud-player hud-player--opponent" title={opponentName}>{opponentName}</span>
+              <span className="hud-vs" aria-hidden="true">VS</span>
+              <span className="hud-player hud-player--me" title={myNickname}>{myNickname}</span>
             </div>
-            <button className="end-turn-button" onClick={endTurn}
-              disabled={turn === maxTurn || isWaitingForOpponent}>
-              {endTurnButtonLabel}
-            </button>
+
+            <div className="hud-section">
+              <Energy value={energy} />
+            </div>
+
+            <div className="hud-section turn-panel">
+            </div>
+            <div className="hud-section">
+              <button className="end-turn-button" onClick={endTurn}
+                disabled={turn === maxTurn || isWaitingForOpponent}>
+                {endTurnButtonLabel}
+              </button>
+            </div>
           </aside>
 
           <main className="board-wrapper" aria-label="게임 보드">

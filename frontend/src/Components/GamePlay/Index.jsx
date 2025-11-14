@@ -14,7 +14,6 @@ const GamePlay = () => {
       <TopBar screenType="gameplay" onExit={() => navigate("/home")} />
       <div className="gameplay-container">
         <header className="gameplay-header">
-          <div className="gl-oppo-chip">{opponentName}</div>
         </header>
         <GameLayout matchId={matchId} />
       </div>
