@@ -2,12 +2,13 @@ import { useDragLayer } from "react-dnd";
 import Card from "./Card";
 
 /* 커스텀 드래그 레이어: 드래그 중인 카드를 커서 옆에 표시 */
-function CustomDragLayer() {
+function CustomDragLayer({ selectedCard = null }) {
   const { isDragging, item, currentOffset } = useDragLayer((monitor) => ({
     item: monitor.getItem(),
     isDragging: monitor.isDragging(),
     currentOffset: monitor.getSourceClientOffset(),
   }));
+  if (selectedCard) return null; //Enlarged card modal이 열려있으면 드래그 미리보기 렌더링 X
 
   if (!isDragging || !currentOffset || !item) {
     return null;

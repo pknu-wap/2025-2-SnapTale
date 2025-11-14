@@ -468,8 +468,8 @@ export default function GameLayout({ matchId }) {
   return (
     <>
     <div className="gameplay-shell">
-      <DndProvider backend={TouchBackend} options={{ enableMouseEvents: true }}>
-          <CustomDragLayer />
+        <DndProvider backend={TouchBackend} options={{ enableMouseEvents: true }}>
+          <CustomDragLayer selectedCard={selectedCard} />
           <div className="gameplay-body">
             <aside className="hud-panel" aria-label="턴 정보">
               <Energy value={energy} />
