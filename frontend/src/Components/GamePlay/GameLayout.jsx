@@ -563,15 +563,14 @@ export default function GameLayout({ matchId }) {
       <GameChatFloatingButton matchId={matchId} />
 
       {selectedCard && (
-        <div className="modal-backdrop">
-          <EnlargedCard card={selectedCard} onClose={handleCloseModal} />
+        <div className="modal-backdrop" onClick={handleCloseModal}>
+          <EnlargedCard card={selectedCard}/>
         </div>
       )}
       {selectedLocation && (
-        <div className="modal-backdrop">
+        <div className="modal-backdrop" onClick = {handleCloseLocationModal}>
           <EnlargedLocation
             location={selectedLocation}
-            onClose={handleCloseLocationModal}
           />
         </div>
       )}
