@@ -614,6 +614,7 @@ export default function GameLayout({ matchId }) {
   return (
     <>
     <div className="gameplay-shell">
+      <DndProvider backend={TouchBackend} options={{ enableMouseEvents: true }}>
         <div className="gameplay-body">
           <aside className="hud-panel" aria-label="턴 정보">
             <div className="hud-matchup" aria-label="플레이어 정보">
@@ -691,31 +692,6 @@ export default function GameLayout({ matchId }) {
                 </div>
               ))}
             </div>
-
-            <section className="hand-row" aria-label="내 손패">
-              <div className="hand-grid">
-                {hand.map((card) => (
-                <div
-                  key={card.cardId}
-                  className="hand-card"
-                  draggable
-                  onDragStart={(e) => {
-                    handlePressEnd(); // 드래그 시 타이머 해제
-                    e.dataTransfer.setData("application/json", JSON.stringify(card));
-                  }}
-                  onMouseDown={(e) => handlePressStart(card, setSelectedCard, e)}
-                  onMouseUp={handlePressEnd}
-                  onMouseLeave={handlePressEnd}
-                  onTouchStart={(e) => handlePressStart(card, setSelectedCard, e)}
-                  onTouchEnd={handlePressEnd}
-                  onTouchMove={handlePressEnd}
-                  onContextMenu={(e) => e.preventDefault()} //배포
-                >
-              <Card {...card} />
-                  </div>
-                ))}
-              </div>
-
               <section className="hand-row" aria-label="내 손패">
                 <div className="hand-grid">
                   {hand.map((card) => (
