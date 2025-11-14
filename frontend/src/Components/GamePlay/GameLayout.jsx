@@ -24,16 +24,21 @@ import { TouchBackend } from "react-dnd-touch-backend";
 let pressTimer = null;
 
 const handlePressStart = (card, setSelectedCard, e) => {
-  if (e.type === "touchstart" || e.button === 2) { //모바일에서 터치할 때, 또는 우클릭일 때 메뉴 방지
-    e.preventDefault();
-  }
+  // 모바일에서 터치할 때, 또는 우클릭일 때 메뉴 방지
+  if (e.type === "touchstart" || e.button === 2) e.preventDefault();
+
+  const wrapper = e.currentTarget?.querySelector?.(".card-wrapper");
+  wrapper?.classList.add("is-pressed");
+
   pressTimer = setTimeout(() => {
     setSelectedCard(card);
-  }, 500);
+  }, 600);
 };
 
-const handlePressEnd = () => {
+const handlePressEnd = (e) => {
   clearTimeout(pressTimer);
+  const wrapper = e?.currentTarget?.querySelector?.(".card-wrapper");
+  wrapper?.classList.remove("is-pressed");
 };
 
 export default function GameLayout({ matchId }) {
@@ -551,7 +556,15 @@ export default function GameLayout({ matchId }) {
                     onTouchMove={handlePressEnd}
                     onContextMenu={(e) => e.preventDefault()} //배포
                   >
-                    <Card {...card} isDraggable={true} />
+                    <div className="card-wrapper">
+                      <div className="card-outline" aria-hidden>
+                        <span className="outline-top" />
+                        <span className="outline-right" />
+                        <span className="outline-bottom" />
+                        <span className="outline-left" />
+                      </div>
+                      <Card {...card} isDraggable={true} />
+                    </div>
                   </div>
                   ))}
                 </div>
