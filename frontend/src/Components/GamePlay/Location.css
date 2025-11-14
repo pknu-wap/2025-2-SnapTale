@@ -7,14 +7,33 @@
   padding: 0;
   border-radius: clamp(1.05rem, 2.4vw, 1.65rem);
   background: transparent;
-  box-shadow: none;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-  overflow: hidden;
+  transition: transform 0.25s ease;
+  will-change: transform;
+  filter: drop-shadow(
+      0 clamp(0.12rem, 0.32vw, 0.22rem)
+      clamp(0.45rem, 1.2vw, 0.68rem)
+      rgba(11, 8, 2, 0.32)
+    )
+    drop-shadow(
+      0 clamp(0.28rem, 0.75vw, 0.46rem)
+      clamp(0.65rem, 1.6vw, 0.92rem)
+      rgba(9, 5, 0, 0.18)
+    );
+  transition: filter 0.3s ease;
 }
 
 .location-container:hover {
-  transform: translateY(clamp(-0.16rem, -0.45vw, -0.26rem));
-  box-shadow: 0 clamp(0.45rem, 1.4vw, 1.1rem) clamp(1.1rem, 2.8vw, 1.9rem) rgba(0, 0, 0, 0.22);
+  transform: translate3d(0, clamp(-0.16rem, -0.45vw, -0.26rem), 0);
+  filter: drop-shadow(
+      0 clamp(0.35rem, 0.95vw, 0.58rem)
+      clamp(1.05rem, 2.6vw, 1.52rem)
+      rgba(14, 9, 2, 0.5)
+    )
+    drop-shadow(
+      0 clamp(0.18rem, 0.48vw, 0.3rem)
+      clamp(0.55rem, 1.4vw, 0.82rem)
+      rgba(0, 0, 0, 0.25)
+    );
 }
 
 /* 배경 이미지 */
@@ -27,22 +46,34 @@
   align-items: center;
   justify-content: center;
   background: transparent;
+  transform: translateZ(0);
+  will-change: transform;
+  clip-path: polygon(
+    50% -6%,
+    104% 19%,
+    104% 81%,
+    50% 106%,
+    -4% 81%,
+    -4% 19%
+  );
 }
 
 .location-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: brightness(0.94);
+  filter: brightness(0.94) drop-shadow(0 0 0 rgba(0, 0, 0, 0));
   clip-path: polygon(
-    50% 0%,
-    100% 22%,
-    100% 78%,
-    50% 100%,
-    0% 78%,
-    0% 22%
+    50% -6%,
+    104% 19%,
+    104% 81%,
+    50% 106%,
+    -4% 81%,
+    -4% 19%
   );
   transition: filter 0.3s ease;
+  backface-visibility: hidden;
+  outline: 1px solid transparent;
 }
 
 .location-container::before {
@@ -55,17 +86,17 @@
   pointer-events: none;
   z-index: 1;
   clip-path: polygon(
-    50% 0%,
-    100% 22%,
-    100% 78%,
-    50% 100%,
-    0% 78%,
-    0% 22%
+    50% -6%,
+    104% 19%,
+    104% 81%,
+    50% 106%,
+    -4% 81%,
+    -4% 19%
   );
 }
 
 .location-container:hover .location-image {
-  filter: brightness(1);
+  filter: brightness(1.12);
 }
 
 /* 비활성화 상태 */
@@ -143,12 +174,12 @@
 }
 
 .opponentPower-container {
-  top: clamp(0.65rem, 1.3vw, 0.95rem);
+  top: clamp(0.2rem, 0.6vw, 0.45rem);
   transform: translate(-50%, -50%);
 }
 
 .myPower-container {
-  bottom: clamp(0.65rem, 1.3vw, 0.95rem);
+  bottom: clamp(0.2rem, 0.6vw, 0.45rem);
   transform: translate(-50%, 50%);
 }
 

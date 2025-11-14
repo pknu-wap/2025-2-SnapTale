@@ -74,6 +74,21 @@ export default function GameLayout({ matchId }) {
 
   const { subscribe } = useWebSocket();
 
+  const opponentName = useMemo(() => {
+    if (!user?.enemyPlayer) {
+      return "상대방";
+    }
+
+    return (
+      user.enemyPlayer.nickname ||
+      user.enemyPlayer.userName ||
+      user.enemyPlayer.name ||
+      "상대방"
+    );
+  }, [user?.enemyPlayer]);
+
+  const myNickname = user?.nickname ?? "나";
+
   // 매치 정보 및 에너지 로드
   useEffect(() => {
     async function loadMatchData() {
@@ -599,71 +614,104 @@ export default function GameLayout({ matchId }) {
   return (
     <>
     <div className="gameplay-shell">
-        <DndProvider backend={TouchBackend} options={{ enableMouseEvents: true }}>
-          <CustomDragLayer selectedCard={selectedCard} />
-          <div className="gameplay-body">
-            <aside className="hud-panel" aria-label="턴 정보">
+        <div className="gameplay-body">
+          <aside className="hud-panel" aria-label="턴 정보">
+            <div className="hud-matchup" aria-label="플레이어 정보">
+              <span className="hud-player hud-player--opponent" title={opponentName}>{opponentName}</span>
+              <span className="hud-vs" aria-hidden="true">VS</span>
+              <span className="hud-player hud-player--me" title={myNickname}>{myNickname}</span>
+            </div>
+
+            <div className="hud-section">
               <Energy value={energy} />
-              <div className="turn-panel">
-                <span className="turn-panel__label">TURN</span>
-                <span className="turn-panel__value">
-                  {turn}
-                  <span className="turn-panel__max"> / {maxTurn}</span>
-                </span>
-              </div>
+            </div>
+
+            <div className="hud-section turn-panel">
+            </div>
+            <div className="hud-section">
               <button className="end-turn-button" onClick={endTurn}
-                disabled={turn === maxTurn || isWaitingForOpponent}>
-                {endTurnButtonLabel}
-              </button>
-            </aside>
+              disabled={turn === maxTurn + 1 || isWaitingForOpponent}>
+              {endTurnButtonLabel}
+            </button>
+            </div>
+          </aside>
 
-            <main className="board-wrapper" aria-label="게임 보드">
-              <div className="board-grid" role="group" aria-label="슬롯 및 지역">
-                {Array.from({ length: SLOT_COUNT }).map((_, i) => (
-                  <div className="board-cell board-cell--slot board-cell--enemy" key={`enemy-slot-${i}`}>
-                    <Slot key={`enemy-${i}`} isMySide={false} disabled={getLocationDisabled(i)} />
-                  </div>
-                ))}
+          <main className="board-wrapper" aria-label="게임 보드">
+            <div className="board-grid" role="group" aria-label="슬롯 및 지역">
+              {Array.from({ length: SLOT_COUNT }).map((_, i) => (
+                <div className="board-cell board-cell--slot board-cell--enemy" key={`enemy-slot-${i}`}>
+                  <Slot 
+                    key={`enemy-${i}`} 
+                    isMySide={false} 
+                    disabled={getLocationDisabled(i)}
+                    cards={opponentBoardLanes[i]}
+                  />
+                </div>
+              ))}
 
-                {loading && (
-                  <div className="board-message board-message--full">위치 불러오는 중…</div>
-                )}
-                {error && (
-                  <div className="board-message board-message--error board-message--full">⚠ {error}</div>
-                )}
-                {!loading && !error && locations.length === SLOT_COUNT &&
-                  locations.map((loc, i) => {
-                    const turnsLeft = i + 1 - turn;
-                    return (
-                      <div className="board-cell board-cell--location" key={`location-${loc.locationId}`}>
-                        <Location
-                          locationId={loc.locationId}
-                          name={loc.name}
-                          imageUrl={loc.imageUrl}
-                          effectDesc={loc.effectDesc}
-                          active={loc.isActive}
-                          turnsLeft={turnsLeft > 0 ? turnsLeft : 0}
-                          opponentPower={opponentPowers[i]}
-                          myPower={myPowers[i]}
-                          onLocationClick={() => handleLocationClick(loc, i)}
-                        />
-                      </div>
-                    );
-                  })}
-                {!loading && !error && locations.length !== SLOT_COUNT && (
-                  <div className="board-message board-message--full">위치 정보가 없습니다.</div>
-                )}
+              {loading && (
+                <div className="board-message board-message--full">위치 불러오는 중…</div>
+              )}
+              {error && (
+                <div className="board-message board-message--error board-message--full">⚠ {error}</div>
+              )}
+              {!loading && !error && locations.length === SLOT_COUNT &&
+                locations.map((loc, i) => {
+                  const turnsLeft = i + 1 - turn;
+                  return (
+                    <div className="board-cell board-cell--location" key={`location-${loc.locationId}`}>
+                      <Location
+                        locationId={loc.locationId}
+                        name={loc.name}
+                        imageUrl={loc.imageUrl}
+                        effectDesc={loc.effectDesc}
+                        active={loc.isActive}
+                        turnsLeft={turnsLeft > 0 ? turnsLeft : 0}
+                        opponentPower={opponentPowers[i]}
+                        myPower={myPowers[i]}
+                        onLocationClick={() => handleLocationClick(loc, i)}
+                      />
+                    </div>
+                  );
+                })}
+              {!loading && !error && locations.length !== SLOT_COUNT && (
+                <div className="board-message board-message--full">위치 정보가 없습니다.</div>
+              )}
 
-                {Array.from({ length: SLOT_COUNT }).map((_, i) => (
-                  <div className="board-cell board-cell--slot board-cell--ally" key={`ally-slot-${i}`}>
-                    <Slot 
-                      key={`ally-${i}`} 
-                      isMySide={true} 
-                      disabled={getLocationDisabled(i)}
-                      laneIndex={i}                 
-                      onDropCard={handleCardDrop}
-                      cards={boardLanes[i]}
-                    />
+              {Array.from({ length: SLOT_COUNT }).map((_, i) => (
+                <div className="board-cell board-cell--slot board-cell--ally" key={`ally-slot-${i}`}>
+                  <Slot 
+                    key={`ally-${i}`} 
+                    isMySide={true} 
+                    disabled={getLocationDisabled(i)}
+                    laneIndex={i}                 
+                    onDropCard={handleCardDrop}
+                    cards={boardLanes[i]}
+                  />
+                </div>
+              ))}
+            </div>
+
+            <section className="hand-row" aria-label="내 손패">
+              <div className="hand-grid">
+                {hand.map((card) => (
+                <div
+                  key={card.cardId}
+                  className="hand-card"
+                  draggable
+                  onDragStart={(e) => {
+                    handlePressEnd(); // 드래그 시 타이머 해제
+                    e.dataTransfer.setData("application/json", JSON.stringify(card));
+                  }}
+                  onMouseDown={(e) => handlePressStart(card, setSelectedCard, e)}
+                  onMouseUp={handlePressEnd}
+                  onMouseLeave={handlePressEnd}
+                  onTouchStart={(e) => handlePressStart(card, setSelectedCard, e)}
+                  onTouchEnd={handlePressEnd}
+                  onTouchMove={handlePressEnd}
+                  onContextMenu={(e) => e.preventDefault()} //배포
+                >
+              <Card {...card} />
                   </div>
                 ))}
               </div>

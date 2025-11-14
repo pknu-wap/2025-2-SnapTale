@@ -1,7 +1,7 @@
 import React from "react"; 
 import { useEffect, useRef } from "react";
 import "./Location.css";
-import powerIcon from "../../assets/locationPower.svg";
+import powerIcon from "../../assets/locationPower.png";
 
 
 const EnlargedLocation = ({ location }) => {
