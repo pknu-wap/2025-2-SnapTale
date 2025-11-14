@@ -1,8 +1,11 @@
 package com.snaptale.backend.match.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.snaptale.backend.match.entity.MatchParticipant;
+import com.snaptale.backend.match.entity.MatchStatus;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,4 +17,8 @@ public interface MatchParticipantRepository extends JpaRepository<MatchParticipa
 
     // 특정 매치와 게스트 ID로 참가자 조회
     Optional<MatchParticipant> findByMatch_MatchIdAndGuestId(Long matchId, Long guestId);
+
+    // 게스트 ID로 특정 상태의 매치에 참여하고 있는지 확인
+    @Query("SELECT COUNT(mp) > 0 FROM MatchParticipant mp WHERE mp.guestId = :guestId AND mp.match.status IN :statuses")
+    boolean existsByGuestIdAndMatchStatusIn(@Param("guestId") Long guestId, @Param("statuses") List<MatchStatus> statuses);
 }

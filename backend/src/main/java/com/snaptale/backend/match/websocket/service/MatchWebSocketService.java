@@ -23,8 +23,12 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.snaptale.backend.match.model.request.MatchUpdateReq;
+
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -48,6 +52,76 @@ public class MatchWebSocketService {
 	@Transactional
 	public void handleLeave(MatchLeaveMessage message) {
 		log.info("매치 퇴장 처리: matchId={}, userId={}", message.getMatchId(), message.getUserId());
+
+		// 매치 조회 및 상태 확인
+		Match match = matchRepository.findById(message.getMatchId())
+				.orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_NOT_FOUND));
+
+		// 매치 상태가 QUEUED, MATCHED, PLAYING 중 하나면 ENDED로 변경
+		if (match.getStatus() != MatchStatus.ENDED) {
+			log.info("매치 상태를 ENDED로 변경: matchId={}, 기존 상태={}", message.getMatchId(), match.getStatus());
+			
+			// 중도 퇴장 시 남은 플레이어를 승자로 설정
+			Long winnerId = null;
+			List<MatchParticipant> participants = matchParticipantRepository.findByMatch_MatchId(message.getMatchId());
+			
+			// 퇴장한 사람이 아닌 다른 참가자를 찾아서 승자로 설정
+			Optional<MatchParticipant> remainingParticipant = participants.stream()
+					.filter(p -> !p.getGuestId().equals(message.getUserId()))
+					.findFirst();
+			
+			// 퇴장한 사람의 닉네임 조회
+			User leaver = userRepository.findById(message.getUserId()).orElse(null);
+			String leaverNickname = leaver != null ? leaver.getNickname() : "상대방";
+			
+			if (remainingParticipant.isPresent()) {
+				winnerId = remainingParticipant.get().getGuestId();
+				log.info("중도 퇴장으로 인한 승자 설정: matchId={}, winnerId={}, leaverId={}", 
+						message.getMatchId(), winnerId, message.getUserId());
+				
+				// 매치 상태 업데이트
+				match.apply(new MatchUpdateReq(
+						MatchStatus.ENDED,
+						winnerId, // 남은 플레이어를 승자로 설정
+						null,
+						LocalDateTime.now()));
+				matchRepository.save(match);
+				
+				// 업데이트된 매치 정보 다시 조회
+				match = matchRepository.findById(message.getMatchId())
+						.orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_NOT_FOUND));
+				
+				// 게임 종료 메시지 생성 및 브로드캐스트
+				GameStateMessage gameState = createGameStateMessage(match, participants);
+				String winnerMessage = leaverNickname + "님이 나갔습니다. 당신이 승자입니다!";
+				gameState.setLastPlayInfo(winnerMessage);
+				
+				// 게임 종료 브로드캐스트
+				broadcastToMatch(message.getMatchId(), "GAME_END", gameState, winnerMessage);
+			} else {
+				log.warn("남은 참가자가 없음: matchId={}, leaverId={}", message.getMatchId(), message.getUserId());
+				
+				// 승자가 없어도 게임 종료 처리
+				match.apply(new MatchUpdateReq(
+						MatchStatus.ENDED,
+						null,
+						null,
+						LocalDateTime.now()));
+				matchRepository.save(match);
+				
+				// 업데이트된 매치 정보 다시 조회
+				match = matchRepository.findById(message.getMatchId())
+						.orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_NOT_FOUND));
+				
+				// 게임 종료 메시지 생성 및 브로드캐스트
+				GameStateMessage gameState = createGameStateMessage(match, participants);
+				String endMessage = leaverNickname + "님이 나갔습니다. 게임이 종료되었습니다.";
+				gameState.setLastPlayInfo(endMessage);
+				
+				// 게임 종료 브로드캐스트
+				broadcastToMatch(message.getMatchId(), "GAME_END", gameState, endMessage);
+			}
+		}
 
 		// 세션 제거
 		sessionManager.getSessionByUserId(message.getUserId())
@@ -186,6 +260,29 @@ public class MatchWebSocketService {
 		GameStateMessage gameState = createGameStateMessage(match, participants);
 		gameState.setLastPlayInfo("턴 " + turnResult.getNextTurn() + "이 시작되었습니다.");
 
+		// 각 플레이어의 카드 배치 정보 수집
+		Map<Long, List<TurnStatusMessage.CardPlayInfo>> playerCardPlays = new HashMap<>();
+		for (MatchParticipant participant : participants) {
+			List<Play> plays = playRepository.findByMatch_MatchIdAndGuestId(matchId, participant.getGuestId());
+
+			// isTurnEnd가 false인 플레이만 필터링 (실제 카드 플레이)
+			List<TurnStatusMessage.CardPlayInfo> cardPlays = plays.stream()
+					.filter(play -> !play.getIsTurnEnd() && play.getCard() != null)
+					.map(play -> TurnStatusMessage.CardPlayInfo.builder()
+							.cardId(play.getCard().getCardId())
+							.cardName(play.getCard().getName())
+							.cardImageUrl(play.getCard().getImageUrl())
+							.slotIndex(play.getSlotIndex())
+							.position(play.getCardPosition())
+							.cost(play.getCard().getCost())
+							.power(play.getPowerSnapshot())
+							.faction(play.getCard().getFaction())
+							.build())
+					.toList();
+
+			playerCardPlays.put(participant.getGuestId(), cardPlays);
+		}
+
 		TurnStatusMessage payload = TurnStatusMessage.builder()
 				.matchId(matchId)
 				.currentTurn(match.getTurnCount())
@@ -195,6 +292,7 @@ public class MatchWebSocketService {
 				.nextTurn(turnResult.getNextTurn())
 				.gameState(gameState)
 				.locationPowerResult(turnResult.getLocationPowerResult())
+				.playerCardPlays(playerCardPlays)
 				.build();
 
 		broadcastToMatch(matchId, "TURN_START", payload, "턴 " + turnResult.getNextTurn() + "이 시작되었습니다.");
@@ -264,39 +362,52 @@ public class MatchWebSocketService {
 	// 게임 종료 처리
 	@Transactional
 	public void processGameEnd(Long matchId) {
-		log.info("게임 종료 처리: matchId={}", matchId);
+		log.info("게임 종료 처리 시작: matchId={}", matchId);
 
-		// 승자 판정 및 통계 업데이트
-		GameCalculationService.GameEndResult endResult = gameCalculationService
-				.endGameAndDetermineWinner(matchId);
+		try {
+			// 승자 판정 및 통계 업데이트
+			log.info("endGameAndDetermineWinner 호출 전: matchId={}", matchId);
+			GameCalculationService.GameEndResult endResult = gameCalculationService
+					.endGameAndDetermineWinner(matchId);
+			log.info("endGameAndDetermineWinner 호출 완료: matchId={}, winnerId={}", 
+					matchId, endResult.getWinnerId());
 
-		// 최종 게임 상태 생성
-		Match match = matchRepository.findById(matchId)
-				.orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_NOT_FOUND));
-		List<MatchParticipant> participants = matchParticipantRepository
-				.findByMatch_MatchId(matchId);
+			// 최종 게임 상태 생성
+			Match match = matchRepository.findById(matchId)
+					.orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_NOT_FOUND));
+			
+			log.info("게임 종료 처리 - 매치 상태 확인: matchId={}, status={}, winnerId={}", 
+					matchId, match.getStatus(), match.getWinnerId());
+			
+			List<MatchParticipant> participants = matchParticipantRepository
+					.findByMatch_MatchId(matchId);
 
-		GameStateMessage gameState = createGameStateMessage(match, participants);
+			GameStateMessage gameState = createGameStateMessage(match, participants);
 
-		String winnerMessage;
-		if (endResult.getWinnerId() != null) {
-			User winner = userRepository.findById(endResult.getWinnerId())
-					.orElse(null);
-			String winnerNickname = winner != null ? winner.getNickname() : "Unknown";
-			winnerMessage = winnerNickname + "님이 승리했습니다!";
-		} else {
-			winnerMessage = "무승부입니다!";
+			String winnerMessage;
+			if (endResult.getWinnerId() != null) {
+				User winner = userRepository.findById(endResult.getWinnerId())
+						.orElse(null);
+				String winnerNickname = winner != null ? winner.getNickname() : "Unknown";
+				winnerMessage = winnerNickname + " 승리!";
+			} else {
+				winnerMessage = "무승부";
+			}
+
+			gameState.setLastPlayInfo(String.format(
+					"게임 종료 - %s (Location 점령: %d vs %d, 총 파워: %d vs %d)",
+					winnerMessage,
+					endResult.getPlayer1LocationWins(),
+					endResult.getPlayer2LocationWins(),
+					endResult.getPlayer1TotalPower(),
+					endResult.getPlayer2TotalPower()));
+
+			// 게임 종료 브로드캐스트
+			broadcastToMatch(matchId, "GAME_END", gameState, winnerMessage);
+			log.info("게임 종료 브로드캐스트 완료: matchId={}", matchId);
+		} catch (Exception e) {
+			log.error("게임 종료 처리 중 오류 발생: matchId={}, error={}", matchId, e.getMessage(), e);
+			throw e;
 		}
-
-		gameState.setLastPlayInfo(String.format(
-				"게임 종료 - %s (Location 점령: %d vs %d, 총 파워: %d vs %d)",
-				winnerMessage,
-				endResult.getPlayer1LocationWins(),
-				endResult.getPlayer2LocationWins(),
-				endResult.getPlayer1TotalPower(),
-				endResult.getPlayer2TotalPower()));
-
-		// 게임 종료 브로드캐스트
-		broadcastToMatch(matchId, "GAME_END", gameState, winnerMessage);
 	}
 }

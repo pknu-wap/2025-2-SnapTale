@@ -21,6 +21,18 @@ export async function getMatch(matchId) { // 매치 삭제 후 404면 null 반�
   }
 }
 
+// 매치 참가자 검증
+export async function verifyParticipant(matchId, guestId) {
+  try {
+    const res = await fetch(`${API_BASE}/api/matches/${matchId}/verify-participant/${guestId}`);
+    const data = await parseJsonResponse(res);
+    return data; // true 또는 false
+  } catch (error) {
+    console.error("참가자 검증 실패:", error);
+    return false;
+  }
+}
+
 // 매치 참가 (userId, nickname만 전송)
 // MatchJoinMessage: matchId (서버에서 설정), userId (필수), nickname (필수), sessionId (서버에서 생성)
 export async function joinMatch(matchId, userId, nickname, deckPresetId) {

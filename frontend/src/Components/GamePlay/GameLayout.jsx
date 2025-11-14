@@ -2,6 +2,7 @@
 import { useState, useEffect, useMemo} from "react";
 import { useUser } from "../../contexts/UserContext";
 import { useWebSocket } from "../../contexts/WebSocketContext";
+import { useNavigate } from "react-router-dom";
 import "./GameLayout.css";
 import Card from "./Card";
 import Location from "./Location";
@@ -14,7 +15,7 @@ import defaultImg from "../../assets/koreaIcon.png";
 import DCI from "../../assets/defaultCardImg.svg";
 // import { fetchLocations } from "./api/location";
 import GameChatFloatingButton from "./GameChatFloatingButton";
-import { getMatch } from "../Home/api/match";
+import { getMatch, verifyParticipant } from "../Home/api/match";
 import { fetchLocationsByMatchId } from "./api/location";
 import { playAction } from "./api/matchTurn";
 import { DndProvider } from "react-dnd";
@@ -43,6 +44,7 @@ const handlePressEnd = (e) => {
 
 export default function GameLayout({ matchId }) {
   const maxTurn = 6;
+  const navigate = useNavigate();
 
   const { user, updateUser } = useUser();
   const [selectedCard, setSelectedCard] = useState(null);
@@ -58,6 +60,11 @@ export default function GameLayout({ matchId }) {
     [null, null, null, null], // SLOT_COUNT 0
     [null, null, null, null], // SLOT_COUNT 1
     [null, null, null, null], // SLOT_COUNT 2
+  ]);
+  const [opponentBoardLanes, setOpponentBoardLanes] = useState([
+    [], // 상대 지역 0의 카드들
+    [], // 상대 지역 1의 카드들
+    [], // 상대 지역 2의 카드들
   ]);
   // eslint-disable-next-line no-unused-vars
   const [cardPlayed, setCardPlayed] = useState(false); // 카드 플레이 여부 (향후 턴 종료 로직에서 사용 예정)
@@ -152,6 +159,32 @@ export default function GameLayout({ matchId }) {
     loadDeckCards();
   }, [user?.selectedDeckPresetId]);
 
+  // 참가자 검증
+  useEffect(() => {
+    async function checkParticipant() {
+      if (!matchId || !user?.guestId) {
+        alert("잘못된 접근입니다. 메인 화면으로 돌아갑니다.");
+        navigate("/home");
+        return;
+      }
+
+      try {
+        const isParticipant = await verifyParticipant(matchId, user.guestId);
+        
+        if (!isParticipant) {
+          alert("접근 권한이 없습니다. 메인 화면으로 돌아갑니다.");
+          navigate("/home");
+        }
+      } catch (error) {
+        console.error("참가자 검증 중 오류:", error);
+        alert("접근 권한 확인에 실패했습니다. 메인 화면으로 돌아갑니다.");
+        navigate("/home");
+      }
+    }
+
+    checkParticipant();
+  }, [matchId, user?.guestId, navigate]);
+
   useEffect(() => {
     async function loadLocations() {
       if (!matchId) {
@@ -212,11 +245,48 @@ export default function GameLayout({ matchId }) {
         const messageType = wsMessage?.type;
         const payload = wsMessage?.data;
 
-        if (!messageType || !payload) {
+        if (!messageType) {
           return;
         }
 
+        if (messageType === "GAME_END") {
+          // 게임 종료 메시지 처리
+          const gameState = payload;
+          const message = wsMessage?.message || "게임이 종료되었습니다.";
+          
+          console.log("게임 종료:", message, gameState);
+          
+          // 게임 종료 메시지 표시
+          alert(message);
+          
+          // home으로 리다이렉트
+          setTimeout(() => {
+            navigate("/home");
+          }, 1000); // 1초 후 리다이렉트 (메시지를 볼 시간 제공)
+          return; // GAME_END 처리 후 다른 메시지 처리하지 않음
+        }
+
+        // payload가 없으면 다른 메시지 처리하지 않음
+        if (!payload) {
+          console.log("payload가 없습니다.");
+          return;
+        }
+
+        if (messageType === "LEAVE") {
+          // 상대방이 나간 경우 처리
+          const leaveMessage = wsMessage?.message || "상대방이 나갔습니다.";
+          
+          console.log("상대방 퇴장:", leaveMessage);
+          
+          // GAME_END 메시지가 곧 올 것이므로 여기서는 로그만 남김
+          // (GAME_END에서 처리하도록 함)
+        }
+
         if (messageType === "TURN_WAITING") {
+          if (!payload) {
+            console.log("payload가 없습니다.");
+            return;
+          }
           const endedGuestId = payload?.endedGuestId;
           const waitingForOpponent = Boolean(payload?.waitingForOpponent);
 
@@ -243,6 +313,11 @@ export default function GameLayout({ matchId }) {
         }
 
         if (messageType === "TURN_START") {
+          if (!payload) {
+            console.log("payload가 없습니다.");
+            return;
+          }
+
           setIsWaitingForOpponent(false);
 
           if (typeof payload?.currentTurn === "number") {
@@ -290,12 +365,54 @@ export default function GameLayout({ matchId }) {
               }
             }
           }
+
+          // 상대 카드 배치 정보 처리
+          if (payload?.playerCardPlays) {
+            console.log("TURN_START playerCardPlays:", payload.playerCardPlays);
+            const myGuestId = user?.guestId;
+            
+            // 상대 guestId 찾기
+            const allGuestIds = Object.keys(payload.playerCardPlays).map(id => parseInt(id));
+            const opponentGuestId = allGuestIds.find(id => id !== myGuestId);
+            
+            if (opponentGuestId) {
+              const opponentCards = payload.playerCardPlays[opponentGuestId];
+              console.log("상대 카드 정보:", opponentCards);
+              
+              // 지역별로 카드 그룹핑 (slotIndex 0, 1, 2)
+              const cardsByLocation = [[], [], []];
+
+              if (Array.isArray(opponentCards)) {
+                opponentCards.forEach(card => {
+                  if (card.slotIndex !== null && card.slotIndex !== undefined) {
+                    const locationIndex = card.slotIndex;
+                    const position = card.position !== null && card.position !== undefined ? card.position : 0;
+                    
+                    // 정확한 위치에 카드 배치
+                    if (locationIndex >= 0 && locationIndex < 3 && position >= 0 && position < 4) {
+                      cardsByLocation[locationIndex][position] = {
+                        cardId: card.cardId,
+                        name: card.cardName,
+                        imageUrl: card.cardImageUrl,
+                        cost: card.cost,
+                        power: card.power,
+                        faction: card.faction,
+                      };
+                    }
+                  }
+                });
+              }
+              
+              console.log("정확한 위치의 상대 카드:", cardsByLocation);
+              setOpponentBoardLanes(cardsByLocation);
+            }
+          }
         }
       },
     });
 
     return unsubscribe;
-  }, [matchId, subscribe, user?.guestId, user?.participantId]);
+  }, [matchId, subscribe, user?.guestId, user?.participantId, navigate]);
 
   useEffect(() => {
     setIsWaitingForOpponent(false);
@@ -317,7 +434,7 @@ export default function GameLayout({ matchId }) {
   };
 
   const endTurn = async () => {
-    if (turn < maxTurn) {
+    if (turn <= maxTurn) { // 6턴도 종료 가능하도록 변경
       try {
         // 서버에 턴 종료 요청
         const response = await playAction(matchId, {
@@ -344,7 +461,8 @@ export default function GameLayout({ matchId }) {
 
         setCardPlayed(false); // 다시 비활성화
 
-        if (allCards.length > 0) {
+        // 6턴이 끝나면 게임이 종료되므로 카드 드로우하지 않음
+        if (turn < maxTurn && allCards.length > 0) {
           // 덱의 맨 위 카드(0번 인덱스)를 뽑을 카드로 지정합니다.
           const cardToDraw = allCards[0];
 
@@ -356,7 +474,7 @@ export default function GameLayout({ matchId }) {
 
           // 덱(allCards) 상태를 업데이트: 카드가 제거된 새 덱으로 교체합니다.
           setAllCards(newDeck);
-          }
+        }
       } catch (error) {
         console.error("턴 종료 실패:", error);
         alert(`턴 종료에 실패했습니다: ${error.message || "알 수 없는 오류"}`);
@@ -408,6 +526,7 @@ export default function GameLayout({ matchId }) {
     // 이전 상태 저장 (실패 시 롤백용)
     const prevHand = hand;
     const prevBoardLanes = boardLanes;
+    const prevEnergy = energy;
     // 낙관적 업데이트: 먼저 UI 업데이트
     setHand((prevHand) => prevHand.filter((c) => c.cardId !== card.cardId));
     setBoardLanes((prevLanes) => {
@@ -423,16 +542,22 @@ export default function GameLayout({ matchId }) {
       next[laneIndex] = (next[laneIndex] ?? 0) + (card?.power ?? 0);
       return next;
     });
+    // 에너지 낙관적 업데이트: 카드 비용 즉시 차감
+    setEnergy((prev) => Math.max(0, (prev ?? 0) - (card?.cost ?? 0)));
 
     try {
       // 서버에 카드 플레이 요청
       // 백엔드의 slotIndex는 Location 슬롯 (0~2)을 의미하므로 laneIndex를 사용
+      // cardPosition은 해당 지역 내에서의 위치 (0~3)
       // participantId는 guestId를 의미함
       const response = await playAction(matchId, {
         participantId: user.guestId,
         cardId: card.cardId,
         actionType: "PLAY_CARD",
-        additionalData: JSON.stringify({ slotIndex: laneIndex }),
+        additionalData: JSON.stringify({ 
+          slotIndex: laneIndex,
+          cardPosition: slotIndex 
+        }),
       });
 
       console.log(`[GameLayout] 카드 ${card.name}가 lane ${laneIndex} (slotIndex: ${laneIndex}), 슬롯 내부 위치 ${slotIndex}에 놓였습니다.`, response);
@@ -454,7 +579,7 @@ export default function GameLayout({ matchId }) {
       console.error("playAction 실패:", error);
       console.log("playAction 호출 실패:", matchId, user.participantId, card.cardId, laneIndex, slotIndex, error.energy);
       
-      // 실패 시 롤백: 손패 복원
+      // 실패 시 롤백: 손패, 보드, 파워, 에너지 복원
       setHand(prevHand);
       setBoardLanes(prevBoardLanes);
       setMyPowers((prev) => {
@@ -462,6 +587,7 @@ export default function GameLayout({ matchId }) {
         next[laneIndex] = Math.max(0, (next[laneIndex] ?? 0) - (card?.power ?? 0));
         return next;
       });
+      setEnergy(prevEnergy); // 에너지 롤백
       setCardPlayed(false);
       
       // 사용자에게 에러 알림

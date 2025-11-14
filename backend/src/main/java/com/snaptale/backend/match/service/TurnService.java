@@ -40,9 +40,9 @@ public class TurnService {
     // 카드 제출 처리
     @Transactional
     public void submitPlay(Long matchId, Long participantId,
-            Long cardId, Integer slotIndex) {
-        log.info("카드 제출: matchId={}, participantId={}, cardId={}, slotIndex={}",
-                matchId, participantId, cardId, slotIndex);
+            Long cardId, Integer slotIndex, Integer cardPosition) {
+        log.info("카드 제출: matchId={}, participantId={}, cardId={}, slotIndex={}, cardPosition={}",
+                matchId, participantId, cardId, slotIndex, cardPosition);
 
         // 1. 매치 및 참가자 확인
         Match match = matchRepository.findById(matchId)
@@ -99,6 +99,7 @@ public class TurnService {
                 .guestId(participant.getGuestId())
                 .card(card)
                 .slotIndex(slotIndex)
+                .cardPosition(cardPosition) // 지역 내에서의 위치 (0~3)
                 .powerSnapshot(powerSnapshot) // 현재 파워 스냅샷 저장
                 .isTurnEnd(false) // 카드 제출
                 .build();
@@ -110,7 +111,7 @@ public class TurnService {
 
     // 턴 종료 및 다음 턴 시작
     // 양쪽 플레이어가 모두 턴 종료했을 때 호출
-    //코드레빗 테스트를 위한 주석 달기
+    // 코드레빗 테스트를 위한 주석 달기
     @Transactional
     public TurnEndResult endTurnAndStartNext(Long matchId) {
         log.info("턴 종료 및 다음 턴 시작: matchId={}", matchId);
@@ -123,9 +124,13 @@ public class TurnService {
         }
 
         int currentTurn = match.getTurnCount() != null ? match.getTurnCount() : 0;
+        log.info("턴 종료 및 다음 턴 시작 - 현재 턴: matchId={}, currentTurn={}, MAX_TURNS={}", 
+                matchId, currentTurn, MAX_TURNS);
 
         // 1. 현재 턴의 턴 종료 확인 (보안을 위해 재확인)
         boolean bothEnded = checkBothPlayersEnded(matchId, currentTurn);
+        log.info("양쪽 플레이어 턴 종료 확인: matchId={}, currentTurn={}, bothEnded={}", 
+                matchId, currentTurn, bothEnded);
         if (!bothEnded) {
             throw new BaseException(BaseResponseStatus.WAITING_FOR_OTHER_PLAYER);
         }
@@ -134,14 +139,18 @@ public class TurnService {
         LocationPowerResult locationPowerResult = gameCalculationService.calculateLocationPowers(matchId);
 
         // 2. 마지막 턴(6턴)인지 확인
+        // 6턴이 끝났을 때 게임 종료 (currentTurn이 6이면 6턴이 끝난 것)
         if (currentTurn >= MAX_TURNS) {
-            log.info("마지막 턴 도달");
+            log.info("마지막 턴 도달 - 게임 종료: matchId={}, currentTurn={}, MAX_TURNS={}", 
+                    matchId, currentTurn, MAX_TURNS);
             return TurnEndResult.builder()
                     .gameEnded(true)
                     .nextTurn(currentTurn)
                     .locationPowerResult(locationPowerResult)
                     .build();
         }
+        
+        log.info("게임 계속 진행 - 다음 턴으로: matchId={}, currentTurn={}", matchId, currentTurn);
 
         // 3. 다음 턴으로 진행 (에너지 지급 및 드로우 포함)
         TurnStartResult turnStartResult = gameFlowService.startNextTurn(matchId);

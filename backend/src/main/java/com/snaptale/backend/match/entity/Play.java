@@ -37,6 +37,9 @@ public class Play extends BaseEntity {
     @Column(name = "slot_index", nullable = true)
     private Integer slotIndex;
 
+    @Column(name = "card_position", nullable = true)
+    private Integer cardPosition; // 해당 슬롯 내에서의 위치 (0~3)
+
     @Column(name = "power_snapshot")
     private Integer powerSnapshot;
 
@@ -59,6 +62,9 @@ public class Play extends BaseEntity {
         }
         if (request.powerSnapshot() != null) {
             this.powerSnapshot = request.powerSnapshot();
+        }
+        if (request.cardPosition() != null) {
+            this.cardPosition = request.cardPosition();
         }
         if (request.matchId() != null && match != null) {
             this.match = match;
