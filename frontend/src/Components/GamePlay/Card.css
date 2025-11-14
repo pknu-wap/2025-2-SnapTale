@@ -139,6 +139,82 @@
   text-align: center;
 }
 
+.card-dragging {
+  touch-action: none;     /* 모바일 스크롤 차단 */
+  pointer-events: none;   /* 터치/클릭 입력 차단 */
+  user-select: none;      /* 텍스트 드래그 방지 */
+}
+
+/* Animated outline (top -> right -> bottom -> left). Total reveal time = 0.6s */
+.card-outline {
+  position: absolute;
+  width: clamp(2.1rem, 5.4vw, 3.4rem);
+  aspect-ratio: 2 / 3;
+  pointer-events: none;
+  z-index: 20;
+}
+.card-outline span {
+  position: absolute;
+  display: block;
+  box-sizing: border-box;
+}
+
+/* border thickness (consistent with design) */
+.card-outline span {
+  --bw: clamp(0.09rem, 0.25vw, 0.16rem);
+}
+
+.card-outline .outline-top {
+  border-top: var(--bw) solid #ffffff;
+  top: 0;
+  left: 0;
+  right: 100%;
+  transition: right 0.15s ease;
+  transition-delay: 0s;
+}
+.card-wrapper.is-pressed .card-outline .outline-top {
+  right: 0;
+}
+
+.card-outline .outline-right {
+  border-right: var(--bw) solid #ffffff;
+  top: 0;
+  right: 0;
+  bottom: 100%;
+  transition: bottom 0.15s ease;
+  transition-delay: 0.15s;
+}
+
+.card-wrapper.is-pressed .card-outline .outline-right {
+  bottom: 0;
+}
+
+.card-outline .outline-bottom {
+  border-bottom: var(--bw) solid #ffffff;
+  bottom: 0;
+  left: 100%;
+  right: 0;
+  transition: left 0.15s ease;
+  transition-delay: 0.3s;
+}
+
+.card-wrapper.is-pressed .card-outline .outline-bottom {
+  left: 0;
+}
+
+.card-outline .outline-left {
+  border-left: var(--bw) solid #ffffff;
+  top: 100%;
+  left: 0;
+  bottom: 0;
+  transition: top 0.15s ease;
+  transition-delay: 0.45s;
+}
+
+.card-wrapper.is-pressed .card-outline .outline-left {
+  top: 0;
+}
+
 @keyframes zoomIn {
   from {
     transform: scale(0.5);
