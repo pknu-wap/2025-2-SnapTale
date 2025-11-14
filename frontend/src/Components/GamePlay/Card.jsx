@@ -1,5 +1,6 @@
 import React from "react"; 
 import { useEffect, useRef } from "react";
+import { useDrag } from "react-dnd";
 import "./Card.css";
 import costIcon from "../../assets/cost.svg";
 import powerIcon from "../../assets/power.svg";
@@ -36,7 +37,8 @@ const Card = ({
   active,
   createdAt,
   updatedAt,
-  onCardClick 
+  onCardClick,
+  isDraggable = false,
 }) => {
   console.log({
     cardId,
@@ -50,27 +52,36 @@ const Card = ({
     createdAt,
     updatedAt
   });
-    const ref = useRef(null);
+    const nameRef = useRef(null);
+    const [{ isDragging }, dragRef] = useDrag(() => ({
+      type: "CARD",
+      item: { cardId, name, imageUrl, cost, power, faction, effectDesc },
+      collect: (monitor) => ({
+        isDragging: monitor.isDragging(),
+      }),
+      canDrag: () => isDraggable, // 드래그 가능 여부 제어
+    }), [cardId, name, imageUrl, cost, power, faction, effectDesc, isDraggable]);
     useEffect(() => {
-      const el = ref.current;
-      if (!el) return;
-      
-      // 초기 폰트 스타일
-      el.style.fontSize = "12px";
-      el.style.whiteSpace = "nowrap";
-  
-      const tooLong = el.scrollWidth > el.clientWidth; // 내용이 card-name div박스를 넘으면 2줄로 표시 허용
+      const el = nameRef.current;
+    if (!el) return;
 
-      if (tooLong) {
-        el.style.fontSize = "10px";
-        el.style.whiteSpace = "normal"; // 줄바꿈 허용
-        el.style.wordBreak = "keep-all";  //한글 공백 단위로 줄바꿈
-        el.style.lineHeight = "1.1";    // 줄 간격 살짝 조정
+    el.style.fontSize = "12px";
+    el.style.whiteSpace = "nowrap";
+
+    if (el.scrollWidth > el.clientWidth) {
+      el.style.fontSize = "10px";
+      el.style.whiteSpace = "normal";
+      el.style.wordBreak = "keep-all";
+      el.style.lineHeight = "1.1";
     }
-    }, [name]);
+  }, [name]);
   const borderClass = factionClasses[faction] || "card-border-default";
   return (
-    <div className="card-container" onClick={onCardClick}>
+    <div 
+      className={`card-container ${isDragging ? "card-dragging" : ""}`} 
+      ref={isDraggable ? dragRef : null} //드래그 가능 시에만 DnD ref 연결
+      onClick={onCardClick}
+    >
       <img className={`card-image ${borderClass}`} src={imageUrl} alt={name} />
 
       <div className="card-cost-container">
@@ -83,9 +94,9 @@ const Card = ({
         <span className="icon-text">{power}</span>
       </div>
 
-      <div className="card-name" ref={ref}>{name}</div>
+      <div className="card-name" ref={nameRef}>{name}</div>
     </div>
   );
 };
 
-export default React.memo(Card);;
+export default React.memo(Card);
