@@ -1,61 +1,35 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
+import { useDrop } from "react-dnd";
 import "./Slot.css";
 import Card from "./Card";
 
 
 export default function Slot({ isMySide = false, laneIndex, onDropCard, disabled = false, cards = [null, null, null, null] }) {
-  const [isOver, setIsOver] = useState(false);
-
   const firstEmpty = useMemo(() => cards.findIndex((c) => !c), [cards]); //cards 배열에서 첫 번째 빈 칸의 인덱스 찾기
   const isFull = firstEmpty === -1;
   const allowDrop = isMySide && !disabled && !isFull;
 
-
-  const handleDragEnter = (e) => { //slot 영역에 드래그 요소가 진입했을 때
-    if (!allowDrop) return;
-    e.preventDefault(); // 드롭 가능임을 표시
-    setIsOver(true);
-  };
-
-  const handleDragOver = (e) => { //slot 영역 위에서 드래그 중일 때
-    if (!allowDrop) return;
-    e.preventDefault();
-  };
-
-  const handleDragLeave = () => setIsOver(false); //slot 영역에서 드래그 요소가 벗어났을 때
-
-  const handleDrop = (e) => { //slot 영역에 드롭했을 때
-    setIsOver(false);
-    if (!allowDrop) return;
-    e.preventDefault();
-
-    const raw =
-      e.dataTransfer.getData("application/json") ||
-      e.dataTransfer.getData("text/plain");
-    if (!raw) return;
-
-    let card;
-    try {
-      card = JSON.parse(raw);
-    } catch {
-      return;
-    }
-
-    onDropCard?.({ laneIndex, card});
-  };
+  const [{ isOver }, dropRef] = useDrop({
+    accept: "CARD",
+    canDrop: () => allowDrop,
+    drop: (item) => {
+      onDropCard?.({ laneIndex, card: item });
+      return { moved: true };
+    },
+    collect: (monitor) => ({
+      isOver: monitor.isOver(),
+    }),
+  });
 
   return (
     <div
+      ref={dropRef}
       className={[
         "slot",
         isMySide ? "is-ally" : "is-enemy",
         allowDrop && isOver ? "is-over" : "",
         !isMySide ? "is-disabled" : "",
       ].join(" ")}
-      onDragEnter={handleDragEnter}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
     >
       <div className="slot__grid">
         {cards.map((card, i) => (
@@ -73,6 +47,7 @@ export default function Slot({ isMySide = false, laneIndex, onDropCard, disabled
                 createdAt={card.createdAt}
                 updatedAt={card.updatedAt}
                 onCardClick={() => {}}
+                isDraggable={false}
               />
             )}
           </div>

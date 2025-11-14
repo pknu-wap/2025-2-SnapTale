@@ -10,6 +10,7 @@ import Energy from "./Energy";
 import Slot from "./Slot";
 import EnlargedCard from "./EnlargedCard";
 import EnlargedLocation from "./EnlargedLocation";
+import CustomDragLayer from "./CustomDragLayer";
 import defaultImg from "../../assets/koreaIcon.png";
 import DCI from "../../assets/defaultCardImg.svg";
 // import { fetchLocations } from "./api/location";
@@ -17,20 +18,28 @@ import GameChatFloatingButton from "./GameChatFloatingButton";
 import { getMatch, verifyParticipant } from "../Home/api/match";
 import { fetchLocationsByMatchId } from "./api/location";
 import { playAction } from "./api/matchTurn";
+import { DndProvider } from "react-dnd";
+import { TouchBackend } from "react-dnd-touch-backend";
+
 
 let pressTimer = null;
 
 const handlePressStart = (card, setSelectedCard, e) => {
-  if (e.type === "touchstart" || e.button === 2) { //모바일에서 터치할 때, 또는 우클릭일 때 메뉴 방지
-    e.preventDefault();
-  }
+  // 모바일에서 터치할 때, 또는 우클릭일 때 메뉴 방지
+  if (e.type === "touchstart" || e.button === 2) e.preventDefault();
+
+  const wrapper = e.currentTarget?.querySelector?.(".card-wrapper");
+  wrapper?.classList.add("is-pressed");
+
   pressTimer = setTimeout(() => {
     setSelectedCard(card);
-  }, 500);
+  }, 600);
 };
 
-const handlePressEnd = () => {
+const handlePressEnd = (e) => {
   clearTimeout(pressTimer);
+  const wrapper = e?.currentTarget?.querySelector?.(".card-wrapper");
+  wrapper?.classList.remove("is-pressed");
 };
 
 export default function GameLayout({ matchId }) {
@@ -64,6 +73,21 @@ export default function GameLayout({ matchId }) {
   const [isWaitingForOpponent, setIsWaitingForOpponent] = useState(false);
 
   const { subscribe } = useWebSocket();
+
+  const opponentName = useMemo(() => {
+    if (!user?.enemyPlayer) {
+      return "상대방";
+    }
+
+    return (
+      user.enemyPlayer.nickname ||
+      user.enemyPlayer.userName ||
+      user.enemyPlayer.name ||
+      "상대방"
+    );
+  }, [user?.enemyPlayer]);
+
+  const myNickname = user?.nickname ?? "나";
 
   // 매치 정보 및 에너지 로드
   useEffect(() => {
@@ -595,18 +619,24 @@ export default function GameLayout({ matchId }) {
     <div className="gameplay-shell">
         <div className="gameplay-body">
           <aside className="hud-panel" aria-label="턴 정보">
-            <Energy value={energy} />
-            <div className="turn-panel">
-              <span className="turn-panel__label">TURN</span>
-              <span className="turn-panel__value">
-                {turn}
-                <span className="turn-panel__max"> / {maxTurn}</span>
-              </span>
+            <div className="hud-matchup" aria-label="플레이어 정보">
+              <span className="hud-player hud-player--opponent" title={opponentName}>{opponentName}</span>
+              <span className="hud-vs" aria-hidden="true">VS</span>
+              <span className="hud-player hud-player--me" title={myNickname}>{myNickname}</span>
             </div>
-            <button className="end-turn-button" onClick={endTurn}
+
+            <div className="hud-section">
+              <Energy value={energy} />
+            </div>
+
+            <div className="hud-section turn-panel">
+            </div>
+            <div className="hud-section">
+              <button className="end-turn-button" onClick={endTurn}
               disabled={turn === maxTurn + 1 || isWaitingForOpponent}>
               {endTurnButtonLabel}
             </button>
+            </div>
           </aside>
 
           <main className="board-wrapper" aria-label="게임 보드">
@@ -688,23 +718,49 @@ export default function GameLayout({ matchId }) {
                   </div>
                 ))}
               </div>
-            </section>
-          </main>
-        </div>
-      </div>
 
+              <section className="hand-row" aria-label="내 손패">
+                <div className="hand-grid">
+                  {hand.map((card) => (
+                  <div
+                    key={card.cardId}
+                    className="hand-card"
+                    onMouseDown={(e) => handlePressStart(card, setSelectedCard, e)}
+                    onMouseUp={handlePressEnd}
+                    onMouseLeave={handlePressEnd}
+                    onTouchStart={(e) => handlePressStart(card, setSelectedCard, e)}
+                    onTouchEnd={handlePressEnd}
+                    onTouchMove={handlePressEnd}
+                    onContextMenu={(e) => e.preventDefault()} //배포
+                  >
+                    <div className="card-wrapper">
+                      <div className="card-outline" aria-hidden>
+                        <span className="outline-top" />
+                        <span className="outline-right" />
+                        <span className="outline-bottom" />
+                        <span className="outline-left" />
+                      </div>
+                      <Card {...card} isDraggable={true} />
+                    </div>
+                  </div>
+                  ))}
+                </div>
+              </section>
+            </main>
+          </div>
+        </DndProvider>
+      </div>
       <GameChatFloatingButton matchId={matchId} />
 
       {selectedCard && (
-        <div className="modal-backdrop">
-          <EnlargedCard card={selectedCard} onClose={handleCloseModal} />
+        <div className="modal-backdrop" onClick={handleCloseModal}>
+          <EnlargedCard card={selectedCard}/>
         </div>
       )}
       {selectedLocation && (
-        <div className="modal-backdrop">
+        <div className="modal-backdrop" onClick = {handleCloseLocationModal}>
           <EnlargedLocation
             location={selectedLocation}
-            onClose={handleCloseLocationModal}
           />
         </div>
       )}
