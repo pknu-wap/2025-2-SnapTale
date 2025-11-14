@@ -370,8 +370,11 @@ export default function GameLayout({ matchId }) {
               const opponentCards = payload.playerCardPlays[opponentGuestId];
               console.log("상대 카드 정보:", opponentCards);
               
-              // 지역별로 카드 그룹핑 (slotIndex 0, 1, 2)
-              const cardsByLocation = [[], [], []];
+              // 지역별로 카드 그룹핑 (slotIndex 0, 1, 2, 3)
+              const cardsByLocation = [
+                [null, null, null, null], 
+                [null, null, null, null], 
+                [null, null, null, null]];
 
               if (Array.isArray(opponentCards)) {
                 opponentCards.forEach(card => {
