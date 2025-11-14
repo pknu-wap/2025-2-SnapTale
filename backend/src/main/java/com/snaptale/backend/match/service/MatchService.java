@@ -44,9 +44,9 @@ public class MatchService {
         return MatchRes.from(match);
     }
 
-    // 매치 전체 조회
+    // 매치 전체 조회 (최신순)
     public List<MatchRes> getMatches() {
-        return matchRepository.findAll().stream()
+        return matchRepository.findAllOrderByMatchIdDesc().stream()
                 .map(MatchRes::from)
                 .toList();
     }

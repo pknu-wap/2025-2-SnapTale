@@ -70,6 +70,16 @@ public class MatchRESTService {
 	// 매치 참가 처리
 	@Transactional
 	public MatchJoinRes joinMatch(MatchJoinMessage message) {
+		// 게스트 ID로 QUEUED, MATCHED, PLAYING 상태의 매치에 이미 참여하고 있는지 확인
+		List<MatchStatus> activeStatuses = List.of(MatchStatus.QUEUED, MatchStatus.MATCHED, MatchStatus.PLAYING);
+		boolean alreadyInMatch = matchParticipantRepository.existsByGuestIdAndMatchStatusIn(
+				message.getUserId(), activeStatuses);
+		
+		if (alreadyInMatch) {
+			log.warn("이미 진행 중인 매치에 참여 중: userId={}", message.getUserId());
+			throw new BaseException(BaseResponseStatus.ALREADY_IN_MATCH);
+		}
+
 		Match match;
 
 		// matchId가 0이 아닌 경우: 친선전 (특정 매치 참가)
@@ -285,9 +295,14 @@ public class MatchRESTService {
 		TurnService.TurnEndSubmitResult result = turnService.submitTurnEnd(
 				message.getMatchId(), message.getParticipantId());
 
+		log.info("턴 종료 제출 결과: matchId={}, bothPlayersEnded={}", message.getMatchId(), result.isBothPlayersEnded());
+
 		// 양쪽 플레이어가 모두 턴 종료했으면 턴 종료 처리 후 다음 턴 시작됨.
 		if (result.isBothPlayersEnded()) {
+			log.info("양쪽 플레이어 모두 턴 종료 완료, processTurnEnd 호출: matchId={}", message.getMatchId());
 			processTurnEnd(message.getMatchId());
+		} else {
+			log.info("아직 상대방 턴 종료 대기 중: matchId={}", message.getMatchId());
 		}
 
 		// 참가자 정보 조회 (에너지 포함) - participantId는 guestId를 의미함
@@ -310,14 +325,26 @@ public class MatchRESTService {
 	// 턴 종료 후 다음 턴 시작 로직
 	@Transactional
 	public void processTurnEnd(Long matchId) {
-		log.info("턴 종료 처리: matchId={}", matchId);
+		log.info("턴 종료 처리 시작: matchId={}", matchId);
 
-		TurnService.TurnEndResult result = turnService.endTurnAndStartNext(matchId);
+		try {
+			TurnService.TurnEndResult result = turnService.endTurnAndStartNext(matchId);
+			
+			log.info("턴 종료 처리 결과: matchId={}, gameEnded={}, nextTurn={}", 
+					matchId, result.isGameEnded(), result.getNextTurn());
 
-		if (result.isGameEnded()) {
-			matchWebSocketService.processGameEnd(matchId);
-		} else {
-			matchWebSocketService.notifyTurnStart(matchId, result);
+			if (result.isGameEnded()) {
+				log.info("게임 종료 감지: matchId={}, currentTurn={}, processGameEnd 호출 시작", 
+						matchId, result.getNextTurn());
+				matchWebSocketService.processGameEnd(matchId);
+				log.info("게임 종료 처리 완료: matchId={}", matchId);
+			} else {
+				log.info("게임 계속 진행: matchId={}, 다음 턴={}", matchId, result.getNextTurn());
+				matchWebSocketService.notifyTurnStart(matchId, result);
+			}
+		} catch (Exception e) {
+			log.error("턴 종료 처리 중 오류 발생: matchId={}, error={}", matchId, e.getMessage(), e);
+			throw e;
 		}
 	}
 

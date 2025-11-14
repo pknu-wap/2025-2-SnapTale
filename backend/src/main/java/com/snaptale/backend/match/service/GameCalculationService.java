@@ -3,6 +3,8 @@ package com.snaptale.backend.match.service;
 import com.snaptale.backend.common.exceptions.BaseException;
 import com.snaptale.backend.common.response.BaseResponseStatus;
 import com.snaptale.backend.match.entity.*;
+import com.snaptale.backend.match.model.request.MatchParticipantUpdateReq;
+import com.snaptale.backend.match.model.request.MatchUpdateReq;
 import com.snaptale.backend.match.repository.MatchParticipantRepository;
 import com.snaptale.backend.match.repository.MatchRepository;
 import com.snaptale.backend.match.repository.PlayRepository;
@@ -131,12 +133,15 @@ public class GameCalculationService {
         }
 
         // 4. Match 업데이트
-        match.apply(new com.snaptale.backend.match.model.request.MatchUpdateReq(
+        log.info("게임 종료 - 매치 상태를 ENDED로 변경: matchId={}, winnerId={}", matchId, winnerId);
+        match.apply(new MatchUpdateReq(
                 MatchStatus.ENDED,
                 winnerId,
                 null,
                 LocalDateTime.now()));
-        matchRepository.save(match);
+        match = matchRepository.save(match);
+        log.info("게임 종료 - 매치 상태 변경 완료: matchId={}, status={}, winnerId={}", 
+                matchId, match.getStatus(), match.getWinnerId());
 
         // 5. MatchParticipant 최종 점수 업데이트
         List<MatchParticipant> participants = matchParticipantRepository.findByMatch_MatchId(matchId);
@@ -144,12 +149,11 @@ public class GameCalculationService {
             int finalScore = participant.getGuestId().equals(powerResult.getPlayer1Id())
                     ? totalPlayer1Power
                     : totalPlayer2Power;
-            participant.apply(new com.snaptale.backend.match.model.request.MatchParticipantUpdateReq(
-                    finalScore,
-                    null,
-                    null,
-                    null,
-                    null), null, null);
+            MatchParticipantUpdateReq updateReq = MatchParticipantUpdateReq.builder()
+                    .finalScore(finalScore)
+                    .build();
+            participant.apply(updateReq, null, null);
+            matchParticipantRepository.save(participant);
         }
 
         // 6. 사용자 통계 업데이트
