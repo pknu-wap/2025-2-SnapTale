@@ -240,7 +240,7 @@ export default function GameLayout({ matchId }) {
           return;
         }
 
-        if (messageType === "GAME_END") {
+        if (messageType === "GAME_END") {//todo: alert에서 모달창으로 바꾸기.
           // 게임 종료 메시지 처리
           const gameState = payload;
           const message = wsMessage?.message || "게임이 종료되었습니다.";
