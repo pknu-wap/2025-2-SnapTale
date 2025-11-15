@@ -395,12 +395,12 @@ public class MatchWebSocketService {
 					? endResult.getWinnerNickname() + " 승리!"
 					: "무승부";
 
-			String winnerCapturedLocations = endResult.getPlayer1CapturedLocationNames().isEmpty()
+			String winnerCapturedLocations = endResult.getWinnerCapturedLocationNames().isEmpty()
 					? "없음"
-					: endResult.getPlayer1CapturedLocationNames().stream().collect(Collectors.joining(", "));
-			String loserCapturedLocations = endResult.getPlayer2CapturedLocationNames().isEmpty()
+					: endResult.getWinnerCapturedLocationNames().stream().collect(Collectors.joining(", "));
+			String loserCapturedLocations = endResult.getLoserCapturedLocationNames().isEmpty()
 					? "없음"
-					: endResult.getPlayer2CapturedLocationNames().stream().collect(Collectors.joining(", "));
+					: endResult.getLoserCapturedLocationNames().stream().collect(Collectors.joining(", "));
 
 			gameState.setLastPlayInfo(String.format(
 					"%s \n" +
@@ -414,9 +414,9 @@ public class MatchWebSocketService {
 					loserNickname,
 					loserCapturedLocations,
 					winnerNickname,
-					endResult.getPlayer1TotalPower(),
+					endResult.getWinnerTotalPower(),
 					loserNickname,
-					endResult.getPlayer2TotalPower()));
+					endResult.getLoserTotalPower()));
 
 			// 게임 종료 브로드캐스트
 			broadcastToMatch(matchId, "GAME_END", gameState, winnerMessage);

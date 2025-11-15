@@ -136,25 +136,45 @@ public class GameCalculationService {
         // 4. 최종 승자 결정
         Long winnerId = null;
         String winnerNickname = null;
+        List<String> winnerCapturedLocationNames = new ArrayList<>();
         String loserNickname = null;
+        List<String> loserCapturedLocationNames = new ArrayList<>();
+        int winnerTotalPower = 0;
+        int loserTotalPower = 0;
         if (player1Wins > player2Wins) {
             winnerId = powerResult.getPlayer1Id();
             winnerNickname = userRepository.findById(winnerId)
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND)).getNickname();
+            winnerCapturedLocationNames.addAll(player1CapturedLocations);
+            winnerTotalPower = totalPlayer1Power;
             loserNickname = userRepository.findById(powerResult.getPlayer2Id())
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND)).getNickname();
+            loserCapturedLocationNames.addAll(player2CapturedLocations);
+            loserTotalPower = totalPlayer2Power;
         } else if (player2Wins > player1Wins) {
             winnerId = powerResult.getPlayer2Id();
             winnerNickname = userRepository.findById(winnerId)
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND)).getNickname();
+            winnerCapturedLocationNames.addAll(player2CapturedLocations);
+            winnerTotalPower = totalPlayer2Power;
             loserNickname = userRepository.findById(powerResult.getPlayer1Id())
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND)).getNickname();
+            loserCapturedLocationNames.addAll(player1CapturedLocations);
+            loserTotalPower = totalPlayer1Power;
         } else {
             // Location 점령 수가 같으면 총 파워로 결정
             if (totalPlayer1Power > totalPlayer2Power) {
                 winnerId = powerResult.getPlayer1Id();
+                winnerCapturedLocationNames.addAll(player1CapturedLocations);
+                loserCapturedLocationNames.addAll(player2CapturedLocations);
+                winnerTotalPower = totalPlayer1Power;
+                loserTotalPower = totalPlayer2Power;
             } else if (totalPlayer2Power > totalPlayer1Power) {
                 winnerId = powerResult.getPlayer2Id();
+                winnerCapturedLocationNames.addAll(player2CapturedLocations);
+                loserCapturedLocationNames.addAll(player1CapturedLocations);
+                winnerTotalPower = totalPlayer2Power;
+                loserTotalPower = totalPlayer1Power;
             }
             // 그래도 같으면 무승부 (winnerId = null)
         }
@@ -193,12 +213,10 @@ public class GameCalculationService {
                 .winnerId(winnerId)
                 .winnerNickname(winnerNickname)
                 .loserNickname(loserNickname)
-                .player1LocationWins(player1Wins)
-                .player2LocationWins(player2Wins)
-                .player1CapturedLocationNames(player1CapturedLocations)
-                .player2CapturedLocationNames(player2CapturedLocations)
-                .player1TotalPower(totalPlayer1Power)
-                .player2TotalPower(totalPlayer2Power)
+                .winnerCapturedLocationNames(winnerCapturedLocationNames)
+                .loserCapturedLocationNames(loserCapturedLocationNames)
+                .winnerTotalPower(winnerTotalPower)
+                .loserTotalPower(loserTotalPower)
                 .build();
     }
 
@@ -334,29 +352,24 @@ public class GameCalculationService {
         private final Long winnerId;
         private final String winnerNickname;
         private final String loserNickname;
-        private final int player1LocationWins;
-        private final int player2LocationWins;
-        private final List<String> player1CapturedLocationNames;
-        private final List<String> player2CapturedLocationNames;
-        private final int player1TotalPower;
-        private final int player2TotalPower;
+        private final List<String> winnerCapturedLocationNames;
+        private final List<String> loserCapturedLocationNames;
+        private final int winnerTotalPower;
+        private final int loserTotalPower;
 
         @lombok.Builder
         public GameEndResult(Long matchId, Long winnerId, String winnerNickname, String loserNickname,
-                int player1LocationWins,
-                int player2LocationWins, List<String> player1CapturedLocationNames,
-                List<String> player2CapturedLocationNames,
-                int player1TotalPower, int player2TotalPower) {
+                List<String> winnerCapturedLocationNames,
+                List<String> loserCapturedLocationNames,
+                int winnerTotalPower, int loserTotalPower) {
             this.matchId = matchId;
             this.winnerId = winnerId;
             this.winnerNickname = winnerNickname;
             this.loserNickname = loserNickname;
-            this.player1LocationWins = player1LocationWins;
-            this.player2LocationWins = player2LocationWins;
-            this.player1CapturedLocationNames = player1CapturedLocationNames;
-            this.player2CapturedLocationNames = player2CapturedLocationNames;
-            this.player1TotalPower = player1TotalPower;
-            this.player2TotalPower = player2TotalPower;
+            this.winnerCapturedLocationNames = winnerCapturedLocationNames;
+            this.loserCapturedLocationNames = loserCapturedLocationNames;
+            this.winnerTotalPower = winnerTotalPower;
+            this.loserTotalPower = loserTotalPower;
         }
 
         public Long getMatchId() {
@@ -375,28 +388,20 @@ public class GameCalculationService {
             return loserNickname;
         }
 
-        public int getPlayer1LocationWins() {
-            return player1LocationWins;
+        public List<String> getWinnerCapturedLocationNames() {
+            return winnerCapturedLocationNames;
         }
 
-        public int getPlayer2LocationWins() {
-            return player2LocationWins;
+        public List<String> getLoserCapturedLocationNames() {
+            return loserCapturedLocationNames;
         }
 
-        public List<String> getPlayer1CapturedLocationNames() {
-            return player1CapturedLocationNames;
+        public int getWinnerTotalPower() {
+            return winnerTotalPower;
         }
 
-        public List<String> getPlayer2CapturedLocationNames() {
-            return player2CapturedLocationNames;
-        }
-
-        public int getPlayer1TotalPower() {
-            return player1TotalPower;
-        }
-
-        public int getPlayer2TotalPower() {
-            return player2TotalPower;
+        public int getLoserTotalPower() {
+            return loserTotalPower;
         }
     }
 }
