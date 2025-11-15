@@ -14,6 +14,7 @@ import defaultImg from "../../assets/koreaIcon.png";
 import DCI from "../../assets/defaultCardImg.svg";
 // import { fetchLocations } from "./api/location";
 import GameChatFloatingButton from "./GameChatFloatingButton";
+import GameEndModal from "./GameEndModal";
 import { getMatch, verifyParticipant } from "../Home/api/match";
 import { fetchLocationsByMatchId } from "./api/location";
 import { playAction } from "./api/matchTurn";
@@ -62,6 +63,11 @@ export default function GameLayout({ matchId }) {
   const [energy, setEnergy] = useState(3);
   const [allCards, setAllCards] = useState([]);
   const [isWaitingForOpponent, setIsWaitingForOpponent] = useState(false);
+  const [gameEndModalState, setGameEndModalState] = useState({
+    isOpen: false,
+    message: "",
+    detail: "",
+  });
 
   const { subscribe } = useWebSocket();
 
@@ -240,20 +246,18 @@ export default function GameLayout({ matchId }) {
           return;
         }
 
-        if (messageType === "GAME_END") {//todo: alert에서 모달창으로 바꾸기.
+        if (messageType === "GAME_END") {
           // 게임 종료 메시지 처리
           const gameState = payload;
           const message = wsMessage?.message || "게임이 종료되었습니다.";
-          
+
           console.log("게임 종료:", message, gameState);
-          
-          // 게임 종료 메시지 표시
-          alert(message);
-          
-          // home으로 리다이렉트
-          setTimeout(() => {
-            navigate("/home");
-          }, 1000); // 1초 후 리다이렉트 (메시지를 볼 시간 제공)
+
+          setGameEndModalState({
+            isOpen: true,
+            message,
+            detail: gameState?.lastPlayInfo || "",
+          });
           return; // GAME_END 처리 후 다른 메시지 처리하지 않음
         }
 
@@ -371,7 +375,10 @@ export default function GameLayout({ matchId }) {
               console.log("상대 카드 정보:", opponentCards);
               
               // 지역별로 카드 그룹핑 (slotIndex 0, 1, 2)
-              const cardsByLocation = [[], [], []];
+              const cardsByLocation = [
+                [null, null, null, null], 
+                [null, null, null, null], 
+                [null, null, null, null]];
 
               if (Array.isArray(opponentCards)) {
                 opponentCards.forEach(card => {
@@ -493,6 +500,11 @@ export default function GameLayout({ matchId }) {
 
   const handleCloseLocationModal = () => {
     setSelectedLocation(null);
+  };
+
+  const handleConfirmGameEnd = () => {
+    setGameEndModalState({ isOpen: false, message: "", detail: "" });
+    navigate("/home");
   };
 
   const handleCardDrop = async ({ card, laneIndex}) => {
@@ -705,6 +717,12 @@ export default function GameLayout({ matchId }) {
           />
         </div>
       )}
+      <GameEndModal
+        isOpen={gameEndModalState.isOpen}
+        message={gameEndModalState.message}
+        detail={gameEndModalState.detail}
+        onConfirm={handleConfirmGameEnd}
+      />
     </>
   );
 }
