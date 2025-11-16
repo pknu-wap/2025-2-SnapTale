@@ -18,6 +18,7 @@ import GameEndModal from "./GameEndModal";
 import { getMatch, verifyParticipant } from "../Home/api/match";
 import { fetchLocationsByMatchId } from "./api/location";
 import { playAction } from "./api/matchTurn";
+import useMatchWebSocket from "./GameLayout/hooks/useMatchWebSocket";
 
 let pressTimer = null;
 
@@ -222,195 +223,19 @@ export default function GameLayout({ matchId }) {
     loadLocations();
   }, [matchId, user?.participantId]);
 
-  useEffect(() => {
-    if (!matchId) {
-      return undefined;
-    }
-
-    const destination = `/topic/match/${matchId}`;
-    const subscriptionKey = `game-layout-match-${matchId}`;
-
-    const unsubscribe = subscribe(destination, {
-      key: subscriptionKey,
-      onMessage: (entry) => {
-        const body = entry?.body;
-        if (!body?.success) {
-          return;
-        }
-
-        const wsMessage = body.data;
-        const messageType = wsMessage?.type;
-        const payload = wsMessage?.data;
-
-        if (!messageType) {
-          return;
-        }
-
-        if (messageType === "GAME_END") {
-          // 게임 종료 메시지 처리
-          const gameState = payload;
-          const message = wsMessage?.message || "게임이 종료되었습니다.";
-
-          console.log("게임 종료:", message, gameState);
-
-          setGameEndModalState({
-            isOpen: true,
-            message,
-            detail: gameState?.lastPlayInfo || "",
-          });
-          return; // GAME_END 처리 후 다른 메시지 처리하지 않음
-        }
-
-        // payload가 없으면 다른 메시지 처리하지 않음
-        if (!payload) {
-          console.log("payload가 없습니다.");
-          return;
-        }
-
-        if (messageType === "LEAVE") {
-          // 상대방이 나간 경우 처리
-          const leaveMessage = wsMessage?.message || "상대방이 나갔습니다.";
-          
-          console.log("상대방 퇴장:", leaveMessage);
-          
-          // GAME_END 메시지가 곧 올 것이므로 여기서는 로그만 남김
-          // (GAME_END에서 처리하도록 함)
-        }
-
-        if (messageType === "TURN_WAITING") {
-          if (!payload) {
-            console.log("payload가 없습니다.");
-            return;
-          }
-          const endedGuestId = payload?.endedGuestId;
-          const waitingForOpponent = Boolean(payload?.waitingForOpponent);
-
-          if (endedGuestId === user?.guestId && waitingForOpponent) {
-            setIsWaitingForOpponent(true);
-          } else if (!waitingForOpponent) {
-            setIsWaitingForOpponent(false);
-          } else if (endedGuestId !== user?.guestId) {
-            setIsWaitingForOpponent(false);
-          }
-
-          const scores = payload?.gameState?.participantScores;
-          if (Array.isArray(scores)) {
-            const myParticipantId = user?.participantId;
-            const myGuestId = user?.guestId;
-            const meScore = scores.find(
-              (score) =>
-                score.participantId === myParticipantId || score.guestId === myGuestId
-            );
-            if (meScore && typeof meScore.energy === "number") {
-              setEnergy(meScore.energy);
-            }
-          }
-        }
-
-        if (messageType === "TURN_START") {
-          if (!payload) {
-            console.log("payload가 없습니다.");
-            return;
-          }
-
-          setIsWaitingForOpponent(false);
-
-          if (typeof payload?.currentTurn === "number") {
-            setTurn(payload.currentTurn);
-          }
-
-          const scores = payload?.gameState?.participantScores;
-          if (Array.isArray(scores)) {
-            const myParticipantId = user?.participantId;
-            const myGuestId = user?.guestId;
-            const meScore = scores.find(
-              (score) =>
-                score.participantId === myParticipantId || score.guestId === myGuestId
-            );
-            if (meScore && typeof meScore.energy === "number") {
-              setEnergy(meScore.energy);
-            }
-          }
-          if (payload?.locationPowerResult) {
-            console.log("TURN_START locationPowerResult:", payload.locationPowerResult);
-            const normalizePowers = (source) => {
-              if (Array.isArray(source)) {
-                return source.map((value) => Number(value) || 0);
-              }
-              if (source && typeof source === 'object') {
-                // 객체를 배열로 변환 {0: 4, 1: 0, 2: 0} -> [4, 0, 0]
-                return [0, 1, 2].map(idx => Number(source[idx]) || 0);
-              }
-              return null;
-            };
-            const myGuestId = user?.guestId;
-            const { player1Id, player2Id, player1Powers, player2Powers } = payload.locationPowerResult;
-
-            if (myGuestId && player1Id && player2Id) {
-              if (myGuestId === player1Id) {
-                const myLocationPowers = normalizePowers(player1Powers);
-                const opponentLocationPowers = normalizePowers(player2Powers);
-                if (myLocationPowers) setMyPowers(myLocationPowers);
-                if (opponentLocationPowers) setOpponentPowers(opponentLocationPowers);
-              } else if (myGuestId === player2Id) {
-                const myLocationPowers = normalizePowers(player2Powers);
-                const opponentLocationPowers = normalizePowers(player1Powers);
-                if (myLocationPowers) setMyPowers(myLocationPowers);
-                if (opponentLocationPowers) setOpponentPowers(opponentLocationPowers);
-              }
-            }
-          }
-
-          // 상대 카드 배치 정보 처리
-          if (payload?.playerCardPlays) {
-            console.log("TURN_START playerCardPlays:", payload.playerCardPlays);
-            const myGuestId = user?.guestId;
-            
-            // 상대 guestId 찾기
-            const allGuestIds = Object.keys(payload.playerCardPlays).map(id => parseInt(id));
-            const opponentGuestId = allGuestIds.find(id => id !== myGuestId);
-            
-            if (opponentGuestId) {
-              const opponentCards = payload.playerCardPlays[opponentGuestId];
-              console.log("상대 카드 정보:", opponentCards);
-              
-              // 지역별로 카드 그룹핑 (slotIndex 0, 1, 2)
-              const cardsByLocation = [
-                [null, null, null, null], 
-                [null, null, null, null], 
-                [null, null, null, null]];
-
-              if (Array.isArray(opponentCards)) {
-                opponentCards.forEach(card => {
-                  if (card.slotIndex !== null && card.slotIndex !== undefined) {
-                    const locationIndex = card.slotIndex;
-                    const position = card.position !== null && card.position !== undefined ? card.position : 0;
-                    
-                    // 정확한 위치에 카드 배치
-                    if (locationIndex >= 0 && locationIndex < 3 && position >= 0 && position < 4) {
-                      cardsByLocation[locationIndex][position] = {
-                        cardId: card.cardId,
-                        name: card.cardName,
-                        imageUrl: card.cardImageUrl,
-                        cost: card.cost,
-                        power: card.power,
-                        faction: card.faction,
-                      };
-                    }
-                  }
-                });
-              }
-              
-              console.log("정확한 위치의 상대 카드:", cardsByLocation);
-              setOpponentBoardLanes(cardsByLocation);
-            }
-          }
-        }
-      },
-    });
-
-    return unsubscribe;
-  }, [matchId, subscribe, user?.guestId, user?.participantId, navigate]);
+  useMatchWebSocket({
+    matchId,
+    user,
+    subscribe,
+    navigate,
+    setIsWaitingForOpponent,
+    setTurn,
+    setEnergy,
+    setMyPowers,
+    setOpponentPowers,
+    setOpponentBoardLanes,
+    setGameEndModalState,
+  });
 
   useEffect(() => {
     setIsWaitingForOpponent(false);
