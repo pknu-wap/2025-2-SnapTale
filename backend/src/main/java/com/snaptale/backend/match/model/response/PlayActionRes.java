@@ -5,7 +5,7 @@ import com.snaptale.backend.match.websocket.message.PlayActionMessage;
 
 import java.util.List;
 
-public record PlayActionRes( //todo:본인 파워 playActionMessage에 나중에 추가하기
+public record PlayActionRes(
         Long matchId,
         Long participantId,
         String actionType,
