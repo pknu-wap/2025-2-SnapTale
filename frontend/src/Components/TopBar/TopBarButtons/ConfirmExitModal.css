@@ -32,6 +32,14 @@
   font-size: clamp(1rem, 2.5vw, 1.2rem);
   font-weight: 600;
   line-height: 1.5;
+  color: #2c1105;
+}
+
+.confirm-exit-subtext {
+  margin: 0;
+  font-size: clamp(0.85rem, 2vw, 1rem);
+  line-height: 1.4;
+  color: #2c1105;
 }
 
 .confirm-exit-actions {
@@ -61,14 +69,14 @@
   white-space: nowrap;
 }
 
-.confirm-exit-button.confirm {
+.confirm-exit-button.exit-confirm {
   background-color: #ff5a5a;
   color: #ffffff;
 }
 
-.confirm-exit-button.cancel {
-  background-color: #e0e0e0;
-  color: #000000;
+.confirm-exit-button.exit-cancel {
+  background-color: #ffffff;
+  color: #2c1105;
 }
 
 .confirm-exit-button:hover {

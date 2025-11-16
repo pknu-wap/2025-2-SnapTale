@@ -53,6 +53,13 @@ body,
 
 .app-bg-image.bg-gameplay {
   --app-bg: url("./assets/bg_gamepage.png");
+  justify-content: flex-start;
+  align-items: stretch;
+  flex-direction: column;
+}
+
+.app-bg-image.bg-gameplay > * {
+  width: 100%;
 }
 
 .app-bg-image::after {
