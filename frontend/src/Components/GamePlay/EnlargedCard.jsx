@@ -3,9 +3,8 @@ import { useEffect, useRef } from "react";
 import costIcon from '../../assets/cost.svg';
 import powerIcon from '../../assets/power.svg';
 
-const EnlargedCard = ({ card, onClose }) => {
+const EnlargedCard = ({ card }) => {
   const ref = useRef(null);
-  const handleClose = () => onClose?.();  // 닫기 함수가 입력으로 안들어오면 닫기 실행 X (덱확인 페이지에서 큰 카드 닫기를 막기 위함)
   useEffect(() => {
         if(!card) return;
         const el = ref.current;
@@ -32,7 +31,7 @@ const EnlargedCard = ({ card, onClose }) => {
   };
   const borderClass = factionClasses[card.faction] || "card-border-default";
   return (
-    <div className="enlarged-card-container" onClick={handleClose}>
+    <div className="enlarged-card-container">
       <img
         className={`card-image ${borderClass}`}
         src={card.imageUrl}

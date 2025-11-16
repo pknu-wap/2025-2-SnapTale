@@ -1,10 +1,10 @@
 import React from "react"; 
 import { useEffect, useRef } from "react";
 import "./Location.css";
-import powerIcon from "../../assets/locationPower.svg";
+import powerIcon from "../../assets/locationPower.png";
 
 
-const EnlargedLocation = ({ location, onClose }) => {
+const EnlargedLocation = ({ location }) => {
     const ref = useRef(null);
     useEffect(() => {
       const el = ref.current;
@@ -24,7 +24,7 @@ const EnlargedLocation = ({ location, onClose }) => {
     }
     }, [location.name]);
   return (
-    <div className="enlarged-location-container" onClick={onClose}>
+    <div className="enlarged-location-container">
       <img className="location-image" src={location.imageUrl} alt={location.name}/>
 
       <div className="opponentPower-container">
