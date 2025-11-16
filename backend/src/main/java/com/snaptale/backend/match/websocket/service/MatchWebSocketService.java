@@ -87,10 +87,6 @@ public class MatchWebSocketService {
 						LocalDateTime.now()));
 				matchRepository.save(match);
 
-				// 업데이트된 매치 정보 다시 조회
-				match = matchRepository.findById(message.getMatchId())
-						.orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_NOT_FOUND));
-
 				// 게임 종료 메시지 생성 및 브로드캐스트
 				GameStateMessage gameState = createGameStateMessage(match, participants);
 				String winnerMessage = leaverNickname + "님이 나갔습니다. 당신이 승자입니다!";
@@ -108,10 +104,6 @@ public class MatchWebSocketService {
 						null,
 						LocalDateTime.now()));
 				matchRepository.save(match);
-
-				// 업데이트된 매치 정보 다시 조회
-				match = matchRepository.findById(message.getMatchId())
-						.orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_NOT_FOUND));
 
 				// 게임 종료 메시지 생성 및 브로드캐스트
 				GameStateMessage gameState = createGameStateMessage(match, participants);
@@ -391,8 +383,8 @@ public class MatchWebSocketService {
 					.filter(nick -> !nick.isBlank())
 					.orElse("플레이어2");
 
-			String winnerMessage = (endResult.getWinnerNickname() != null && !endResult.getWinnerNickname().isEmpty())
-					? endResult.getWinnerNickname() + " 승리!"
+			String winnerMessage = (endResult.getWinnerId() != null)
+					? winnerNickname + " 승리!"
 					: "무승부";
 
 			String winnerCapturedLocations = endResult.getWinnerCapturedLocationNames().isEmpty()

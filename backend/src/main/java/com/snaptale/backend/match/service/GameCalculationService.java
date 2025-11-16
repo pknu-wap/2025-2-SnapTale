@@ -13,6 +13,7 @@ import com.snaptale.backend.match.repository.MatchRepository;
 import com.snaptale.backend.match.repository.PlayRepository;
 import com.snaptale.backend.match.repository.MatchLocationRepository;
 import com.snaptale.backend.user.entity.User;
+import com.snaptale.backend.user.model.UserUpdateReq;
 import com.snaptale.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -175,8 +176,12 @@ public class GameCalculationService {
                 loserCapturedLocationNames.addAll(player1CapturedLocations);
                 winnerTotalPower = totalPlayer2Power;
                 loserTotalPower = totalPlayer1Power;
+            } else {
+                //쩔 수 없이 이렇게 해야 함. 다음엔 변수 설정할 때 확장성을 고려해야겠음.
+                winnerTotalPower = totalPlayer1Power;
+                loserTotalPower = totalPlayer2Power;
             }
-            // 그래도 같으면 무승부 (winnerId = null)
+
         }
 
         // 5. Match 업데이트
@@ -232,14 +237,14 @@ public class GameCalculationService {
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
         // 매치 플레이 수 증가
-        player1.apply(new com.snaptale.backend.user.model.UserUpdateReq(
+        player1.apply(new UserUpdateReq(
                 null,
                 null,
                 player1.getMatchesPlayed() + 1,
                 null,
                 null,
                 null));
-        player2.apply(new com.snaptale.backend.user.model.UserUpdateReq(
+        player2.apply(new UserUpdateReq(
                 null,
                 null,
                 player2.getMatchesPlayed() + 1,
@@ -251,14 +256,14 @@ public class GameCalculationService {
         if (winnerId != null) {
             if (winnerId.equals(player1Id)) {
                 // Player 1 승리
-                player1.apply(new com.snaptale.backend.user.model.UserUpdateReq(
+                player1.apply(new UserUpdateReq(
                         null,
                         player1.getRankPoint() + 25,
                         null,
                         player1.getWins() + 1,
                         null,
                         null));
-                player2.apply(new com.snaptale.backend.user.model.UserUpdateReq(
+                player2.apply(new UserUpdateReq(
                         null,
                         Math.max(0, player2.getRankPoint() - 10),
                         null,
@@ -267,14 +272,14 @@ public class GameCalculationService {
                         null));
             } else {
                 // Player 2 승리
-                player2.apply(new com.snaptale.backend.user.model.UserUpdateReq(
+                player2.apply(new UserUpdateReq(
                         null,
                         player2.getRankPoint() + 25,
                         null,
                         player2.getWins() + 1,
                         null,
                         null));
-                player1.apply(new com.snaptale.backend.user.model.UserUpdateReq(
+                player1.apply(new UserUpdateReq(
                         null,
                         Math.max(0, player1.getRankPoint() - 10),
                         null,
@@ -284,14 +289,14 @@ public class GameCalculationService {
             }
         } else {
             // 무승부 - 각자 +5 포인트
-            player1.apply(new com.snaptale.backend.user.model.UserUpdateReq(
+            player1.apply(new UserUpdateReq(
                     null,
                     player1.getRankPoint() + 5,
                     null,
                     null,
                     null,
                     null));
-            player2.apply(new com.snaptale.backend.user.model.UserUpdateReq(
+            player2.apply(new UserUpdateReq(
                     null,
                     player2.getRankPoint() + 5,
                     null,

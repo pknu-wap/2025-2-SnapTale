@@ -4,7 +4,6 @@ export default function useMatchWebSocket({
   matchId,
   user,
   subscribe,
-  navigate,
   setIsWaitingForOpponent,
   setTurn,
   setEnergy,
@@ -39,11 +38,9 @@ export default function useMatchWebSocket({
 
         if (messageType === "GAME_END") {
           const gameState = payload;
-          const message = wsMessage?.message || "게임이 종료되었습니다.";
 
           setGameEndModalState({
             isOpen: true,
-            message,
             detail: gameState?.lastPlayInfo || "",
           });
           return;
@@ -181,7 +178,7 @@ export default function useMatchWebSocket({
 
     return unsubscribe;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [matchId, subscribe, user?.guestId, user?.participantId, navigate]);
+  }, [matchId, subscribe, user?.guestId, user?.participantId]);
 }
 
 

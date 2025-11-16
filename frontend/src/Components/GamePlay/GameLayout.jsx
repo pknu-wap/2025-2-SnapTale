@@ -66,7 +66,6 @@ export default function GameLayout({ matchId }) {
   const [isWaitingForOpponent, setIsWaitingForOpponent] = useState(false);
   const [gameEndModalState, setGameEndModalState] = useState({
     isOpen: false,
-    message: "",
     detail: "",
   });
 
@@ -227,7 +226,6 @@ export default function GameLayout({ matchId }) {
     matchId,
     user,
     subscribe,
-    navigate,
     setIsWaitingForOpponent,
     setTurn,
     setEnergy,
@@ -328,7 +326,7 @@ export default function GameLayout({ matchId }) {
   };
 
   const handleConfirmGameEnd = () => {
-    setGameEndModalState({ isOpen: false, message: "", detail: "" });
+    setGameEndModalState({ isOpen: false, detail: "" });
     navigate("/home");
   };
 
@@ -544,7 +542,6 @@ export default function GameLayout({ matchId }) {
       )}
       <GameEndModal
         isOpen={gameEndModalState.isOpen}
-        message={gameEndModalState.message}
         detail={gameEndModalState.detail}
         onConfirm={handleConfirmGameEnd}
       />
