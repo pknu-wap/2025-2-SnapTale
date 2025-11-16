@@ -20,6 +20,18 @@ export default function useMatchWebSocket({
     const destination = `/topic/match/${matchId}`;
     const subscriptionKey = `game-layout-match-${matchId}`;
 
+    const updateEnergyFromScores = (scores) => {
+      if (!Array.isArray(scores)) return;
+      const myParticipantId = user?.participantId;
+      const myGuestId = user?.guestId;
+      const meScore = scores.find(
+        (score) => score.participantId === myParticipantId || score.guestId === myGuestId
+      );
+      if (meScore && typeof meScore.energy === "number") {
+        setEnergy(meScore.energy);
+      }
+    };
+
     const unsubscribe = subscribe(destination, {
       key: subscriptionKey,
       onMessage: (entry) => {
@@ -66,18 +78,7 @@ export default function useMatchWebSocket({
             setIsWaitingForOpponent(false);
           }
 
-          const scores = payload?.gameState?.participantScores;
-          if (Array.isArray(scores)) {
-            const myParticipantId = user?.participantId;
-            const myGuestId = user?.guestId;
-            const meScore = scores.find(
-              (score) =>
-                score.participantId === myParticipantId || score.guestId === myGuestId
-            );
-            if (meScore && typeof meScore.energy === "number") {
-              setEnergy(meScore.energy);
-            }
-          }
+          updateEnergyFromScores(payload?.gameState?.participantScores);
         }
 
         if (messageType === "TURN_START") {
@@ -87,18 +88,7 @@ export default function useMatchWebSocket({
             setTurn(payload.currentTurn);
           }
 
-          const scores = payload?.gameState?.participantScores;
-          if (Array.isArray(scores)) {
-            const myParticipantId = user?.participantId;
-            const myGuestId = user?.guestId;
-            const meScore = scores.find(
-              (score) =>
-                score.participantId === myParticipantId || score.guestId === myGuestId
-            );
-            if (meScore && typeof meScore.energy === "number") {
-              setEnergy(meScore.energy);
-            }
-          }
+          updateEnergyFromScores(payload?.gameState?.participantScores);
           if (payload?.locationPowerResult) {
             const normalizePowers = (source) => {
               if (Array.isArray(source)) {
