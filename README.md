@@ -6,6 +6,9 @@
 ---
 
 ## 개요
+<img width="2000" height="1125" alt="image" src="https://github.com/user-attachments/assets/f5f1fa4d-8e18-4817-82f0-afd2f31cb1b2" />
+<img width="2000" height="1125" alt="image" src="https://github.com/user-attachments/assets/2376acea-97e5-45c8-8ccd-f168f3103016" />
+
 SnapTale은 **WebSocket 기반 실시간 카드 배틀 게임**입니다.  
 삼국지, 홍길동 등 동양의 전설적인 영웅들을 카드로 활용하여, 친숙하면서도 독특한 전략적 재미를 제공합니다.  
 
@@ -42,6 +45,10 @@ SnapTale은 **WebSocket 기반 실시간 카드 배틀 게임**입니다.
 ## 게임 규칙
 
 ### 1. 게임 목표
+<img width="2000" height="1125" alt="image" src="https://github.com/user-attachments/assets/c18975b4-4157-4fff-a1a4-068c972e5e8c" />
+
+<img width="2000" height="1125" alt="image" src="https://github.com/user-attachments/assets/4138de8a-baa5-4d29-a167-2562fea248a3" />
+
 - 게임은 총 **6턴** 동안 진행됩니다.  
 - **3개의 구역(Location)** 중 **2곳 이상을 점령**하면 승리합니다.  
 - 1곳씩 나눠가져 무승부가 발생하면, **전체 카드 파워 합계**로 승부를 가릅니다.  
