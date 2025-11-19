@@ -13,7 +13,6 @@ import EnlargedLocation from "./EnlargedLocation";
 import CustomDragLayer from "./CustomDragLayer";
 import defaultImg from "../../assets/koreaIcon.png";
 import DCI from "../../assets/defaultCardImg.svg";
-// import { fetchLocations } from "./api/location";
 import GameChatFloatingButton from "./GameChatFloatingButton";
 import { getMatch, verifyParticipant } from "../Home/api/match";
 import { fetchLocationsByMatchId } from "./api/location";
@@ -618,6 +617,7 @@ export default function GameLayout({ matchId }) {
     <>
     <div className="gameplay-shell">
       <DndProvider backend={TouchBackend} options={{ enableMouseEvents: true }}>
+        <CustomDragLayer selectedCard={selectedCard} />
         <div className="gameplay-body">
           <aside className="hud-panel" aria-label="턴 정보">
             <div className="hud-matchup" aria-label="플레이어 정보">
