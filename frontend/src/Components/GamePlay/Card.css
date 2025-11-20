@@ -1,7 +1,7 @@
 .card-container {
   position: relative;
-  width: 54px;
-  height: 81px;
+  width: 70px;
+  height: 105px;
   cursor: grab;
   align-items: center;
   justify-content: center;
@@ -37,8 +37,8 @@
 
 /* 아이콘 공통 스타일 */
 .icon {
-  width: 18px;
-  height: 18px;
+  width: 25px;
+  height: 25px;
   display: block;
   position: relative;
   z-index: 3;

@@ -262,10 +262,10 @@ export default function GameLayout({ matchId }) {
   }, [matchId]);
 
   const endTurnButtonLabel = useMemo(() => {
-    if (isWaitingForOpponent) {
-      return "상대의 턴을 기다리는 중...";
+    if (isWaitingForOpponent) { 
+      return { line1: "상대의 턴을", line2: "기다리는 중...", };
     }
-    return `턴 종료 (${turn} / ${maxTurn})`;
+    return { line1: "턴 종료", line2: `(${turn} / ${maxTurn})` };
   }, [isWaitingForOpponent, turn, maxTurn]);
 
   // const handleCardClick = (cardData) => {
@@ -423,7 +423,6 @@ export default function GameLayout({ matchId }) {
       if (myLocationPowers) {
         setMyPowers(myLocationPowers);
       }
-
       // 응답에서 받은 effect를 boardLanes의 카드에 업데이트
       if (response?.effect !== undefined) {
         setBoardLanes((prevLanes) => {
@@ -480,10 +479,15 @@ export default function GameLayout({ matchId }) {
             <div className="hud-section turn-panel">
             </div>
             <div className="hud-section">
-              <button className="end-turn-button" onClick={endTurn}
-              disabled={turn === maxTurn + 1 || isWaitingForOpponent}>
-              {endTurnButtonLabel}
-            </button>
+              <button
+                className="end-turn-button"
+                onClick={endTurn}
+                disabled={turn === maxTurn + 1 || isWaitingForOpponent}
+              >
+                <span>{endTurnButtonLabel.line1}</span>
+                <br />
+                <span>{endTurnButtonLabel.line2}</span>
+              </button>
             </div>
           </aside>
 
@@ -542,23 +546,23 @@ export default function GameLayout({ matchId }) {
                 </div>
               ))}
             </div>
-              <section className="hand-row" aria-label="내 손패">
-                <div className="hand-grid">
-                  {hand.map((card) => (
-                  <div
-                    key={card.cardId}
-                    className="hand-card"
-                    onClick={(e) => handleCardClick(card, e)}
-                  >
-                    <Card {...card} isDraggable={true} isSelected={selectedCardId === card.cardId} />
-                  </div>
-                  ))}
+              </main>
+          <aside className="hand-panel" aria-label="내 손패">
+            <div className="hand-grid">
+              {hand.map((card) => (
+                <div
+                  key={card.cardId}
+                  className="hand-card"
+                  onClick={(e) => handleCardClick(card, e)}
+                >
+                  <Card {...card} isDraggable={true} isSelected={selectedCardId === card.cardId} />
                 </div>
-              </section>
-            </main>
-          </div>
-        </DndProvider>
-      </div>
+              ))}
+            </div>
+          </aside>
+        </div>
+      </DndProvider>
+    </div>
       <GameChatFloatingButton matchId={matchId} />
 
       {selectedCard && (

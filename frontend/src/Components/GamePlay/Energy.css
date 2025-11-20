@@ -2,7 +2,7 @@
   position: relative;
   display: grid;
   place-items: center;
-  width: 61px;
+  width: 100px;
   aspect-ratio: 1;
   font-weight: 900;
   background: url("../../assets/energy.png") center/contain no-repeat;

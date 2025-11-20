@@ -5,9 +5,9 @@
   align-items: center;
   justify-content: center;
   width: 150.4px;
-  min-height: 160px;
+  height: 160px;
   padding: 14.4px;
-  border-radius: 24px;
+  border-radius: 20px;
   background: linear-gradient(160deg, rgba(34, 24, 16, 0.72), rgba(34, 24, 16, 0.45)) padding-box,
     radial-gradient(circle at top, rgba(255, 198, 140, 0.35), transparent 65%) border-box;
   border: 3.2px solid rgba(194, 144, 101, 0.55);
