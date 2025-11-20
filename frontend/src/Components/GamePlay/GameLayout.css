@@ -168,7 +168,7 @@
   width: 640px;
   display: grid;
   grid-template-columns: repeat(3, 192px);
-  grid-template-rows: 154px 280px 154px;
+  grid-template-rows: 154px 330px 154px;
   column-gap: 28px;
   row-gap: 18px;
   justify-content: center;
@@ -229,7 +229,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   overflow-y: auto;
   padding: 16px 12px;
   background: rgba(0, 0, 0, 0.15);
@@ -239,20 +239,26 @@
 
 .hand-grid {
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: 96px 96px;
+  justify-content: center;
+  column-gap: 12px;
+  row-gap: 16px;
 }
 
 .hand-card {
-  width: 164px;
+  width: 96px;
   display: flex;
   justify-content: center;
 }
 
 .hand-card:active .card-container {
   transform: scale(0.96);
+}
+
+.hand-card .card-container {
+  width: 78px;
+  height: 117px;
 }
 
 @media (max-width: 767px) {

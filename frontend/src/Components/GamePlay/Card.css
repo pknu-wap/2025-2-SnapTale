@@ -10,7 +10,7 @@
 
 .card-container:hover {
   transform: translateY(-4px) scale(1.03);
-  box-shadow: 0 22px 35px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 10px 45px 25px rgba(0, 0, 0, 0.12);
 }
 
 .card-image {
@@ -54,7 +54,6 @@
   width: 18px;
   height: 18px;
   z-index: 5;
-  filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.55));
 }
 
 .card-cost-container {
@@ -221,7 +220,6 @@
 
   .card-container:hover {
     transform: translateY(-2px) scale(1.03);
-    box-shadow: 0 8px 19px rgba(0, 0, 0, 0.35);
   }
 
   .card-image {
