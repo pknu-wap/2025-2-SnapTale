@@ -19,3 +19,11 @@
 .Matching.disabled {
   opacity: 0.44;        /* 흐릿하게 */
 }
+@media (max-width: 767px) {
+  .Matching {
+  
+  width: 226px;
+  height: 70px;
+  font-size: 32px; 
+}
+}
