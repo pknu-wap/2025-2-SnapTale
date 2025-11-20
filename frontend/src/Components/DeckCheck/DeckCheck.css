@@ -1,3 +1,10 @@
+.deck-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
 .DeckCheck-container {
   display: flex;
   flex-direction: column; 
@@ -5,21 +12,8 @@
   justify-content: flex-start; 
   height: 100%;
   width: 100%;
+  padding-top: 20px;
   box-sizing: border-box;
-  padding-top: calc(
-    clamp(32px, 4vw, 56px) +
-    clamp(8px, 2vw, 24px) * 2 +
-    clamp(12px, 3vw, 24px)
-  );
-}
-
-/* 상단 메뉴 (나가기 버튼) */
-.deck-top-menu {
-  display: flex;
-  align-self: flex-end;
-  justify-content: flex-end; /* 오른쪽 정렬 */
-  margin-top: 24px;
-  margin-right: 24px;
 }
 
 /* 지역 선택 영역 */
@@ -27,6 +21,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  z-index: 100;
 }
 
 .faction-icons {
@@ -44,12 +39,25 @@
 
 /* 카드 섹션 */
 .deck-section {
-  display: flex;
-  flex-wrap: wrap; /* 여러 줄 정렬 */
-  justify-content: center;
-  gap: 10px;
+  max-width: 400px;
+  width: 100%;
   margin-top: 10px;
-  max-width: 326px;
+  display: flex;
+  justify-content: center;
+}
+
+.deck-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: clamp(0.625rem, 1vw, 0.9375rem); /* 10px - 15px */
+  width: 100%;
+  max-width: 400px;
+}
+
+.deck-grid-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 /* 카드 자세히 보기 */
