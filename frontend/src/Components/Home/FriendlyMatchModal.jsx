@@ -23,7 +23,7 @@ const FriendlyMatchModal = ({ setOpenFriendlyModal, setOpenJoinModal, onCreateMa
                 }}>
             </button>
             <div className="modal-title"> 
-                <span className="modal-text">친선전</span> 
+                <span className="modal-text-friendly">친선전</span> 
             </div>
             <div className="modal-footer">
                 <button className="cancel"
