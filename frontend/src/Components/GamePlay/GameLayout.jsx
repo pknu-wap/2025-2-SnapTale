@@ -158,6 +158,7 @@ export default function GameLayout({ matchId }) {
           power: item.power,
           faction: item.faction,
           effectDesc: item.effectDesc,
+          effect: item.effect || null, // effect 필드 추가
           active: item.active,
           createdAt: item.createdAt,
           updatedAt: item.updatedAt,
