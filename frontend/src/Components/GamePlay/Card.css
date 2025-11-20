@@ -3,6 +3,8 @@
   width: 54px;
   height: 81px;
   cursor: grab;
+  align-items: center;
+  justify-content: center;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
@@ -13,7 +15,7 @@
 
 .card-image {
   position: absolute;
-  inset: 3.5px;
+  inset: 0px; 
   border: 3px solid transparent;
   border-radius: 7px;
   object-fit: cover;
@@ -56,13 +58,13 @@
 }
 
 .card-cost-container {
-  top: 3px;
-  left: 3px;
+  top: -3px;
+  left: -1px;
 }
 
 .card-power-container {
-  top: 3px;
-  right: 3px;
+  top: -3px;
+  right: -1px;
 }
 
 .icon-text {
@@ -122,6 +124,7 @@
 .enlarged-card-container .card-cost-container,
 .enlarged-card-container .card-power-container {
   top: -2px;
+  right: -4px;
 }
 
 .enlarged-card-container .icon-text {

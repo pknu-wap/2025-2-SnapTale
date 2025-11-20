@@ -41,6 +41,18 @@ const Card = ({
   isDraggable = false,
   isSelected = false,
 }) => {
+  console.log({
+    cardId,
+    name,
+    imageUrl,
+    cost,
+    power,
+    faction,
+    effectDesc,
+    active,
+    createdAt,
+    updatedAt
+  });
     const nameRef = useRef(null);
     const [{ isDragging }, dragRef] = useDrag(() => ({
       type: "CARD",

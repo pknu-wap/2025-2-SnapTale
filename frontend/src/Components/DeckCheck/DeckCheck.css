@@ -14,7 +14,6 @@
   width: 100%;
   padding-top: 20px;
   box-sizing: border-box;
-  z-index: 100;
 }
 
 /* 지역 선택 영역 */
@@ -22,6 +21,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  z-index: 100;
 }
 
 .faction-icons {
