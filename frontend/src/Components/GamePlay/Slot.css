@@ -61,8 +61,8 @@
 
 /* 슬롯 안에 들어간 카드 크기 조정 */
 .slot__cell .card-container {
-  width: 50px;
-  height: 70px;
+  width: 65px;
+  height: 86px;
 }
 
 .slot__cell .card-image {
