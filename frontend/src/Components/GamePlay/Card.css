@@ -56,7 +56,7 @@
 }
 
 .card-cost-container {
-   top: 3px;
+  top: 3px;
   left: 3px;
 }
 
@@ -253,14 +253,5 @@
     width: 192px;
     bottom: -67px;
     font-size: 16px;
-  }
-
-  .card-outline {
-    width: 34px;
-    height: 51px;
-  }
-
-  .card-outline span {
-    --bw: 2px;
   }
 }
