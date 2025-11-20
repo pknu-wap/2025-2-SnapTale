@@ -43,6 +43,7 @@ export default function Slot({ isMySide = false, laneIndex, onDropCard, disabled
                 power={card.power}
                 faction={card.faction}
                 effectDesc={card.effectDesc}
+                effect={card.effect}
                 active={card.active}
                 createdAt={card.createdAt}
                 updatedAt={card.updatedAt}

@@ -15,6 +15,7 @@ import powerIcon from "../../assets/power.svg";
  * @param {number} props.power - 카드 파워 (UI 표시)
  * @param {string} props.faction - 카드 진영 (테두리 색상에 사용)
  * @param {string} props.effectDesc - 카드 효과 설명 (카드 클릭 시 UI 표시)
+ * @param {string} props.effect - 카드 효과 JSON (서버에서 받은 효과 정보)
  * @param {boolean} props.active - 사용 가능 여부 ? (UI 미표시)
  * @param {string} props.createdAt - 생성일시 (UI 미표시)
  * @param {string} props.updatedAt - 수정일시 (UI 미표시)
@@ -34,6 +35,7 @@ const Card = ({
   power,
   faction,
   effectDesc,
+  effect,
   active,
   createdAt,
   updatedAt,
@@ -49,6 +51,7 @@ const Card = ({
     power,
     faction,
     effectDesc,
+    effect,//todo:console에 뜰 수 있게 수정해주세요
     active,
     createdAt,
     updatedAt
@@ -56,12 +59,12 @@ const Card = ({
     const nameRef = useRef(null);
     const [{ isDragging }, dragRef] = useDrag(() => ({
       type: "CARD",
-      item: { cardId, name, imageUrl, cost, power, faction, effectDesc },
+      item: { cardId, name, imageUrl, cost, power, faction, effectDesc, effect },
       collect: (monitor) => ({
         isDragging: monitor.isDragging(),
       }),
       canDrag: () => isDraggable, // 드래그 가능 여부 제어
-    }), [cardId, name, imageUrl, cost, power, faction, effectDesc, isDraggable]);
+    }), [cardId, name, imageUrl, cost, power, faction, effectDesc, effect, isDraggable]);
     useEffect(() => {
       const el = nameRef.current;
     if (!el) return;

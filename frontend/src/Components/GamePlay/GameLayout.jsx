@@ -155,6 +155,7 @@ export default function GameLayout({ matchId }) {
           power: item.power,
           faction: item.faction,
           effectDesc: item.effectDesc,
+          effect: item.effect || null, // effect 필드 추가
           active: item.active,
           createdAt: item.createdAt,
           updatedAt: item.updatedAt,
@@ -421,6 +422,22 @@ export default function GameLayout({ matchId }) {
       const myLocationPowers = normalizePowers(response?.myLocationPowers);
       if (myLocationPowers) {
         setMyPowers(myLocationPowers);
+      }
+
+      // 응답에서 받은 effect를 boardLanes의 카드에 업데이트
+      if (response?.effect !== undefined) {
+        setBoardLanes((prevLanes) => {
+          const newLanes = [...prevLanes];
+          const newTargetLane = [...newLanes[laneIndex]];
+          if (newTargetLane[slotIndex]) {
+            newTargetLane[slotIndex] = {
+              ...newTargetLane[slotIndex],
+              effect: response.effect
+            };
+          }
+          newLanes[laneIndex] = newTargetLane;
+          return newLanes;
+        });
       }
     } catch (error) {
       console.error("playAction 실패:", error);
