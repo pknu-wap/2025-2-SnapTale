@@ -55,8 +55,8 @@
 {
     font-size: 28px;
     line-height: 28px;
-    margin-top: 36px;
-    margin-left: 36px;
+    margin-top: 50px;
+    margin-left: 0px;
 }
 
 .matchcode {
@@ -104,7 +104,7 @@
 }
 
 .cancel, .accept{
-    position: absolute;
+    position: static;
     width: 108px;
     height: 32px;
     font-style: normal;
@@ -115,11 +115,18 @@
 }
 .cancel{
     background: #800000;
-    margin-top: 71px;
-    margin-left: 37px;
 }
 .accept{
     background: #228B22;
-    margin-top: 71px;
-    margin-left: 157px;
+}
+.modal-footer{
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 5px;
 }

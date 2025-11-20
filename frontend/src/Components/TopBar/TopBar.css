@@ -1,8 +1,8 @@
 .top-bar {
   position: absolute;
-  top: clamp(8px, 2vw, 24px);
-  left: clamp(12px, 3vw, 32px);
-  right: clamp(12px, 3vw, 32px);
+  top: 16px;
+  left: 24px;
+  right: 24px;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -13,7 +13,7 @@
 .right-buttons {
   display: flex;
   align-items: center;
-  gap: clamp(6px, 2.5vw, 18px);
+  gap: 12px;
   flex: 0 0 auto;
 }
 
@@ -21,48 +21,45 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: clamp(54px, 14vw, 84px);
-  height: clamp(54px, 14vw, 84px);
+  width: 72px;
+  height: 72px;
   flex: 0 0 auto;
 }
 
 .icon-btn .common-btn {
-  width: 100%;
-  height: 100%;
-  border-radius: clamp(6px, 1.4vw, 12px);
+  width: inherit;
+  height: inherit;
+  border-radius: 10px;
 }
 
 .icon-btn .common-btn img {
-  width: 100%;
-  height: 100%;
+  width: inherit;
+  height: inherit;
 }
 
 .top-bar .exit-btn {
-  border-radius: clamp(6px, 1.4vw, 12px);
+  border-radius: 10px;
 }
 
-@media (min-width: 768px) {
+@media (max-width: 767px) {
   .top-bar {
-    top: clamp(12px, 1.6vw, 24px);
-    left: clamp(18px, 3vw, 40px);
-    right: clamp(18px, 3vw, 40px);
+    top: 12px;
+    left: 16px;
+    right: 16px;
+  }
+
+  .left-buttons,
+  .right-buttons {
+    gap: 10px;
   }
 
   .icon-btn {
-    width: clamp(64px, 8vw, 96px);
-    height: clamp(64px, 8vw, 96px);
-  }
-}
-
-@media (min-width: 1280px) {
-  .top-bar {
-    top: clamp(18px, 1.8vw, 32px);
-    left: clamp(24px, 3vw, 56px);
-    right: clamp(24px, 3vw, 56px);
+    width: 60px;
+    height: 60px;
   }
 
-  .icon-btn {
-    width: clamp(72px, 6vw, 112px);
-    height: clamp(72px, 6vw, 112px);
+  .icon-btn .common-btn,
+  .top-bar .exit-btn {
+    border-radius: 8px;
   }
 }
