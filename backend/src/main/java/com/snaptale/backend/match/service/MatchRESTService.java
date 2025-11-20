@@ -1,5 +1,7 @@
 package com.snaptale.backend.match.service;
 
+import com.snaptale.backend.card.entity.Card;
+import com.snaptale.backend.card.repository.CardRepository;
 import com.snaptale.backend.common.exceptions.BaseException;
 import com.snaptale.backend.common.response.BaseResponseStatus;
 import com.snaptale.backend.deck.entity.DeckPreset;
@@ -34,6 +36,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -49,7 +52,9 @@ public class MatchRESTService {
 	private final MatchParticipantRepository matchParticipantRepository;
 	private final PlayRepository playRepository;
 	private final UserRepository userRepository;
+	private final CardRepository cardRepository;
 	private final GameFlowService gameFlowService;
+	private final GameCalculationService gameCalculationService;
 	private final WebSocketSessionManager sessionManager;
 	private final com.snaptale.backend.deck.repository.DeckPresetRepository deckPresetRepository;
 	private final TurnService turnService;
@@ -74,7 +79,7 @@ public class MatchRESTService {
 		List<MatchStatus> activeStatuses = List.of(MatchStatus.QUEUED, MatchStatus.MATCHED, MatchStatus.PLAYING);
 		boolean alreadyInMatch = matchParticipantRepository.existsByGuestIdAndMatchStatusIn(
 				message.getUserId(), activeStatuses);
-		
+
 		if (alreadyInMatch) {
 			log.warn("이미 진행 중인 매치에 참여 중: userId={}", message.getUserId());
 			throw new BaseException(BaseResponseStatus.ALREADY_IN_MATCH);
@@ -251,6 +256,7 @@ public class MatchRESTService {
 
 		return switch (actionType) {
 			case PLAY_CARD -> handlePlayCard(message);
+			case MOVE_CARD -> handleMoveCard(message);
 			case END_TURN -> handleEndTurn(message);
 			default -> throw new BaseException(BaseResponseStatus.INVALID_ACTION_TYPE);
 		};
@@ -282,8 +288,91 @@ public class MatchRESTService {
 				.orElseThrow(() -> new BaseException(BaseResponseStatus.PARTICIPANT_NOT_FOUND));
 		log.info("카드 플레이 후 참가자 조회: participantId={}, guestId={}, energy={}",
 				participant.getId(), participant.getGuestId(), participant.getEnergy());
+
+		// 카드 정보 조회 (effect 포함)
+		Card card = cardRepository.findById(message.getCardId())
+				.orElseThrow(() -> new BaseException(BaseResponseStatus.CARD_NOT_FOUND));
+		String effect = card.getEffect();
+
 		List<Integer> myLocationPowers = calculateLocationPowers(message.getMatchId(), participant.getGuestId());
-		return PlayActionRes.from(message, participant, myLocationPowers);
+		return PlayActionRes.from(message, participant, myLocationPowers, effect);
+	}
+
+	// 카드 이동 처리
+	@Transactional
+	public PlayActionRes handleMoveCard(PlayActionMessage message) {
+		log.info("카드 이동: matchId={}, participantId={}, cardId={}",
+				message.getMatchId(), message.getParticipantId(), message.getCardId());
+
+		// 이동 데이터 파싱
+		CardMoveData moveData = parseCardMoveData(message.getAdditionalData());
+		if (moveData == null || moveData.fromSlotIndex == null || moveData.toSlotIndex == null) {
+			throw new BaseException(BaseResponseStatus.INVALID_SLOT_INDEX);
+		}
+
+		// 매치 및 참가자 확인
+		Match match = matchRepository.findById(message.getMatchId())
+				.orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_NOT_FOUND));
+
+		if (match.getStatus() != MatchStatus.PLAYING) {
+			throw new BaseException(BaseResponseStatus.GAME_NOT_STARTED);
+		}
+
+		MatchParticipant participant = matchParticipantRepository.findByMatch_MatchIdAndGuestId(
+				message.getMatchId(), message.getParticipantId())
+				.orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_PARTICIPANT_NOT_FOUND));
+
+		// 카드 확인
+		Card card = cardRepository.findById(message.getCardId())
+				.orElseThrow(() -> new BaseException(BaseResponseStatus.CARD_NOT_FOUND));
+
+		// 기존 Play 찾기 (같은 matchId, guestId, cardId, fromSlotIndex)
+		// 가장 최근 턴의 Play를 찾아서 이동 처리
+		List<Play> existingPlays = playRepository.findByMatch_MatchIdAndGuestId(
+				message.getMatchId(), message.getParticipantId());
+
+		Play playToMove = existingPlays.stream()
+				.filter(p -> p.getCard() != null && p.getCard().getCardId().equals(message.getCardId()))
+				.filter(p -> p.getSlotIndex() != null && p.getSlotIndex().equals(moveData.fromSlotIndex))
+				.filter(p -> !p.getIsTurnEnd())
+				.max(Comparator.comparing(Play::getTurnCount)
+						.thenComparing(Play::getId, Comparator.reverseOrder()))
+				.orElseThrow(() -> new BaseException(BaseResponseStatus.PLAY_NOT_FOUND));
+
+		// Play의 slotIndex 업데이트
+		playToMove.setSlotIndex(moveData.toSlotIndex);
+		if (moveData.cardPosition != null) {
+			playToMove.setCardPosition(moveData.cardPosition);
+		}
+		playRepository.save(playToMove);
+
+		log.info("카드 이동 완료: playId={}, cardId={}, fromSlotIndex={}, toSlotIndex={}",
+				playToMove.getId(), message.getCardId(), moveData.fromSlotIndex, moveData.toSlotIndex);
+
+		// 파워 재계산 (ongoing 효과 포함) - GameCalculationService 사용
+		GameCalculationService.LocationPowerResult powerResult = gameCalculationService
+				.calculateLocationPowers(message.getMatchId());
+
+		// 현재 플레이어의 파워 추출
+		List<Integer> myLocationPowers = new ArrayList<>();
+		Long guestId = participant.getGuestId();
+		if (powerResult.getPlayer1Id().equals(guestId)) {
+			for (int i = 0; i < 3; i++) {
+				myLocationPowers.add(powerResult.getPlayer1Powers().getOrDefault(i, 0));
+			}
+		} else if (powerResult.getPlayer2Id().equals(guestId)) {
+			for (int i = 0; i < 3; i++) {
+				myLocationPowers.add(powerResult.getPlayer2Powers().getOrDefault(i, 0));
+			}
+		} else {
+			// 기본값으로 0 설정
+			myLocationPowers = List.of(0, 0, 0);
+		}
+
+		// 카드 정보 조회 (effect 포함)
+		String effect = card.getEffect();
+
+		return PlayActionRes.from(message, participant, myLocationPowers, effect);
 	}
 
 	// 턴 종료 처리
@@ -319,7 +408,7 @@ public class MatchRESTService {
 
 		List<Integer> myLocationPowers = calculateLocationPowers(message.getMatchId(), participant.getGuestId());
 
-		return PlayActionRes.from(message, participant, myLocationPowers);
+		return PlayActionRes.from(message, participant, myLocationPowers, null);
 	}
 
 	// 턴 종료 후 다음 턴 시작 로직
@@ -329,12 +418,12 @@ public class MatchRESTService {
 
 		try {
 			TurnService.TurnEndResult result = turnService.endTurnAndStartNext(matchId);
-			
-			log.info("턴 종료 처리 결과: matchId={}, gameEnded={}, nextTurn={}", 
+
+			log.info("턴 종료 처리 결과: matchId={}, gameEnded={}, nextTurn={}",
 					matchId, result.isGameEnded(), result.getNextTurn());
 
 			if (result.isGameEnded()) {
-				log.info("게임 종료 감지: matchId={}, currentTurn={}, processGameEnd 호출 시작", 
+				log.info("게임 종료 감지: matchId={}, currentTurn={}, processGameEnd 호출 시작",
 						matchId, result.getNextTurn());
 				matchWebSocketService.processGameEnd(matchId);
 				log.info("게임 종료 처리 완료: matchId={}", matchId);
@@ -390,6 +479,55 @@ public class MatchRESTService {
 
 		CardPlayData(Integer slotIndex, Integer cardPosition) {
 			this.slotIndex = slotIndex;
+			this.cardPosition = cardPosition;
+		}
+	}
+
+	// 카드 이동 데이터 파싱
+	private CardMoveData parseCardMoveData(String additionalData) {
+		if (additionalData == null || additionalData.isEmpty()) {
+			return null;
+		}
+
+		try {
+			JsonNode jsonNode = new ObjectMapper().readTree(additionalData);
+
+			Integer fromSlotIndex = Optional.ofNullable(jsonNode.get("fromSlotIndex"))
+					.filter(JsonNode::isNumber)
+					.map(JsonNode::asInt)
+					.orElse(null);
+
+			Integer toSlotIndex = Optional.ofNullable(jsonNode.get("toSlotIndex"))
+					.filter(JsonNode::isNumber)
+					.map(JsonNode::asInt)
+					.orElse(null);
+
+			Integer cardPosition = Optional.ofNullable(jsonNode.get("cardPosition"))
+					.filter(JsonNode::isNumber)
+					.map(JsonNode::asInt)
+					.orElse(null);
+
+			if (fromSlotIndex == null || toSlotIndex == null) {
+				log.warn("필수 필드 누락 - fromSlotIndex: {}, toSlotIndex: {}", fromSlotIndex, toSlotIndex);
+				return null;
+			}
+
+			return new CardMoveData(fromSlotIndex, toSlotIndex, cardPosition);
+		} catch (Exception e) {
+			log.error("카드 이동 데이터 파싱 실패: {}", additionalData, e);
+			return null;
+		}
+	}
+
+	// 카드 이동 데이터를 담는 내부 클래스
+	private static class CardMoveData {
+		Integer fromSlotIndex;
+		Integer toSlotIndex;
+		Integer cardPosition;
+
+		CardMoveData(Integer fromSlotIndex, Integer toSlotIndex, Integer cardPosition) {
+			this.fromSlotIndex = fromSlotIndex;
+			this.toSlotIndex = toSlotIndex;
 			this.cardPosition = cardPosition;
 		}
 	}

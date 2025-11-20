@@ -1,11 +1,14 @@
 package com.snaptale.backend.match.service;
 
+import com.snaptale.backend.card.entity.Card;
+import com.snaptale.backend.card.repository.CardRepository;
 import com.snaptale.backend.common.exceptions.BaseException;
 import com.snaptale.backend.common.response.BaseResponseStatus;
 import com.snaptale.backend.match.entity.Match;
 import com.snaptale.backend.match.entity.MatchParticipant;
 import com.snaptale.backend.match.entity.MatchStatus;
 import com.snaptale.backend.match.entity.MatchLocation;
+import com.snaptale.backend.match.entity.Play;
 import com.snaptale.backend.match.model.request.MatchParticipantUpdateReq;
 import com.snaptale.backend.match.model.request.MatchUpdateReq;
 import com.snaptale.backend.match.repository.MatchParticipantRepository;
@@ -19,6 +22,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -61,6 +67,10 @@ public class GameCalculationService {
         Map<Integer, Integer> player1Powers = new HashMap<>();
         Map<Integer, Integer> player2Powers = new HashMap<>();
 
+        // ongoing 효과를 위한 플레이어별 카드 목록 조회
+        List<Play> player1Plays = playRepository.findByMatch_MatchIdAndGuestId(matchId, player1Id);
+        List<Play> player2Plays = playRepository.findByMatch_MatchIdAndGuestId(matchId, player2Id);
+
         for (int slotIndex = 0; slotIndex < NUM_LOCATIONS; slotIndex++) {
 
             Integer p1Sum = playRepository.sumPowerSnapshotByMatchAndGuestIdAndSlotIndex(matchId, player1Id, slotIndex);
@@ -68,6 +78,10 @@ public class GameCalculationService {
 
             Integer p2Sum = playRepository.sumPowerSnapshotByMatchAndGuestIdAndSlotIndex(matchId, player2Id, slotIndex);
             int p2Power = p2Sum != null ? p2Sum.intValue() : 0;
+
+            // ongoing 효과 적용
+            p1Power += applyOngoingEffects(matchId, player1Id, slotIndex, player1Plays);
+            p2Power += applyOngoingEffects(matchId, player2Id, slotIndex, player2Plays);
 
             player1Powers.put(slotIndex, p1Power);
             player2Powers.put(slotIndex, p2Power);
@@ -177,7 +191,7 @@ public class GameCalculationService {
                 winnerTotalPower = totalPlayer2Power;
                 loserTotalPower = totalPlayer1Power;
             } else {
-                //쩔 수 없이 이렇게 해야 함. 다음엔 변수 설정할 때 확장성을 고려해야겠음.
+                // 쩔 수 없이 이렇게 해야 함. 다음엔 변수 설정할 때 확장성을 고려해야겠음.
                 winnerTotalPower = totalPlayer1Power;
                 loserTotalPower = totalPlayer2Power;
             }
@@ -309,6 +323,180 @@ public class GameCalculationService {
         userRepository.save(player2);
 
         log.info("사용자 통계 업데이트 완료");
+    }
+
+    // ongoing 효과 적용
+    private int applyOngoingEffects(Long matchId, Long guestId, int slotIndex, List<Play> playerPlays) {
+        int totalBonus = 0;
+
+        // 해당 슬롯에 있는 카드들 확인 (턴 종료가 아닌 카드 플레이만)
+        // 각 카드는 한 번만 플레이되므로, 같은 slotIndex에 있는 카드들은 각각 하나의 Play 엔티티
+        List<Play> slotPlays = playerPlays.stream()
+                .filter(p -> p.getSlotIndex() != null && p.getSlotIndex() == slotIndex && !p.getIsTurnEnd())
+                .filter(p -> p.getCard() != null)
+                .toList();
+
+        // 각 카드별로 ongoing 효과 적용
+        for (Play play : slotPlays) {
+            Card card = play.getCard();
+            if (card == null || card.getEffect() == null || card.getEffect().isEmpty()) {
+                continue;
+            }
+
+            try {
+                CardEffect effect = parseCardEffect(card.getEffect());
+                if (effect != null && "ongoing".equals(effect.getType())) {
+                    // 각 카드 인스턴스마다 효과 적용
+                    int bonus = calculateOngoingBonus(effect, matchId, guestId, playerPlays, card);
+                    totalBonus += bonus;
+                    if (bonus > 0) {
+                        log.info("ongoing 효과 적용: cardName={}, slotIndex={}, bonus={}",
+                                card.getName(), slotIndex, bonus);
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("ongoing 효과 파싱 실패: cardId={}, effect={}, error={}",
+                        card.getCardId(), card.getEffect(), e.getMessage());
+            }
+        }
+
+        return totalBonus;
+    }
+
+    // ongoing 효과 보너스 계산
+    private int calculateOngoingBonus(CardEffect effect, Long matchId, Long guestId,
+            List<Play> playerPlays, Card card) {
+        if (!"power_per_moved".equals(effect.getAction())) {
+            // 다른 ongoing 효과는 여기서 처리
+            if ("enable_move".equals(effect.getAction())) {
+                // 키츠네 효과: 매 턴 이동 가능 (실제 이동 로직은 별도로 처리)
+                log.debug("enable_move 효과 감지: cardName={}", card.getName());
+                return 0; // 파워 보너스는 없음
+            }
+            return 0;
+        }
+
+        // power_per_moved 효과 (카구야 히메)
+        // 이동한 카드 수 계산
+        int movedCardCount = countMovedCards(matchId, guestId, playerPlays);
+
+        // value에서 파워 증가량 파싱
+        try {
+            int powerPerCard = Integer.parseInt(effect.getValue().trim());
+            int totalBonus = movedCardCount * powerPerCard;
+            log.info("power_per_moved 효과: cardName={}, movedCardCount={}, powerPerCard={}, totalBonus={}",
+                    card.getName(), movedCardCount, powerPerCard, totalBonus);
+            return totalBonus;
+        } catch (NumberFormatException e) {
+            log.error("power_per_moved 값 파싱 실패: value={}, error={}", effect.getValue(), e.getMessage());
+            return 0;
+        }
+    }
+
+    // 이동한 카드 수 계산
+    // 각 카드가 이전 턴과 비교하여 slotIndex가 변경되었는지 확인
+    // 같은 cardId를 가진 카드는 없으므로, 각 cardId는 고유함
+    private int countMovedCards(Long matchId, Long guestId, List<Play> playerPlays) {
+        // isTurnEnd가 false인 카드 플레이만 고려
+        List<Play> cardPlays = playerPlays.stream()
+                .filter(p -> p.getCard() != null && !p.getIsTurnEnd())
+                .sorted(Comparator.comparing(Play::getTurnCount)) // turnCount로 정렬
+                .toList();
+
+        // cardId별로 그룹화 (각 cardId는 고유하므로 각 그룹은 최대 1개의 Play만 가짐)
+        // 카드 이동 시 같은 cardId를 가진 새로운 Play가 생성되거나, 기존 Play의 slotIndex가 업데이트됨
+        Map<Long, List<Play>> playsByCardId = cardPlays.stream()
+                .collect(Collectors.groupingBy(p -> p.getCard().getCardId()));
+
+        int movedCount = 0;
+        for (Map.Entry<Long, List<Play>> entry : playsByCardId.entrySet()) {
+            List<Play> plays = entry.getValue();
+            if (plays.size() < 2) {
+                continue; // 한 번만 플레이된 카드는 이동하지 않음
+            }
+
+            // turnCount 순으로 정렬하여 이전 턴과 비교
+            plays.sort(Comparator.comparing(Play::getTurnCount));
+
+            // 이전 턴의 slotIndex를 추적
+            Integer lastSlotIndex = null;
+            for (Play play : plays) {
+                Integer currentSlotIndex = play.getSlotIndex();
+
+                if (lastSlotIndex != null && !lastSlotIndex.equals(currentSlotIndex)) {
+                    // 이전 턴의 slotIndex와 현재 턴의 slotIndex가 다르면 이동한 것으로 간주
+                    movedCount++;
+                    log.debug("카드 이동 감지: cardId={}, 이전 slotIndex={}, 현재 slotIndex={}, turnCount={}",
+                            play.getCard().getCardId(), lastSlotIndex, currentSlotIndex, play.getTurnCount());
+                }
+
+                // 현재 slotIndex를 기록 (다음 턴 비교를 위해)
+                if (currentSlotIndex != null) {
+                    lastSlotIndex = currentSlotIndex;
+                }
+            }
+        }
+
+        return movedCount;
+    }
+
+    // 카드 효과 파싱
+    private CardEffect parseCardEffect(String effectJson) {
+        if (effectJson == null || effectJson.isEmpty()) {
+            return null;
+        }
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode jsonNode = mapper.readTree(effectJson);
+
+            String type = jsonNode.has("type") ? jsonNode.get("type").asText() : null;
+            String action = jsonNode.has("action") ? jsonNode.get("action").asText() : null;
+            String target = jsonNode.has("target") ? jsonNode.get("target").asText() : null;
+            String value = jsonNode.has("value") ? jsonNode.get("value").asText() : null;
+            double probability = jsonNode.has("probability") ? jsonNode.get("probability").asDouble() : 1.0;
+
+            return new CardEffect(type, action, target, value, probability);
+        } catch (Exception e) {
+            log.error("카드 효과 JSON 파싱 실패: effectJson={}, error={}", effectJson, e.getMessage());
+            return null;
+        }
+    }
+
+    // 카드 효과를 담는 내부 클래스
+    private static class CardEffect {
+        private final String type;
+        private final String action;
+        private final String target;
+        private final String value;
+        private final double probability;
+
+        public CardEffect(String type, String action, String target, String value, double probability) {
+            this.type = type;
+            this.action = action;
+            this.target = target;
+            this.value = value;
+            this.probability = probability;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public String getAction() {
+            return action;
+        }
+
+        public String getTarget() {
+            return target;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        public double getProbability() {
+            return probability;
+        }
     }
 
     // Location별 파워 결과 DTO

@@ -39,7 +39,9 @@ public class Card extends BaseEntity {
     @Column(name = "effect_desc", columnDefinition = "TEXT")
     private String effectDesc;
 
-    // todo 효과(json)는 나중에 정해지면 어떻게 할지 알 수 있을 거 같다.
+    // 효과(JSON 형식)
+    @Column(name = "effect", columnDefinition = "TEXT")
+    private String effect;
 
     @Column(name = "is_active", nullable = false)
     private boolean isActive;

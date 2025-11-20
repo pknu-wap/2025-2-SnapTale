@@ -16,7 +16,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+
 import java.util.*;
+import java.util.Random;
 
 // 턴 진행 로직을 처리하는 서비스
 // - 카드 제출 처리
@@ -88,10 +92,24 @@ public class TurnService {
         matchParticipantRepository.save(participant);
         log.info("에너지 소모 성공: energy={}", participant.getEnergy());
 
-        // 6. Play 엔티티 생성 및 저장
+        // 6. 카드 효과 적용 (on_reveal 효과 처리)
         Integer turnCount = match.getTurnCount() != null ? match.getTurnCount() : 0;
-
         Integer powerSnapshot = card.getPower() != null ? card.getPower() : 0;
+
+        // on_reveal 효과 처리
+        if (card.getEffect() != null && !card.getEffect().isEmpty()) {
+            try {
+                CardEffect effect = parseCardEffect(card.getEffect());
+                if (effect != null && "on_reveal".equals(effect.getType())) {
+                    powerSnapshot = applyOnRevealEffect(effect, powerSnapshot, card.getName());
+                    log.info("카드 on_reveal 효과 적용: cardName={}, originalPower={}, newPower={}",
+                            card.getName(), card.getPower(), powerSnapshot);
+                }
+            } catch (Exception e) {
+                log.warn("카드 효과 파싱 실패: cardId={}, effect={}, error={}",
+                        card.getCardId(), card.getEffect(), e.getMessage());
+            }
+        }
 
         Play play = Play.builder()
                 .match(match)
@@ -111,7 +129,6 @@ public class TurnService {
 
     // 턴 종료 및 다음 턴 시작
     // 양쪽 플레이어가 모두 턴 종료했을 때 호출
-    // 코드레빗 테스트를 위한 주석 달기
     @Transactional
     public TurnEndResult endTurnAndStartNext(Long matchId) {
         log.info("턴 종료 및 다음 턴 시작: matchId={}", matchId);
@@ -220,6 +237,109 @@ public class TurnService {
     public boolean checkBothPlayersEnded(Long matchId, Integer turnCount) {
         List<Play> turnEnds = playRepository.findTurnEndsByMatchAndTurn(matchId, turnCount);
         return turnEnds.size() >= 2;
+    }
+
+    // 카드 효과 파싱
+    private CardEffect parseCardEffect(String effectJson) {
+        if (effectJson == null || effectJson.isEmpty()) {
+            return null;
+        }
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode jsonNode = mapper.readTree(effectJson);
+
+            String type = jsonNode.has("type") ? jsonNode.get("type").asText() : null;
+            String action = jsonNode.has("action") ? jsonNode.get("action").asText() : null;
+            String target = jsonNode.has("target") ? jsonNode.get("target").asText() : null;
+            String value = jsonNode.has("value") ? jsonNode.get("value").asText() : null;
+            double probability = jsonNode.has("probability") ? jsonNode.get("probability").asDouble() : 1.0;
+
+            return new CardEffect(type, action, target, value, probability);
+        } catch (Exception e) {
+            log.error("카드 효과 JSON 파싱 실패: effectJson={}, error={}", effectJson, e.getMessage());
+            return null;
+        }
+    }
+
+    // on_reveal 효과 적용
+    private Integer applyOnRevealEffect(CardEffect effect, Integer basePower, String cardName) {
+        if (!"power_modify".equals(effect.getAction())) {
+            log.warn("지원하지 않는 on_reveal 액션: action={}", effect.getAction());
+            return basePower;
+        }
+
+        // 확률 체크
+        Random random = new Random();
+        if (random.nextDouble() > effect.getProbability()) {
+            log.info("카드 효과 발동 실패 (확률): cardName={}, probability={}", cardName, effect.getProbability());
+            return basePower;
+        }
+
+        // value 파싱 (예: "8,-6" 또는 "5")
+        String valueStr = effect.getValue();
+        if (valueStr == null || valueStr.isEmpty()) {
+            return basePower;
+        }
+
+        try {
+            // 쉼표로 구분된 값들 파싱
+            String[] values = valueStr.split(",");
+            if (values.length == 1) {
+                // 단일 값
+                int modifier = Integer.parseInt(values[0].trim());
+                return basePower + modifier;
+            } else if (values.length == 2) {
+                // 두 개의 값 중 하나 선택 (예: +8 또는 -6)
+                int value1 = Integer.parseInt(values[0].trim());
+                int value2 = Integer.parseInt(values[1].trim());
+                // 50% 확률로 첫 번째 값, 50% 확률로 두 번째 값
+                int modifier = random.nextBoolean() ? value1 : value2;
+                log.info("카드 효과 발동: cardName={}, modifier={}, basePower={}, newPower={}",
+                        cardName, modifier, basePower, basePower + modifier);
+                return basePower + modifier;
+            }
+        } catch (NumberFormatException e) {
+            log.error("카드 효과 값 파싱 실패: value={}, error={}", valueStr, e.getMessage());
+        }
+
+        return basePower;
+    }
+
+    // 카드 효과를 담는 내부 클래스
+    private static class CardEffect {
+        private final String type;
+        private final String action;
+        private final String target;
+        private final String value;
+        private final double probability;
+
+        public CardEffect(String type, String action, String target, String value, double probability) {
+            this.type = type;
+            this.action = action;
+            this.target = target;
+            this.value = value;
+            this.probability = probability;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public String getAction() {
+            return action;
+        }
+
+        public String getTarget() {
+            return target;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        public double getProbability() {
+            return probability;
+        }
     }
 
     // Play 제출 결과 DTO

@@ -11,17 +11,20 @@ public record PlayActionRes(
         String actionType,
         String additionalData,
         Integer energy,
-        List<Integer> myLocationPowers) {
+        List<Integer> myLocationPowers,
+        String effect) {
     public static PlayActionRes from(
             PlayActionMessage message,
             MatchParticipant participant,
-            List<Integer> myLocationPowers) {
+            List<Integer> myLocationPowers,
+            String effect) {
         return new PlayActionRes(
                 message.getMatchId(),
                 message.getParticipantId(),
                 message.getActionType() != null ? message.getActionType().name() : null,
                 message.getAdditionalData(),
                 participant != null ? participant.getEnergy() : null,
-                myLocationPowers);
+                myLocationPowers,
+                effect);
     }
 }
