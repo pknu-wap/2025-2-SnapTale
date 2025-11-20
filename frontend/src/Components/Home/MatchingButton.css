@@ -21,9 +21,8 @@
 }
 @media (max-width: 767px) {
   .Matching {
-  
-  width: 226px;
-  height: 70px;
-  font-size: 32px; 
-}
+    width: 226px;
+    height: 70px;
+    font-size: 32px; 
+  }
 }
