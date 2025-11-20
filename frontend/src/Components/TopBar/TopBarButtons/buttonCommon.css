@@ -8,8 +8,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  height: 100%;
+  width: inherit;
+  height: inherit;
   appearance: none;
   -webkit-appearance: none;
   touch-action: manipulation;
@@ -17,8 +17,8 @@
 
 .common-btn img {
   display: block;
-  width: 100%;
-  height: 100%;
+  width: inherit;
+  height: inherit;
   object-fit: contain;
 }
 
