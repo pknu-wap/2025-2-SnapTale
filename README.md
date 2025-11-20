@@ -1,4 +1,4 @@
-# SnapTale (가제)
+# SnapTale
 
 > **브라우저에서 즐기는 실시간 카드 대전 게임**  
 > 동양의 전설적 영웅들이 카드로 맞붙는 전략 배틀
@@ -6,6 +6,9 @@
 ---
 
 ## 개요
+<img width="2000" height="1125" alt="image" src="https://github.com/user-attachments/assets/f5f1fa4d-8e18-4817-82f0-afd2f31cb1b2" />
+<img width="2000" height="1125" alt="image" src="https://github.com/user-attachments/assets/2376acea-97e5-45c8-8ccd-f168f3103016" />
+
 SnapTale은 **WebSocket 기반 실시간 카드 배틀 게임**입니다.  
 삼국지, 홍길동 등 동양의 전설적인 영웅들을 카드로 활용하여, 친숙하면서도 독특한 전략적 재미를 제공합니다.  
 
@@ -20,15 +23,32 @@ SnapTale은 **WebSocket 기반 실시간 카드 배틀 게임**입니다.
 게임에는 **한국, 일본, 중국**의 세 가지 진영이 존재합니다.  
 각 진영은 고유한 전략적 개성을 가지며, 플레이어는 선택한 진영의 카드 스타일에 따라 다른 전술을 구사할 수 있습니다.
 
-- **한국**: 균형 잡힌 전력. 방어와 공격이 조화로운 카드 효과가 많아 안정적인 운영이 가능.  
-- **일본**: 민첩성과 기동성을 강조. 카드 이동, 코스트 변동 등 빠른 전개 전략에 강점.  
-- **중국**: 강력한 힘과 누적 효과 중심. 높은 파워 카드와 구역 지배력을 활용하는 전술이 특징.  
+### 일본덱
+<img width="1620" height="725" alt="image" src="https://github.com/user-attachments/assets/ce7523fc-5343-4a1d-b392-1b5fdc26d930" />
+
+
+* #이동, #무작위성, #하이리스크하이리턴
+* “예측 불가 이동과 무작위 효과로 필드를 교란하며 폭발력을 노리는 덱”
+
+### 한국덱
+
+* #출현연계 #버프폭발 #한턴콤보
+* “출현 효과를 연계해 한 순간에 판도를 뒤집는 폭발적 콤보 덱”
+
+### 중국덱
+
+* #지속시너지 #누적강화 #병력증가형
+* “턴이 진행될수록 시너지가 누적되며 필드를 압도하는 안정적 엔진덱”
 
 ---
 
 ## 게임 규칙
 
 ### 1. 게임 목표
+<img width="2000" height="1125" alt="image" src="https://github.com/user-attachments/assets/c18975b4-4157-4fff-a1a4-068c972e5e8c" />
+
+<img width="2000" height="1125" alt="image" src="https://github.com/user-attachments/assets/4138de8a-baa5-4d29-a167-2562fea248a3" />
+
 - 게임은 총 **6턴** 동안 진행됩니다.  
 - **3개의 구역(Location)** 중 **2곳 이상을 점령**하면 승리합니다.  
 - 1곳씩 나눠가져 무승부가 발생하면, **전체 카드 파워 합계**로 승부를 가릅니다.  

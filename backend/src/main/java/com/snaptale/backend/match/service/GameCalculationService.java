@@ -2,13 +2,18 @@ package com.snaptale.backend.match.service;
 
 import com.snaptale.backend.common.exceptions.BaseException;
 import com.snaptale.backend.common.response.BaseResponseStatus;
-import com.snaptale.backend.match.entity.*;
+import com.snaptale.backend.match.entity.Match;
+import com.snaptale.backend.match.entity.MatchParticipant;
+import com.snaptale.backend.match.entity.MatchStatus;
+import com.snaptale.backend.match.entity.MatchLocation;
 import com.snaptale.backend.match.model.request.MatchParticipantUpdateReq;
 import com.snaptale.backend.match.model.request.MatchUpdateReq;
 import com.snaptale.backend.match.repository.MatchParticipantRepository;
 import com.snaptale.backend.match.repository.MatchRepository;
 import com.snaptale.backend.match.repository.PlayRepository;
+import com.snaptale.backend.match.repository.MatchLocationRepository;
 import com.snaptale.backend.user.entity.User;
+import com.snaptale.backend.user.model.UserUpdateReq;
 import com.snaptale.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 // 게임 계산 로직 처리 서비스
 // - 각 Location별 파워 계산
@@ -31,6 +37,7 @@ public class GameCalculationService {
     private final MatchRepository matchRepository;
     private final MatchParticipantRepository matchParticipantRepository;
     private final PlayRepository playRepository;
+    private final MatchLocationRepository matchLocationRepository;
     private final UserRepository userRepository;
 
     private static final int NUM_LOCATIONS = 3;
@@ -92,23 +99,34 @@ public class GameCalculationService {
         // 1. Location별 파워 계산
         LocationPowerResult powerResult = calculateLocationPowers(matchId);
 
-        // 2. 각 Location의 승자 판정
+        // 2. Location 메타 정보 조회
+        List<MatchLocation> matchLocations = matchLocationRepository.findByMatchIdWithFetch(matchId);
+        Map<Integer, String> locationNamesBySlot = matchLocations.stream()
+                .collect(Collectors.toMap(MatchLocation::getSlotIndex,
+                        ml -> ml.getLocation().getName(), (name1, name2) -> name1));
+
+        // 3. 각 Location의 승자 판정
         int player1Wins = 0;
         int player2Wins = 0;
         int totalPlayer1Power = 0;
         int totalPlayer2Power = 0;
+        List<String> player1CapturedLocations = new ArrayList<>();
+        List<String> player2CapturedLocations = new ArrayList<>();
 
         for (int i = 0; i < NUM_LOCATIONS; i++) {
             int p1Power = powerResult.getPlayer1Powers().get(i);
             int p2Power = powerResult.getPlayer2Powers().get(i);
+            String locationName = locationNamesBySlot.getOrDefault(i, "Unknown Location");
 
             totalPlayer1Power += p1Power;
             totalPlayer2Power += p2Power;
 
             if (p1Power > p2Power) {
                 player1Wins++;
+                player1CapturedLocations.add(locationName);
             } else if (p2Power > p1Power) {
                 player2Wins++;
+                player2CapturedLocations.add(locationName);
             }
             // 동점인 경우는 아무도 점령하지 않음
         }
@@ -116,23 +134,57 @@ public class GameCalculationService {
         log.info("Location 점령 수 - Player1: {}, Player2: {}", player1Wins, player2Wins);
         log.info("총 파워 - Player1: {}, Player2: {}", totalPlayer1Power, totalPlayer2Power);
 
-        // 3. 최종 승자 결정
+        // 4. 최종 승자 결정
         Long winnerId = null;
+        String winnerNickname = null;
+        List<String> winnerCapturedLocationNames = new ArrayList<>();
+        String loserNickname = null;
+        List<String> loserCapturedLocationNames = new ArrayList<>();
+        int winnerTotalPower = 0;
+        int loserTotalPower = 0;
         if (player1Wins > player2Wins) {
             winnerId = powerResult.getPlayer1Id();
+            winnerNickname = userRepository.findById(winnerId)
+                    .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND)).getNickname();
+            winnerCapturedLocationNames.addAll(player1CapturedLocations);
+            winnerTotalPower = totalPlayer1Power;
+            loserNickname = userRepository.findById(powerResult.getPlayer2Id())
+                    .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND)).getNickname();
+            loserCapturedLocationNames.addAll(player2CapturedLocations);
+            loserTotalPower = totalPlayer2Power;
         } else if (player2Wins > player1Wins) {
             winnerId = powerResult.getPlayer2Id();
+            winnerNickname = userRepository.findById(winnerId)
+                    .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND)).getNickname();
+            winnerCapturedLocationNames.addAll(player2CapturedLocations);
+            winnerTotalPower = totalPlayer2Power;
+            loserNickname = userRepository.findById(powerResult.getPlayer1Id())
+                    .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND)).getNickname();
+            loserCapturedLocationNames.addAll(player1CapturedLocations);
+            loserTotalPower = totalPlayer1Power;
         } else {
             // Location 점령 수가 같으면 총 파워로 결정
             if (totalPlayer1Power > totalPlayer2Power) {
                 winnerId = powerResult.getPlayer1Id();
+                winnerCapturedLocationNames.addAll(player1CapturedLocations);
+                loserCapturedLocationNames.addAll(player2CapturedLocations);
+                winnerTotalPower = totalPlayer1Power;
+                loserTotalPower = totalPlayer2Power;
             } else if (totalPlayer2Power > totalPlayer1Power) {
                 winnerId = powerResult.getPlayer2Id();
+                winnerCapturedLocationNames.addAll(player2CapturedLocations);
+                loserCapturedLocationNames.addAll(player1CapturedLocations);
+                winnerTotalPower = totalPlayer2Power;
+                loserTotalPower = totalPlayer1Power;
+            } else {
+                //쩔 수 없이 이렇게 해야 함. 다음엔 변수 설정할 때 확장성을 고려해야겠음.
+                winnerTotalPower = totalPlayer1Power;
+                loserTotalPower = totalPlayer2Power;
             }
-            // 그래도 같으면 무승부 (winnerId = null)
+
         }
 
-        // 4. Match 업데이트
+        // 5. Match 업데이트
         log.info("게임 종료 - 매치 상태를 ENDED로 변경: matchId={}, winnerId={}", matchId, winnerId);
         match.apply(new MatchUpdateReq(
                 MatchStatus.ENDED,
@@ -140,10 +192,10 @@ public class GameCalculationService {
                 null,
                 LocalDateTime.now()));
         match = matchRepository.save(match);
-        log.info("게임 종료 - 매치 상태 변경 완료: matchId={}, status={}, winnerId={}", 
+        log.info("게임 종료 - 매치 상태 변경 완료: matchId={}, status={}, winnerId={}",
                 matchId, match.getStatus(), match.getWinnerId());
 
-        // 5. MatchParticipant 최종 점수 업데이트
+        // 6. MatchParticipant 최종 점수 업데이트
         List<MatchParticipant> participants = matchParticipantRepository.findByMatch_MatchId(matchId);
         for (MatchParticipant participant : participants) {
             int finalScore = participant.getGuestId().equals(powerResult.getPlayer1Id())
@@ -156,7 +208,7 @@ public class GameCalculationService {
             matchParticipantRepository.save(participant);
         }
 
-        // 6. 사용자 통계 업데이트
+        // 7. 사용자 통계 업데이트
         updateUserStatistics(powerResult.getPlayer1Id(), powerResult.getPlayer2Id(), winnerId);
 
         log.info("게임 종료 완료 - 승자: {}", winnerId);
@@ -164,10 +216,12 @@ public class GameCalculationService {
         return GameEndResult.builder()
                 .matchId(matchId)
                 .winnerId(winnerId)
-                .player1LocationWins(player1Wins)
-                .player2LocationWins(player2Wins)
-                .player1TotalPower(totalPlayer1Power)
-                .player2TotalPower(totalPlayer2Power)
+                .winnerNickname(winnerNickname)
+                .loserNickname(loserNickname)
+                .winnerCapturedLocationNames(winnerCapturedLocationNames)
+                .loserCapturedLocationNames(loserCapturedLocationNames)
+                .winnerTotalPower(winnerTotalPower)
+                .loserTotalPower(loserTotalPower)
                 .build();
     }
 
@@ -183,14 +237,14 @@ public class GameCalculationService {
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
         // 매치 플레이 수 증가
-        player1.apply(new com.snaptale.backend.user.model.UserUpdateReq(
+        player1.apply(new UserUpdateReq(
                 null,
                 null,
                 player1.getMatchesPlayed() + 1,
                 null,
                 null,
                 null));
-        player2.apply(new com.snaptale.backend.user.model.UserUpdateReq(
+        player2.apply(new UserUpdateReq(
                 null,
                 null,
                 player2.getMatchesPlayed() + 1,
@@ -202,14 +256,14 @@ public class GameCalculationService {
         if (winnerId != null) {
             if (winnerId.equals(player1Id)) {
                 // Player 1 승리
-                player1.apply(new com.snaptale.backend.user.model.UserUpdateReq(
+                player1.apply(new UserUpdateReq(
                         null,
                         player1.getRankPoint() + 25,
                         null,
                         player1.getWins() + 1,
                         null,
                         null));
-                player2.apply(new com.snaptale.backend.user.model.UserUpdateReq(
+                player2.apply(new UserUpdateReq(
                         null,
                         Math.max(0, player2.getRankPoint() - 10),
                         null,
@@ -218,14 +272,14 @@ public class GameCalculationService {
                         null));
             } else {
                 // Player 2 승리
-                player2.apply(new com.snaptale.backend.user.model.UserUpdateReq(
+                player2.apply(new UserUpdateReq(
                         null,
                         player2.getRankPoint() + 25,
                         null,
                         player2.getWins() + 1,
                         null,
                         null));
-                player1.apply(new com.snaptale.backend.user.model.UserUpdateReq(
+                player1.apply(new UserUpdateReq(
                         null,
                         Math.max(0, player1.getRankPoint() - 10),
                         null,
@@ -235,14 +289,14 @@ public class GameCalculationService {
             }
         } else {
             // 무승부 - 각자 +5 포인트
-            player1.apply(new com.snaptale.backend.user.model.UserUpdateReq(
+            player1.apply(new UserUpdateReq(
                     null,
                     player1.getRankPoint() + 5,
                     null,
                     null,
                     null,
                     null));
-            player2.apply(new com.snaptale.backend.user.model.UserUpdateReq(
+            player2.apply(new UserUpdateReq(
                     null,
                     player2.getRankPoint() + 5,
                     null,
@@ -301,20 +355,26 @@ public class GameCalculationService {
     public static class GameEndResult {
         private final Long matchId;
         private final Long winnerId;
-        private final int player1LocationWins;
-        private final int player2LocationWins;
-        private final int player1TotalPower;
-        private final int player2TotalPower;
+        private final String winnerNickname;
+        private final String loserNickname;
+        private final List<String> winnerCapturedLocationNames;
+        private final List<String> loserCapturedLocationNames;
+        private final int winnerTotalPower;
+        private final int loserTotalPower;
 
         @lombok.Builder
-        public GameEndResult(Long matchId, Long winnerId, int player1LocationWins,
-                int player2LocationWins, int player1TotalPower, int player2TotalPower) {
+        public GameEndResult(Long matchId, Long winnerId, String winnerNickname, String loserNickname,
+                List<String> winnerCapturedLocationNames,
+                List<String> loserCapturedLocationNames,
+                int winnerTotalPower, int loserTotalPower) {
             this.matchId = matchId;
             this.winnerId = winnerId;
-            this.player1LocationWins = player1LocationWins;
-            this.player2LocationWins = player2LocationWins;
-            this.player1TotalPower = player1TotalPower;
-            this.player2TotalPower = player2TotalPower;
+            this.winnerNickname = winnerNickname;
+            this.loserNickname = loserNickname;
+            this.winnerCapturedLocationNames = winnerCapturedLocationNames;
+            this.loserCapturedLocationNames = loserCapturedLocationNames;
+            this.winnerTotalPower = winnerTotalPower;
+            this.loserTotalPower = loserTotalPower;
         }
 
         public Long getMatchId() {
@@ -325,20 +385,28 @@ public class GameCalculationService {
             return winnerId;
         }
 
-        public int getPlayer1LocationWins() {
-            return player1LocationWins;
+        public String getWinnerNickname() {
+            return winnerNickname;
         }
 
-        public int getPlayer2LocationWins() {
-            return player2LocationWins;
+        public String getLoserNickname() {
+            return loserNickname;
         }
 
-        public int getPlayer1TotalPower() {
-            return player1TotalPower;
+        public List<String> getWinnerCapturedLocationNames() {
+            return winnerCapturedLocationNames;
         }
 
-        public int getPlayer2TotalPower() {
-            return player2TotalPower;
+        public List<String> getLoserCapturedLocationNames() {
+            return loserCapturedLocationNames;
+        }
+
+        public int getWinnerTotalPower() {
+            return winnerTotalPower;
+        }
+
+        public int getLoserTotalPower() {
+            return loserTotalPower;
         }
     }
 }

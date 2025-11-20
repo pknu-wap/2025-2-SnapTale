@@ -60,25 +60,25 @@ public class MatchWebSocketService {
 		// 매치 상태가 QUEUED, MATCHED, PLAYING 중 하나면 ENDED로 변경
 		if (match.getStatus() != MatchStatus.ENDED) {
 			log.info("매치 상태를 ENDED로 변경: matchId={}, 기존 상태={}", message.getMatchId(), match.getStatus());
-			
+
 			// 중도 퇴장 시 남은 플레이어를 승자로 설정
 			Long winnerId = null;
 			List<MatchParticipant> participants = matchParticipantRepository.findByMatch_MatchId(message.getMatchId());
-			
+
 			// 퇴장한 사람이 아닌 다른 참가자를 찾아서 승자로 설정
 			Optional<MatchParticipant> remainingParticipant = participants.stream()
 					.filter(p -> !p.getGuestId().equals(message.getUserId()))
 					.findFirst();
-			
+
 			// 퇴장한 사람의 닉네임 조회
 			User leaver = userRepository.findById(message.getUserId()).orElse(null);
 			String leaverNickname = leaver != null ? leaver.getNickname() : "상대방";
-			
+
 			if (remainingParticipant.isPresent()) {
 				winnerId = remainingParticipant.get().getGuestId();
-				log.info("중도 퇴장으로 인한 승자 설정: matchId={}, winnerId={}, leaverId={}", 
+				log.info("중도 퇴장으로 인한 승자 설정: matchId={}, winnerId={}, leaverId={}",
 						message.getMatchId(), winnerId, message.getUserId());
-				
+
 				// 매치 상태 업데이트
 				match.apply(new MatchUpdateReq(
 						MatchStatus.ENDED,
@@ -86,21 +86,17 @@ public class MatchWebSocketService {
 						null,
 						LocalDateTime.now()));
 				matchRepository.save(match);
-				
-				// 업데이트된 매치 정보 다시 조회
-				match = matchRepository.findById(message.getMatchId())
-						.orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_NOT_FOUND));
-				
+
 				// 게임 종료 메시지 생성 및 브로드캐스트
 				GameStateMessage gameState = createGameStateMessage(match, participants);
 				String winnerMessage = leaverNickname + "님이 나갔습니다. 당신이 승자입니다!";
 				gameState.setLastPlayInfo(winnerMessage);
-				
+
 				// 게임 종료 브로드캐스트
 				broadcastToMatch(message.getMatchId(), "GAME_END", gameState, winnerMessage);
 			} else {
 				log.warn("남은 참가자가 없음: matchId={}, leaverId={}", message.getMatchId(), message.getUserId());
-				
+
 				// 승자가 없어도 게임 종료 처리
 				match.apply(new MatchUpdateReq(
 						MatchStatus.ENDED,
@@ -108,16 +104,12 @@ public class MatchWebSocketService {
 						null,
 						LocalDateTime.now()));
 				matchRepository.save(match);
-				
-				// 업데이트된 매치 정보 다시 조회
-				match = matchRepository.findById(message.getMatchId())
-						.orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_NOT_FOUND));
-				
+
 				// 게임 종료 메시지 생성 및 브로드캐스트
 				GameStateMessage gameState = createGameStateMessage(match, participants);
 				String endMessage = leaverNickname + "님이 나갔습니다. 게임이 종료되었습니다.";
 				gameState.setLastPlayInfo(endMessage);
-				
+
 				// 게임 종료 브로드캐스트
 				broadcastToMatch(message.getMatchId(), "GAME_END", gameState, endMessage);
 			}
@@ -369,38 +361,54 @@ public class MatchWebSocketService {
 			log.info("endGameAndDetermineWinner 호출 전: matchId={}", matchId);
 			GameCalculationService.GameEndResult endResult = gameCalculationService
 					.endGameAndDetermineWinner(matchId);
-			log.info("endGameAndDetermineWinner 호출 완료: matchId={}, winnerId={}", 
+			log.info("endGameAndDetermineWinner 호출 완료: matchId={}, winnerId={}",
 					matchId, endResult.getWinnerId());
 
 			// 최종 게임 상태 생성
 			Match match = matchRepository.findById(matchId)
 					.orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_NOT_FOUND));
-			
-			log.info("게임 종료 처리 - 매치 상태 확인: matchId={}, status={}, winnerId={}", 
+
+			log.info("게임 종료 처리 - 매치 상태 확인: matchId={}, status={}, winnerId={}",
 					matchId, match.getStatus(), match.getWinnerId());
-			
+
 			List<MatchParticipant> participants = matchParticipantRepository
 					.findByMatch_MatchId(matchId);
 
 			GameStateMessage gameState = createGameStateMessage(match, participants);
 
-			String winnerMessage;
-			if (endResult.getWinnerId() != null) {
-				User winner = userRepository.findById(endResult.getWinnerId())
-						.orElse(null);
-				String winnerNickname = winner != null ? winner.getNickname() : "Unknown";
-				winnerMessage = winnerNickname + " 승리!";
-			} else {
-				winnerMessage = "무승부";
-			}
+			String winnerNickname = Optional.ofNullable(endResult.getWinnerNickname())
+					.filter(nick -> !nick.isBlank())
+					.orElse("플레이어1");
+			String loserNickname = Optional.ofNullable(endResult.getLoserNickname())
+					.filter(nick -> !nick.isBlank())
+					.orElse("플레이어2");
+
+			String winnerMessage = (endResult.getWinnerId() != null)
+					? winnerNickname + " 승리!"
+					: "무승부";
+
+			String winnerCapturedLocations = endResult.getWinnerCapturedLocationNames().isEmpty()
+					? "없음"
+					: endResult.getWinnerCapturedLocationNames().stream().collect(Collectors.joining(", "));
+			String loserCapturedLocations = endResult.getLoserCapturedLocationNames().isEmpty()
+					? "없음"
+					: endResult.getLoserCapturedLocationNames().stream().collect(Collectors.joining(", "));
 
 			gameState.setLastPlayInfo(String.format(
-					"게임 종료 - %s (Location 점령: %d vs %d, 총 파워: %d vs %d)",
+					"%s \n" +
+							"%s님께서 점령한 지역: %s \n" + // 이긴 사람
+							"%s님께서 점령한 지역: %s \n" + // 진 사람
+							"%s님의 총 파워: %d \n" +
+							"%s님의 총 파워: %d",
 					winnerMessage,
-					endResult.getPlayer1LocationWins(),
-					endResult.getPlayer2LocationWins(),
-					endResult.getPlayer1TotalPower(),
-					endResult.getPlayer2TotalPower()));
+					winnerNickname,
+					winnerCapturedLocations,
+					loserNickname,
+					loserCapturedLocations,
+					winnerNickname,
+					endResult.getWinnerTotalPower(),
+					loserNickname,
+					endResult.getLoserTotalPower()));
 
 			// 게임 종료 브로드캐스트
 			broadcastToMatch(matchId, "GAME_END", gameState, winnerMessage);

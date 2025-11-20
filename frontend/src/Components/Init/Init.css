@@ -134,9 +134,18 @@
 .init-btn-image:active:enabled { transform: translateY(1px); }
 .init-btn-image:disabled { filter: grayscale(40%) opacity(.7); cursor: not-allowed; }
 
-@media (max-width: 420px) {
+@media (max-width: 767px) {
   .init-input { padding-right: 96px; height: 40px; }
   .init-dice  { right: -14px; top: -10px; width: 56px; height: 56px; }
   .init-dice .dice-img { width: 36px; height: 36px; }
   .init-btn-image { width: 240px; height: 66px; }
+
+  .app-bg-image {
+    padding: var(--space-md);
+  }
+
+  .init-logo {
+    width: clamp(210px, 24vw, 280px);
+    height: clamp(210px, 24vw, 280px);
+  }
 }
