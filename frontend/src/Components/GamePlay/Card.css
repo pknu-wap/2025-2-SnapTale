@@ -20,6 +20,12 @@
   width: calc(100% - 7px);
   height: calc(100% - 7px);
   z-index: 1;
+  transition: border-color 0.2s ease, border-width 0.2s ease; /* 테두리 변화에 애니메이션 추가, 별로면 제거할것 */
+}
+
+.card-image-selected {
+  border-color: #d4af37 !important; /* !important는 최우선 적용 표시 */
+  border-width: clamp(0.2rem, 0.56vw, 0.36rem) !important;
 }
 
 .card-border-korea { border-color: #26437b; }
@@ -143,76 +149,6 @@
   touch-action: none;     /* 모바일 스크롤 차단 */
   pointer-events: none;   /* 터치/클릭 입력 차단 */
   user-select: none;      /* 텍스트 드래그 방지 */
-}
-
-/* Animated outline (top -> right -> bottom -> left). Total reveal time = 0.6s */
-.card-outline {
-  position: absolute;
-  width: 54px;
-  height: 81px;
-  pointer-events: none;
-  z-index: 20;
-}
-.card-outline span {
-  position: absolute;
-  display: block;
-  box-sizing: border-box;
-}
-
-/* border thickness (consistent with design) */
-.card-outline span {
-  --bw: 3px;
-}
-
-.card-outline .outline-top {
-  border-top: var(--bw) solid #ffffff;
-  top: 0;
-  left: 0;
-  right: 100%;
-  transition: right 0.15s ease;
-  transition-delay: 0s;
-}
-.card-wrapper.is-pressed .card-outline .outline-top {
-  right: 0;
-}
-
-.card-outline .outline-right {
-  border-right: var(--bw) solid #ffffff;
-  top: 0;
-  right: 0;
-  bottom: 100%;
-  transition: bottom 0.15s ease;
-  transition-delay: 0.15s;
-}
-
-.card-wrapper.is-pressed .card-outline .outline-right {
-  bottom: 0;
-}
-
-.card-outline .outline-bottom {
-  border-bottom: var(--bw) solid #ffffff;
-  bottom: 0;
-  left: 100%;
-  right: 0;
-  transition: left 0.15s ease;
-  transition-delay: 0.3s;
-}
-
-.card-wrapper.is-pressed .card-outline .outline-bottom {
-  left: 0;
-}
-
-.card-outline .outline-left {
-  border-left: var(--bw) solid #ffffff;
-  top: 100%;
-  left: 0;
-  bottom: 0;
-  transition: top 0.15s ease;
-  transition-delay: 0.45s;
-}
-
-.card-wrapper.is-pressed .card-outline .outline-left {
-  top: 0;
 }
 
 @keyframes zoomIn {

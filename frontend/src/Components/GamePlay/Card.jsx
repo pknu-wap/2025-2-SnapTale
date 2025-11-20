@@ -39,19 +39,8 @@ const Card = ({
   updatedAt,
   onCardClick,
   isDraggable = false,
+  isSelected = false,
 }) => {
-  console.log({
-    cardId,
-    name,
-    imageUrl,
-    cost,
-    power,
-    faction,
-    effectDesc,
-    active,
-    createdAt,
-    updatedAt
-  });
     const nameRef = useRef(null);
     const [{ isDragging }, dragRef] = useDrag(() => ({
       type: "CARD",
@@ -78,11 +67,11 @@ const Card = ({
   const borderClass = factionClasses[faction] || "card-border-default";
   return (
     <div 
-      className={`card-container ${isDragging ? "card-dragging" : ""}`} 
+      className={`card-container ${isDragging ? "card-dragging" : ""} ${isSelected ? "card-selected" : ""}`} 
       ref={isDraggable ? dragRef : null} //드래그 가능 시에만 DnD ref 연결
       onClick={onCardClick}
     >
-      <img className={`card-image ${borderClass}`} src={imageUrl} alt={name} />
+      <img className={`card-image ${borderClass} ${isSelected ? "card-image-selected" : ""}`} src={imageUrl} alt={name} />
 
       <div className="card-cost-container">
         <img src={costIcon} alt="Cost Icon" className="icon" />

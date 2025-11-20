@@ -13,7 +13,6 @@ import EnlargedLocation from "./EnlargedLocation";
 import CustomDragLayer from "./CustomDragLayer";
 import defaultImg from "../../assets/koreaIcon.png";
 import DCI from "../../assets/defaultCardImg.svg";
-// import { fetchLocations } from "./api/location";
 import GameChatFloatingButton from "./GameChatFloatingButton";
 import GameEndModal from "./GameEndModal";
 import { getMatch, verifyParticipant } from "../Home/api/match";
@@ -23,33 +22,13 @@ import useMatchWebSocket from "./GameLayout/hooks/useMatchWebSocket";
 import { DndProvider } from "react-dnd";
 import { TouchBackend } from "react-dnd-touch-backend";
 
-
-let pressTimer = null;
-
-const handlePressStart = (card, setSelectedCard, e) => {
-  // 모바일에서 터치할 때, 또는 우클릭일 때 메뉴 방지
-  if (e.type === "touchstart" || e.button === 2) e.preventDefault();
-
-  const wrapper = e.currentTarget?.querySelector?.(".card-wrapper");
-  wrapper?.classList.add("is-pressed");
-
-  pressTimer = setTimeout(() => {
-    setSelectedCard(card);
-  }, 600);
-};
-
-const handlePressEnd = (e) => {
-  clearTimeout(pressTimer);
-  const wrapper = e?.currentTarget?.querySelector?.(".card-wrapper");
-  wrapper?.classList.remove("is-pressed");
-};
-
 export default function GameLayout({ matchId }) {
   const maxTurn = 6;
   const navigate = useNavigate();
 
   const { user, updateUser } = useUser();
-  const [selectedCard, setSelectedCard] = useState(null);
+  const [selectedCardId, setSelectedCardId] = useState(null); // 첫 번째 클릭 -> 카드 ID 저장
+  const [selectedCard, setSelectedCard] = useState(null); //두 번째 클릭 -> 카드 오버레이 표시
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [locations, setLocations] = useState([]); // 서버에서 불러올 위치 데이터
   const [loading, setLoading] = useState(true);
@@ -79,6 +58,24 @@ export default function GameLayout({ matchId }) {
   });
 
   const { subscribe } = useWebSocket();
+
+  const handleCardClick = (card, e) => {
+  // 버블링 방지 (외부 클릭 감지와 충돌 방지)
+  e.stopPropagation();
+
+  if (selectedCardId === card.cardId) {
+    setSelectedCard(card);  // 오버레이 띄우기
+    setSelectedCardId(null); // 선택 해제
+  } else {
+    setSelectedCardId(card.cardId);
+  }
+};
+  useEffect( () => { 
+    const clearSelection = () => setSelectedCardId(null); 
+    document.addEventListener("click", clearSelection); //빈 공간 클릭 시 선택 해제
+    return () => document.removeEventListener("click", clearSelection); //종료될 때 정리
+    }, []
+  );
 
   const opponentName = useMemo(() => {
     if (!user?.enemyPlayer) {
@@ -450,6 +447,7 @@ export default function GameLayout({ matchId }) {
     <>
     <div className="gameplay-shell">
       <DndProvider backend={TouchBackend} options={{ enableMouseEvents: true }}>
+        <CustomDragLayer selectedCard={selectedCard} />
         <div className="gameplay-body">
           <aside className="hud-panel" aria-label="턴 정보">
             <div className="hud-matchup" aria-label="플레이어 정보">
@@ -533,23 +531,9 @@ export default function GameLayout({ matchId }) {
                   <div
                     key={card.cardId}
                     className="hand-card"
-                    onMouseDown={(e) => handlePressStart(card, setSelectedCard, e)}
-                    onMouseUp={handlePressEnd}
-                    onMouseLeave={handlePressEnd}
-                    onTouchStart={(e) => handlePressStart(card, setSelectedCard, e)}
-                    onTouchEnd={handlePressEnd}
-                    onTouchMove={handlePressEnd}
-                    onContextMenu={(e) => e.preventDefault()} //배포
+                    onClick={(e) => handleCardClick(card, e)}
                   >
-                    <div className="card-wrapper">
-                      <div className="card-outline" aria-hidden>
-                        <span className="outline-top" />
-                        <span className="outline-right" />
-                        <span className="outline-bottom" />
-                        <span className="outline-left" />
-                      </div>
-                      <Card {...card} isDraggable={true} />
-                    </div>
+                    <Card {...card} isDraggable={true} isSelected={selectedCardId === card.cardId} />
                   </div>
                   ))}
                 </div>
