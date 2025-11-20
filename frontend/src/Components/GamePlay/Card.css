@@ -144,6 +144,54 @@
   z-index: 6;
   text-align: center;
 }
+.selected-card .enlarged-card-container {
+  position: relative;
+  width: 112px;
+  height: 186px;
+  animation: zoomIn 0.3s ease-out;
+}
+
+.selected-card .enlarged-card-container .card-image {
+  inset: 8px;
+  border-width: 6px;
+  border-radius: 19px;
+  width: 90px;
+  height: 171px;
+}
+
+.selected-card .enlarged-card-container .card-cost-container,
+.selected-card .enlarged-card-container .card-power-container,
+.selected-card .enlarged-card-container .icon {
+  width: 44px;
+  height: 44px;
+}
+
+.selected-card .enlarged-card-container .card-cost-container,
+.selected-card .enlarged-card-container .card-power-container {
+  top: -2px;
+}
+
+.selected-card .enlarged-card-container .icon-text {
+  font-size: 30px;
+}
+
+.selected-card .enlarged-card-container .card-name {
+  width: 80%;
+  font-size: 26px;
+}
+
+.selected-card .enlarged-card-container .card-desc {
+  position: absolute;
+  width: 256px;
+  left: 50%;
+  bottom: -50px;
+  transform: translateX(-50%);
+  font-size: 25px;
+  color: #ffecde;
+  z-index: 6;
+  text-align: center;
+}
+
 
 .card-dragging {
   touch-action: none;     /* 모바일 스크롤 차단 */
