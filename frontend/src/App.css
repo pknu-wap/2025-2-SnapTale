@@ -74,9 +74,9 @@ body,
   }
 
   .app-bg-image {
-    width: 350px;
-    height: 600px;
-    padding: 24px;
+    width: 90%;
+    height: 90%;
+    padding: 10px;
     border-radius: 10px;
     box-sizing: border-box;
   }

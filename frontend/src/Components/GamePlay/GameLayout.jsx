@@ -4,6 +4,7 @@ import { useUser } from "../../contexts/UserContext";
 import { useWebSocket } from "../../contexts/WebSocketContext";
 import { useNavigate } from "react-router-dom";
 import "./GameLayout.css";
+import "./GameLayoutMobile.css";
 import Card from "./Card";
 import Location from "./Location";
 import Energy from "./Energy";

@@ -23,11 +23,11 @@
 
 @media (max-width: 767px) {
   .energy {
-    width: 42px;
+    width: 56px;
   }
 
   .energy-value {
-    font-size: 15px;
-    text-shadow: 0 0 4px rgba(255, 255, 255, 0.95);
+    font-size: 18px;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.95);
   }
 }

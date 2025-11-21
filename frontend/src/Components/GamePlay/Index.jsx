@@ -34,11 +34,7 @@ const GamePlay = () => {
   return (
     <>
       <TopBar screenType="gameplay" onExit={handleExit} />
-      <div className="gameplay-container">
-        <header className="gameplay-header">
-        </header>
         <GameLayout matchId={matchId} />
-      </div>
     </>
   );
 };

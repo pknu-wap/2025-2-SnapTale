@@ -1,0 +1,186 @@
+@media (max-width: 767px) {
+  .gameplay-shell {
+    position: relative;
+    display: grid;
+    grid-template-rows: 58px 1fr;
+    height: 100%;
+    width: 100%;
+    min-width: 300px;
+    max-width: 350px;
+    min-height: 550px;
+    color: #f7ede2;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+
+  .gameplay-shell .top-bar {
+    height: 58px;
+    padding: 0 16px;
+  }
+
+  .gameplay-body {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 410px 140px 120px;
+    grid-template-areas:
+      "board"
+      "hud"
+      "hand";
+    align-items: center;
+    justify-items: center;
+    gap: 12px;
+    padding: 12px 10px;
+    width: 100%;
+    max-width: 330px;
+    height: 100%;
+    box-sizing: border-box;
+  }
+
+  .hud-panel {
+    grid-area: hud;
+    width: 100%;
+    max-width: 280px;
+    height: 160px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+      "matchup matchup"
+      "energy turn";
+    align-items: center;
+    justify-items: stretch;
+    row-gap: 5px;
+    column-gap: 8px;
+    padding: 12px 12px;
+    border-radius: 20px;
+    background: linear-gradient(158deg, rgba(22, 13, 5, 0.5) 0px, rgba(22, 13, 5, 0.24) 200px);
+    box-shadow: 0 0 22px rgba(0, 0, 0, 0.24);
+  }
+
+  .hud-matchup {
+    grid-area: matchup;
+    width: 100%;
+    max-width: 220px;
+    min-height: 50px;
+    padding: 14px 10px;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 12px;
+    border-radius: 18px;
+    background: rgba(12, 7, 3, 0.56);
+  }
+
+  .hud-player {
+    font-size: 14px;
+  }
+
+  .hud-vs {
+    font-size: 15px;
+    padding: 6px 14px;
+  }
+
+  .hud-section {
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hud-section > * {
+    width: auto;
+  }
+
+  .hud-section:nth-of-type(2) {
+    grid-area: energy;
+  }
+
+  .turn-panel {
+    grid-area: turn;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .turn-panel__label {
+    font-size: 12px;
+  }
+
+  .turn-panel__value {
+    font-size: 22px;
+  }
+
+  .turn-panel__max {
+    font-size: 14px;
+  }
+
+  .end-turn-button {
+    grid-area: button;
+    width: 100px;
+    padding: 8px 8px;
+    border-radius: 17px;
+    font-size: 15px;
+    letter-spacing: 0.2px;
+  }
+
+  .board-wrapper {
+    grid-area: board;
+    max-width: 336px;
+    width: 336px;
+    height: 310px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .board-grid {
+    width: 300px;
+    display: grid;
+    grid-template-columns: repeat(3, 93px);
+    grid-template-rows: 84px 200px 84px;
+    column-gap: 10px;
+    row-gap: 10px;
+    justify-content: center;
+    align-content: center;
+  }
+
+  .board-message {
+    font-size: 14px;
+    padding: 12px;
+  }
+
+  .board-message--full {
+    min-height: 72px;
+  }
+
+  .hand-panel {
+    grid-area: hand;
+    flex: 0 0 320px;
+    width: 320px;
+    height: 140px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 12px 10px;
+    background: rgba(0, 0, 0, 0.18);
+    border-radius: 18px;
+    box-sizing: border-box;
+  }
+
+  .hand-grid {
+    width: auto;
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+  }
+
+  .hand-card {
+    width: 72px;
+    display: flex;
+    justify-content: center;
+  }
+}
