@@ -42,6 +42,32 @@
   color: #ffecde;
 }
 
+/* 덱 이미지 - desktop(768px 이상)에서만 표시 */
+.deck-image-display {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .deck-image-display {
+    display: block;
+    width: 720px;
+    height: 235px;
+    object-fit: cover;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+    opacity: 0.9;
+  }
+
+  /* 덱 이미지가 표시되면 faction-text 숨김 */
+  .deck-select .deck-image-display {
+    display: block;
+  }
+
+  .deck-select:has(.deck-image-display) .faction-text {
+    display: none;
+  }
+}
+
 /* 카드 섹션 */
 .deck-section {
   max-width: 400px;

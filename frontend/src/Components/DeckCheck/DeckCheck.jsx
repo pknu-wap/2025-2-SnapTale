@@ -12,6 +12,9 @@ import FactionIcon from "./FactionIcon"
 import koreaIcon from "../../assets/koreaIcon.png";
 import chinaIcon from "../../assets/chinaIcon.png";
 import japanIcon from "../../assets/japanIcon.png";
+import koreaDeck from "../../assets/koreaDeck.png";
+import chinaDeck from "../../assets/chinaDeck.png";
+import japanDeck from "../../assets/japanDeck.png";
 import './DeckCheck.css';
 
 const factionToDeckPresetId = {
@@ -27,7 +30,7 @@ const DeckCheck = () => {
     const [cards, setCards] = useState([]);
     const { user, updateUser } = useUser();
     const [selectedCard, setSelectedCard] = useState(null);
-    const [isHorizontal, setIsHorizontal] = useState(false);
+    const [isDeckDescOpen, setIsDeckDescOpen] = useState(false);
 
     const navigate = useNavigate();
 
@@ -61,8 +64,21 @@ const DeckCheck = () => {
         setSelectedFaction(faction);
     };
 
-    const handleLayoutToggle = () => {
-        setIsHorizontal(!isHorizontal);
+    const handleFactionTextClick = () => {
+        setIsDeckDescOpen(!isDeckDescOpen);
+    };
+
+    const getDeckImage = () => {
+        switch (selectedFaction) {
+            case 'korea':
+                return koreaDeck;
+            case 'china':
+                return chinaDeck;
+            case 'japan':
+                return japanDeck;
+            default:
+                return koreaDeck;
+        }
     };
 
     const handleSaveClick = async () => {
@@ -119,15 +135,26 @@ const DeckCheck = () => {
                         />
                     </div>
                 </div>
-                <div className="faction-text" onClick={handleLayoutToggle}>
+                <div className="faction-text" onClick={handleFactionTextClick}>
                     {selectedFaction === "korea" && "한국"}
                     {selectedFaction === "china" && "중국"}
                     {selectedFaction === "japan" && "일본"}
                 </div>
+                {isDeckDescOpen && (
+                    <img
+                        src={getDeckImage()}
+                        alt="deck"
+                        className="deck-image-display"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setIsDeckDescOpen(false);
+                        }}
+                    />
+                )}
             </div>
         </div>
         {/* deck-section, selected-card 레이아웃 조절*/}
-        <div className={`deck-cards-container ${isHorizontal ? 'horizontal' : ''}`}>
+        <div className={`deck-cards-container ${isDeckDescOpen ? 'horizontal' : ''}`}>
             {/* 덱 카드 12장 전체 보기*/}
             <section className="deck-section">
                     <div className="deck-grid">
