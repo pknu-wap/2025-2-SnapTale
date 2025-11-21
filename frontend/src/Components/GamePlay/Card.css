@@ -171,6 +171,31 @@
   z-index: 6;
   text-align: center;
 }
+/* 덱 선택 페이지 카드 크기 조정 */
+.deck-section .card-container{
+  width: 54px;
+  height: 81px;
+}
+
+.deck-section .icon,
+.deck-section .card-cost-container,
+.deck-section .card-power-container {
+  width: 18px;
+  height: 18px;
+}
+.deck-section .card-cost-container {
+  top: -3px;
+  left: -1px;
+}
+
+.deck-section .card-power-container {
+  top: -3px;
+  right: -1px;
+}
+.deck-section .icon-text {
+  font-size: 12px;
+}
+
 .selected-card .enlarged-card-container {
   position: relative;
   width: 112px;

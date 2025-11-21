@@ -1,0 +1,52 @@
+/* 모달 컨테이너 (이미지 배경은 여기 class로만 넣음) */
+.deck-desc-modal {
+  position: relative;
+  width: 720px;
+  height: 235px;
+  border-radius: 12px;
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 20px;
+  box-sizing: border-box;
+
+  color: #fff;
+}
+
+/* --- 각 국가별 배경 이미지는 class로 분리 --- */
+.faction-korea {
+  background-image: url("../../assets/koreaDeckDescBg.png");
+}
+
+.faction-china {
+  background-image: url("../../assets/chinaDeckDescBg.png");
+}
+
+.faction-japan {
+  background-image: url("../../assets/japanDeckDescBg.png");
+}
+
+/* 텍스트 스타일 */
+.deck-desc-title {
+  font-size: 28px;
+  font-weight: 800;
+  margin: 0 0 8px 0;
+}
+
+.deck-desc-tags {
+  font-size: 16px;
+  font-weight: 700;
+  opacity: 0.9;
+  margin-bottom: 8px;
+}
+
+.deck-desc-text {
+  font-size: 15px;
+  line-height: 1.4;
+  max-width: 90%;
+}

@@ -42,6 +42,11 @@
   color: #ffecde;
 }
 
+/* 숨김 클래스: 모달이 열릴 때 텍스트를 숨기기 위해 사용 */
+.faction-text.hidden {
+  display: none;
+}
+
 /* 덱 이미지 - desktop(768px 이상)에서만 표시 */
 .deck-image-display {
   display: none;
