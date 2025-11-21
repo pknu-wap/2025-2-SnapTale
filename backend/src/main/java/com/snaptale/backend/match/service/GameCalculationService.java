@@ -1,7 +1,6 @@
 package com.snaptale.backend.match.service;
 
 import com.snaptale.backend.card.entity.Card;
-import com.snaptale.backend.card.repository.CardRepository;
 import com.snaptale.backend.common.exceptions.BaseException;
 import com.snaptale.backend.common.response.BaseResponseStatus;
 import com.snaptale.backend.match.entity.Match;
@@ -318,6 +317,7 @@ public class GameCalculationService {
                     null,
                     null));
         }
+
 
         userRepository.save(player1);
         userRepository.save(player2);
