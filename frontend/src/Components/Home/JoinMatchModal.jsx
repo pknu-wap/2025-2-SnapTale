@@ -30,12 +30,12 @@ const JoinMatchModal = ({ setOpenJoinModal, onJoinMatch }) => {
                     setOpenJoinModal(false);
                 }}>
             </button>
-            <div className="modal-title"> 
+            <div className="match-id-title"> 
                 <span className="modal-text">매치 ID</span> 
             </div>
             <div className="input-container"> 
                 <input 
-                    className="modal-input match-id-input"
+                    className="modal-input"
                     maxLength={10}
                     type="number"
                     value={matchId}
