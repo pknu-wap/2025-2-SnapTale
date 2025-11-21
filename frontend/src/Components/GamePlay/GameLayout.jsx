@@ -13,7 +13,6 @@ import EnlargedCard from "./EnlargedCard";
 import EnlargedLocation from "./EnlargedLocation";
 import CustomDragLayer from "./CustomDragLayer";
 import defaultImg from "../../assets/koreaIcon.png";
-import DCI from "../../assets/defaultCardImg.svg";
 import GameChatFloatingButton from "./GameChatFloatingButton";
 import GameEndModal from "./GameEndModal";
 import { getMatch, verifyParticipant } from "../Home/api/match";
@@ -419,7 +418,9 @@ export default function GameLayout({ matchId }) {
 
       try {
         const response = await playAction(matchId, {
-          participantId: user.guestId,
+          playId: 0,
+          matchId,
+          participantId: user.participantId,
           cardId: card.cardId,
           actionType: "MOVE_CARD",
           additionalData: JSON.stringify({
