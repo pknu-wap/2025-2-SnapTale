@@ -303,4 +303,9 @@
     bottom: -58px;
     font-size: 18px;
   }
+
+  .hand-card .card-container {
+    width: 64px;
+    height: 96px;
+  }
 }
