@@ -1,6 +1,7 @@
 .deck-layout {
   display: flex;
   flex-direction: column;
+  position: relative;
   height: 100%;
   width: 100%;
 }
@@ -66,4 +67,48 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+@media (max-width: 767px) {
+  .faction-icons {
+    gap: 8px;
+  }
+  .deck-layout .top-bar {
+    left: 0px ;
+    right: 0px ;
+  }
+  .DeckCheck-container {
+    padding-top: 0px;
+  }
+  .deck-layout .top-bar .icon-btn {
+    width: 40px;
+    height: 40px;
+  }
+}
+@media (max-width: 300px) {
+
+  .deck-layout .top-bar {
+    top: 70px !important;
+  }
+  .deck-grid {
+    gap: 3px;
+  }
+  
+  .deck-layout .enlarged-card-container .card-desc {
+    width: 120px;
+    font-size: 12px;
+  }
+
+  .deck-section {
+    overflow: visible;
+    position: relative;
+  }
+
+  .deck-grid {
+    width: max-content;
+    max-width: none;
+    position: static;
+    margin: 0 auto;
+  }
+
 }
