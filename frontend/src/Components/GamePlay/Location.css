@@ -218,61 +218,65 @@
 
 @media (max-width: 767px) {
   .location-container {
-    width: 96px;
-    border-radius: 16.8px;
-    filter: drop-shadow(0 1.9px 7.2px rgba(11, 8, 2, 0.32))
-      drop-shadow(0 4.5px 10.4px rgba(9, 5, 0, 0.18));
+    width: 84px;
+    height: 118px;
+    aspect-ratio: auto;
+    border-radius: 14px;
+    filter: drop-shadow(0 2px 7px rgba(11, 8, 2, 0.32))
+      drop-shadow(0 4px 10px rgba(9, 5, 0, 0.18));
   }
 
   .location-container:hover {
-    transform: translate3d(0, -2.6px, 0);
-    filter: drop-shadow(0 5.6px 16.8px rgba(14, 9, 2, 0.5))
-      drop-shadow(0 2.9px 8.8px rgba(0, 0, 0, 0.25));
+    transform: translate3d(0, -2px, 0);
+    filter: drop-shadow(0 6px 16px rgba(14, 9, 2, 0.48))
+      drop-shadow(0 3px 9px rgba(0, 0, 0, 0.25));
   }
 
   .location-container::before {
-    inset: 1.9px;
+    inset: 2px;
   }
 
   .locked-overlay {
-    inset: 5.6px;
+    inset: 6px;
     padding: 8px;
   }
 
   .locked-text {
-    font-size: 13.6px;
-    text-shadow: 0 0 5.6px rgba(0, 0, 0, 0.45);
+    font-size: 12px;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.45);
   }
 
   .location-name {
-    width: 89.6px;
-    font-size: 13.8px;
-    text-shadow: 0 0 5.6px rgba(0, 0, 0, 0.6);
-    padding-inline: 4.8px;
+    top: 38%;
+    width: 78px;
+    font-size: 12px;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.6);
+    padding-inline: 4px;
   }
 
   .location-desc {
-    width: 92.8px;
-    font-size: 8.3px;
-    padding-inline: 3.2px;
+    top: 66%;
+    width: 78px;
+    font-size: 8.5px;
+    padding-inline: 3px;
   }
 
   .opponentPower-container {
-    top: 3.2px;
+    top: 6px;
   }
 
   .myPower-container {
-    bottom: 3.2px;
+    bottom: 6px;
   }
 
   .location-icon {
-    width: 25.6px;
-    height: 25.6px;
+    width: 24px;
+    height: 24px;
   }
 
   .location-icon-text {
-    font-size: 12.5px;
-    text-shadow: 0 0 4.8px rgba(0, 0, 0, 0.45);
+    font-size: 11px;
+    text-shadow: 0 0 4px rgba(0, 0, 0, 0.45);
   }
 
   .enlarged-location-container {
@@ -281,21 +285,21 @@
 
   .enlarged-location-container .location-name {
     top: 32%;
-    font-size: 28.8px;
+    font-size: 28px;
   }
 
   .enlarged-location-container .location-desc {
     top: 60%;
     width: 192px;
-    font-size: 17.6px;
+    font-size: 17px;
   }
 
   .enlarged-location-container .location-icon {
-    width: 56px;
-    height: 56px;
+    width: 54px;
+    height: 54px;
   }
 
   .enlarged-location-container .location-icon-text {
-    font-size: 28.8px;
+    font-size: 28px;
   }
 }
