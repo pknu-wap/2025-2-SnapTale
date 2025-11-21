@@ -13,6 +13,15 @@
   box-shadow: 0 22px 35px rgba(0, 0, 0, 0.35);
 }
 
+.card-undraggable {
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
+.card-movable {
+  box-shadow: 0 0 0 2px #6dd3ff;
+}
+
 .card-image {
   position: absolute;
   inset: 0px; 
@@ -97,6 +106,21 @@
   line-height: 1.12;
   text-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
   padding-inline: 4px;
+}
+
+.card-move-badge {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 174, 255, 0.9);
+  color: #fff;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 9px;
+  z-index: 7;
+  pointer-events: none;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.35);
 }
 
 .enlarged-card-container {

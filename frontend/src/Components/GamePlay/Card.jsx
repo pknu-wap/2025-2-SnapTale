@@ -42,6 +42,10 @@ const Card = ({
   onCardClick,
   isDraggable = false,
   isSelected = false,
+  origin = "hand",
+  fromLaneIndex = null,
+  fromSlotIndex = null,
+  isMoveAvailable = false,
 }) => {
   console.log({
     cardId,
@@ -57,14 +61,42 @@ const Card = ({
     updatedAt
   });
     const nameRef = useRef(null);
-    const [{ isDragging }, dragRef] = useDrag(() => ({
-      type: "CARD",
-      item: { cardId, name, imageUrl, cost, power, faction, effectDesc, effect },
-      collect: (monitor) => ({
-        isDragging: monitor.isDragging(),
+    const [{ isDragging }, dragRef] = useDrag(
+      () => ({
+        type: "CARD",
+        item: {
+          cardId,
+          name,
+          imageUrl,
+          cost,
+          power,
+          faction,
+          effectDesc,
+          effect,
+          origin,
+          fromLaneIndex,
+          fromSlotIndex,
+        },
+        collect: (monitor) => ({
+          isDragging: monitor.isDragging(),
+        }),
+        canDrag: () => isDraggable,
       }),
-      canDrag: () => isDraggable, // 드래그 가능 여부 제어
-    }), [cardId, name, imageUrl, cost, power, faction, effectDesc, effect, isDraggable]);
+      [
+        cardId,
+        name,
+        imageUrl,
+        cost,
+        power,
+        faction,
+        effectDesc,
+        effect,
+        origin,
+        fromLaneIndex,
+        fromSlotIndex,
+        isDraggable,
+      ]
+    );
     useEffect(() => {
       const el = nameRef.current;
     if (!el) return;
@@ -80,9 +112,18 @@ const Card = ({
     }
   }, [name]);
   const borderClass = factionClasses[faction] || "card-border-default";
+  const containerClassNames = [
+    "card-container",
+    isDragging ? "card-dragging" : "",
+    isSelected ? "card-selected" : "",
+    isMoveAvailable ? "card-movable" : "",
+    !isDraggable ? "card-undraggable" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
   return (
     <div 
-      className={`card-container ${isDragging ? "card-dragging" : ""} ${isSelected ? "card-selected" : ""}`} 
+      className={containerClassNames}
       ref={isDraggable ? dragRef : null} //드래그 가능 시에만 DnD ref 연결
       onClick={onCardClick}
     >
@@ -99,6 +140,7 @@ const Card = ({
       </div>
 
       <div className="card-name" ref={nameRef}>{name}</div>
+      {isMoveAvailable && <div className="card-move-badge">이동 가능</div>}
     </div>
   );
 };

@@ -21,6 +21,7 @@ import { playAction } from "./api/matchTurn";
 import useMatchWebSocket from "./GameLayout/hooks/useMatchWebSocket";
 import { DndProvider } from "react-dnd";
 import { TouchBackend } from "react-dnd-touch-backend";
+import { canMoveCard, isMoveLimitedPerTurn } from "./utils/effect";
 
 export default function GameLayout({ matchId }) {
   const maxTurn = 6;
@@ -56,6 +57,7 @@ export default function GameLayout({ matchId }) {
     isOpen: false,
     detail: "",
   });
+  const [movedThisTurn, setMovedThisTurn] = useState({});
 
   const { subscribe } = useWebSocket();
 
@@ -261,6 +263,10 @@ export default function GameLayout({ matchId }) {
     setIsWaitingForOpponent(false);
   }, [matchId]);
 
+  useEffect(() => {
+    setMovedThisTurn({});
+  }, [turn]);
+
   const endTurnButtonLabel = useMemo(() => {
     if (isWaitingForOpponent) {
       return "상대의 턴을 기다리는 중...";
@@ -352,9 +358,9 @@ export default function GameLayout({ matchId }) {
     navigate("/home");
   };
 
-  const handleCardDrop = async ({ card, laneIndex}) => {
+  const handleCardDrop = async ({ card, laneIndex, fromLaneIndex, fromSlotIndex, origin }) => {
     if (!card || !card.cardId) {
-      console.warn("[GameLayout] Slot에서 유효하지 않은 카드 데이터를 받았습니다.", { card, laneIndex, slotIndex });
+      console.warn("[GameLayout] Slot에서 유효하지 않은 카드 데이터를 받았습니다.", { card, laneIndex });
       return;
     }
 
@@ -364,12 +370,89 @@ export default function GameLayout({ matchId }) {
       alert("참가자 정보가 없습니다. 페이지를 새로고침해주세요.");
       return;
     }
-    const targetLane = boardLanes[laneIndex]; //이 레인의 첫 번째 빈 슬롯(0~3)을 찾습니다.
-    const slotIndex = targetLane.findIndex(c => !c); // 0~3 사이의 인덱스
+    const targetLane = boardLanes[laneIndex];
+    const slotIndex = targetLane.findIndex(c => !c);
 
     if (slotIndex === -1) {
-    return; 
-  }
+      return;
+    }
+
+    const isMoveAction = origin === "board" && fromLaneIndex !== undefined && fromSlotIndex !== undefined;
+
+    if (isMoveAction) {
+      const limited = isMoveLimitedPerTurn(card);
+      const alreadyMoved = limited && movedThisTurn[card.cardId] === turn;
+
+      if (!canMoveCard(card) || alreadyMoved) {
+        console.warn("이동 불가능한 카드이거나 이번 턴에 이미 이동했습니다.");
+        return;
+      }
+
+      const prevBoardLanes = boardLanes.map((lane) => [...lane]);
+      const prevPowers = [...myPowers];
+
+      setBoardLanes((prevLanes) => {
+        const newLanes = prevLanes.map((lane) => [...lane]);
+        const originLane = [...newLanes[fromLaneIndex]];
+        originLane[fromSlotIndex] = null;
+        newLanes[fromLaneIndex] = originLane;
+
+        const newTargetLane = [...newLanes[laneIndex]];
+        newTargetLane[slotIndex] = card;
+        newLanes[laneIndex] = newTargetLane;
+        return newLanes;
+      });
+
+      if (fromLaneIndex !== laneIndex) {
+        setMyPowers((prev) => {
+          const next = [...prev];
+          next[fromLaneIndex] = Math.max(0, (next[fromLaneIndex] ?? 0) - (card?.power ?? 0));
+          next[laneIndex] = (next[laneIndex] ?? 0) + (card?.power ?? 0);
+          return next;
+        });
+      }
+
+      if (limited) {
+        setMovedThisTurn((prev) => ({ ...prev, [card.cardId]: turn }));
+      }
+
+      try {
+        const response = await playAction(matchId, {
+          participantId: user.guestId,
+          cardId: card.cardId,
+          actionType: "MOVE_CARD",
+          additionalData: JSON.stringify({
+            fromSlotIndex: fromLaneIndex,
+            fromCardPosition: fromSlotIndex,
+            toSlotIndex: laneIndex,
+            toCardPosition: slotIndex,
+          }),
+        });
+
+        const normalizePowers = (source) =>
+          Array.isArray(source) ? source.map((value) => Number(value) || 0) : null;
+
+        const myLocationPowers = normalizePowers(response?.myLocationPowers);
+        if (myLocationPowers) {
+          setMyPowers(myLocationPowers);
+        }
+      } catch (error) {
+        console.error("MOVE_CARD playAction 실패:", error);
+
+        setBoardLanes(prevBoardLanes);
+        setMyPowers(prevPowers);
+        if (limited) {
+          setMovedThisTurn((prev) => {
+            const next = { ...prev };
+            delete next[card.cardId];
+            return next;
+          });
+        }
+        alert(`카드 이동 실패: ${error.message || "알 수 없는 오류"}`);
+      }
+
+      return;
+    }
 
     // 이전 상태 저장 (실패 시 롤백용)
     const prevHand = hand;
