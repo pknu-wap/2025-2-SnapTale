@@ -28,7 +28,7 @@ const DeckCheck = () => {
     const [cards, setCards] = useState([]);
     const { user, updateUser } = useUser();
     const [selectedCard, setSelectedCard] = useState(null);
-    const [isDeckDescOpen, setIsDeckDescOpen] = useState(false);
+    const [isDeckDescOpen, setIsDeckDescOpen] = useState(true);
 
     const navigate = useNavigate();
 

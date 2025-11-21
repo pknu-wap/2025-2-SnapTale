@@ -24,17 +24,16 @@ const DeckDescModal = ({ faction, onClose }) => {
   if (!data) return null;
 
   return (
-    <div
-        className={`deck-desc-modal faction-${faction}`}
+    <div className={`deck-desc-modal faction-${faction}`}
         onClick={onClose}
     >
         <h2 className="deck-desc-title">{data.title}</h2>
 
-        <p className="deck-desc-tags">
-            {data.tags.map((t) => `#${t} `)}
-        </p>
-
-        <p className="deck-desc-text">{data.desc}</p>
+        <div className='deck-desc-section'>
+            <p className="deck-desc-tags"> {data.tags.map((t) => `#${t} `)} </p>
+            <p className="deck-desc-text">{data.desc}</p>
+        </div>
+        
     </div>
   );
 };

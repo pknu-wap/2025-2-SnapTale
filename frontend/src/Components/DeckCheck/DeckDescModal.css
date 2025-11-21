@@ -3,21 +3,16 @@
   position: relative;
   width: 720px;
   height: 235px;
-  border-radius: 12px;
-
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
 
   display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 20px;
-  box-sizing: border-box;
-
-  color: #fff;
+  flex-direction: row;
+  justify-content: flex-start;
 }
-
+.deck-desc-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
 /* --- 각 국가별 배경 이미지는 class로 분리 --- */
 .faction-korea {
   background-image: url("../../assets/koreaDeckDescBg.png");
@@ -33,20 +28,42 @@
 
 /* 텍스트 스타일 */
 .deck-desc-title {
-  font-size: 28px;
-  font-weight: 800;
-  margin: 0 0 8px 0;
+  font-size: 40px;
+  margin-left: 60px;
+  margin-top: 95px;
+  width: 148px;
+  height: 40px;
 }
 
 .deck-desc-tags {
-  font-size: 16px;
-  font-weight: 700;
-  opacity: 0.9;
-  margin-bottom: 8px;
+  font-size: 28px;
+  width: 444px;
+  height: 28px;
+  margin-top: 64px;
+  margin-bottom: 0px;
+  margin-left: 17px;
 }
 
 .deck-desc-text {
-  font-size: 15px;
-  line-height: 1.4;
-  max-width: 90%;
+  font-size: 24px;
+  width: 383px;
+  height: 48px;
+  color: #000;
+  margin-top: 34px;
+  margin-left: 44px;
+}
+
+.faction-korea .deck-desc-title,
+.faction-korea .deck-desc-tags {
+  color: #26437B;
+}
+
+.faction-china .deck-desc-title,
+.faction-china .deck-desc-tags {
+  color: #329A88;
+}
+
+.faction-japan .deck-desc-title,
+.faction-japan .deck-desc-tags {
+  color: #C4512F;
 }
