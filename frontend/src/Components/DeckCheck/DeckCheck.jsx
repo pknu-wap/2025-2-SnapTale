@@ -27,6 +27,7 @@ const DeckCheck = () => {
     const [cards, setCards] = useState([]);
     const { user, updateUser } = useUser();
     const [selectedCard, setSelectedCard] = useState(null);
+    const [isHorizontal, setIsHorizontal] = useState(false);
 
     const navigate = useNavigate();
 
@@ -58,6 +59,10 @@ const DeckCheck = () => {
     };
     const handleFactionClick = (faction) => {
         setSelectedFaction(faction);
+    };
+
+    const handleLayoutToggle = () => {
+        setIsHorizontal(!isHorizontal);
     };
 
     const handleSaveClick = async () => {
@@ -114,13 +119,16 @@ const DeckCheck = () => {
                         />
                     </div>
                 </div>
-                <div className="faction-text">
+                <div className="faction-text" onClick={handleLayoutToggle}>
                     {selectedFaction === "korea" && "한국"}
                     {selectedFaction === "china" && "중국"}
                     {selectedFaction === "japan" && "일본"}
                 </div>
             </div>
-            {/* 덱 카드 전체 보기*/}
+        </div>
+        {/* deck-section, selected-card 레이아웃 조절*/}
+        <div className={`deck-cards-container ${isHorizontal ? 'horizontal' : ''}`}>
+            {/* 덱 카드 12장 전체 보기*/}
             <section className="deck-section">
                     <div className="deck-grid">
                         {cards.map((card) => (
@@ -147,7 +155,7 @@ const DeckCheck = () => {
             <div className="selected-card">
                 <EnlargedCard card={selectedCard} onClose={null} />
             </div>
-        </div>
+        </div>  
     </div>
     </DndProvider>
     </>
