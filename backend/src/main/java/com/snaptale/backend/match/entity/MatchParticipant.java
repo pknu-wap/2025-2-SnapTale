@@ -58,6 +58,10 @@ public class MatchParticipant extends BaseEntity {
     @Column(name = "energy", nullable = false)
     private int energy = 0;
 
+    @Builder.Default
+    @Column(name = "next_turn_energy_bonus", nullable = false)
+    private int nextTurnEnergyBonus = 0;
+
     // 동시 수정 시 덮어쓰기 방지를 위한 필드
     @Version
     @Column(name = "version")
@@ -127,5 +131,22 @@ public class MatchParticipant extends BaseEntity {
             throw new BaseException(BaseResponseStatus.INSUFFICIENT_ENERGY);
         }
         this.energy -= amount;
+    }
+
+    public void setNextTurnEnergyBonus(int bonus) {
+        this.nextTurnEnergyBonus = bonus;
+    }
+
+    public int getNextTurnEnergyBonus() {
+        return this.nextTurnEnergyBonus;
+    }
+
+    public void applyNextTurnEnergyBonus() {
+        if (this.nextTurnEnergyBonus > 0) {
+            this.energy += this.nextTurnEnergyBonus;
+            log.info("다음 턴 에너지 보너스 적용: guestId={}, bonus={}, newEnergy={}",
+                    this.guestId, this.nextTurnEnergyBonus, this.energy);
+            this.nextTurnEnergyBonus = 0; // 보너스 적용 후 초기화
+        }
     }
 }

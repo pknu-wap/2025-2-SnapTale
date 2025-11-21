@@ -1,7 +1,6 @@
 package com.snaptale.backend.match.service;
 
 import com.snaptale.backend.card.entity.Card;
-import com.snaptale.backend.card.repository.CardRepository;
 import com.snaptale.backend.common.exceptions.BaseException;
 import com.snaptale.backend.common.response.BaseResponseStatus;
 import com.snaptale.backend.match.entity.Match;
@@ -79,7 +78,11 @@ public class GameCalculationService {
             Integer p2Sum = playRepository.sumPowerSnapshotByMatchAndGuestIdAndSlotIndex(matchId, player2Id, slotIndex);
             int p2Power = p2Sum != null ? p2Sum.intValue() : 0;
 
-            // ongoing 효과 적용
+            // power_double_zone 효과 적용 (다른 효과보다 먼저 적용)
+            p1Power = applyPowerDoubleZone(matchId, player1Id, slotIndex, player1Plays, p1Power);
+            p2Power = applyPowerDoubleZone(matchId, player2Id, slotIndex, player2Plays, p2Power);
+
+            // 다른 ongoing 효과 적용
             p1Power += applyOngoingEffects(matchId, player1Id, slotIndex, player1Plays);
             p2Power += applyOngoingEffects(matchId, player2Id, slotIndex, player2Plays);
 
@@ -346,8 +349,12 @@ public class GameCalculationService {
             try {
                 CardEffect effect = parseCardEffect(card.getEffect());
                 if (effect != null && "ongoing".equals(effect.getType())) {
+                    // power_double_zone은 이미 별도로 처리되었으므로 건너뜀
+                    if ("power_double_zone".equals(effect.getAction())) {
+                        continue;
+                    }
                     // 각 카드 인스턴스마다 효과 적용
-                    int bonus = calculateOngoingBonus(effect, matchId, guestId, playerPlays, card);
+                    int bonus = calculateOngoingBonus(effect, matchId, guestId, playerPlays, card, slotIndex);
                     totalBonus += bonus;
                     if (bonus > 0) {
                         log.info("ongoing 효과 적용: cardName={}, slotIndex={}, bonus={}",
@@ -363,24 +370,67 @@ public class GameCalculationService {
         return totalBonus;
     }
 
-    // ongoing 효과 보너스 계산
-    private int calculateOngoingBonus(CardEffect effect, Long matchId, Long guestId,
-            List<Play> playerPlays, Card card) {
-        if (!"power_per_moved".equals(effect.getAction())) {
-            // 다른 ongoing 효과는 여기서 처리
-            if ("enable_move".equals(effect.getAction())) {
-                // 키츠네 효과: 매 턴 이동 가능 (실제 이동 로직은 별도로 처리)
-                log.debug("enable_move 효과 감지: cardName={}", card.getName());
-                return 0; // 파워 보너스는 없음
+    // power_double_zone 효과 적용 (전체 파워를 두 배로 만드는 효과)
+    private int applyPowerDoubleZone(Long matchId, Long guestId, int slotIndex,
+            List<Play> playerPlays, int basePower) {
+        List<Play> slotPlays = playerPlays.stream()
+                .filter(p -> p.getSlotIndex() != null && p.getSlotIndex() == slotIndex && !p.getIsTurnEnd())
+                .filter(p -> p.getCard() != null)
+                .toList();
+
+        for (Play play : slotPlays) {
+            Card card = play.getCard();
+            if (card == null || card.getEffect() == null || card.getEffect().isEmpty()) {
+                continue;
             }
-            return 0;
+
+            try {
+                CardEffect effect = parseCardEffect(card.getEffect());
+                if (effect != null && "ongoing".equals(effect.getType())
+                        && "power_double_zone".equals(effect.getAction())) {
+                    // 전체 파워를 두 배로 만듦
+                    int doubledPower = basePower * 2;
+                    log.info("power_double_zone 효과 적용: cardName={}, slotIndex={}, basePower={}, doubledPower={}",
+                            card.getName(), slotIndex, basePower, doubledPower);
+                    return doubledPower;
+                }
+            } catch (Exception e) {
+                log.warn("power_double_zone 효과 파싱 실패: cardId={}, error={}",
+                        card.getCardId(), e.getMessage());
+            }
         }
 
-        // power_per_moved 효과 (카구야 히메)
-        // 이동한 카드 수 계산
-        int movedCardCount = countMovedCards(matchId, guestId, playerPlays);
+        return basePower;
+    }
 
-        // value에서 파워 증가량 파싱
+    // ongoing 효과 보너스 계산
+    private int calculateOngoingBonus(CardEffect effect, Long matchId, Long guestId,
+            List<Play> playerPlays, Card card, int slotIndex) {
+        String action = effect.getAction();
+
+        // switch 문으로 각 효과 타입별 처리
+        return switch (action) {
+            case "power_per_moved" -> calculatePowerPerMoved(effect, matchId, guestId, playerPlays, card);
+            case "power_if_cards_present" -> calculatePowerIfCardsPresent(
+                    effect, matchId, guestId, slotIndex, playerPlays, card);
+            case "power_buff_zone" -> calculatePowerBuffZone(
+                    effect, matchId, guestId, slotIndex, playerPlays, card);
+            case "enable_move" -> {
+                log.debug("enable_move 효과 감지: cardName={}", card.getName());
+                yield 0; // 파워 보너스는 없음
+            }
+            case "power_double_zone" -> 0; // power_double_zone은 별도로 처리되므로 여기서는 0
+            default -> {
+                log.warn("지원하지 않는 ongoing 액션: action={}, cardName={}", action, card.getName());
+                yield 0;
+            }
+        };
+    }
+
+    // power_per_moved 효과 계산
+    private int calculatePowerPerMoved(CardEffect effect, Long matchId, Long guestId,
+            List<Play> playerPlays, Card card) {
+        int movedCardCount = countMovedCards(matchId, guestId, playerPlays);
         try {
             int powerPerCard = Integer.parseInt(effect.getValue().trim());
             int totalBonus = movedCardCount * powerPerCard;
@@ -389,6 +439,73 @@ public class GameCalculationService {
             return totalBonus;
         } catch (NumberFormatException e) {
             log.error("power_per_moved 값 파싱 실패: value={}, error={}", effect.getValue(), e.getMessage());
+            return 0;
+        }
+    }
+
+    // power_if_cards_present 효과 계산 (유비, 관우, 장비)
+    private int calculatePowerIfCardsPresent(CardEffect effect, Long matchId, Long guestId,
+            int slotIndex, List<Play> playerPlays, Card card) {
+        String targetStr = effect.getTarget();
+        if (targetStr == null || targetStr.isEmpty()) {
+            return 0;
+        }
+
+        // target에서 카드 이름들 추출 (쉼표로 구분)
+        List<String> requiredCardNames = Arrays.stream(targetStr.split(","))
+                .map(String::trim)
+                .filter(name -> !name.isEmpty())
+                .toList();
+
+        if (requiredCardNames.isEmpty()) {
+            return 0;
+        }
+
+        // 같은 구역에 있는 카드 이름들 수집
+        Set<String> presentCardNames = playerPlays.stream()
+                .filter(p -> p.getSlotIndex() != null && p.getSlotIndex() == slotIndex && !p.getIsTurnEnd())
+                .filter(p -> p.getCard() != null)
+                .map(p -> p.getCard().getName())
+                .collect(Collectors.toSet());
+
+        // 모든 필수 카드가 있는지 확인
+        boolean allCardsPresent = requiredCardNames.stream()
+                .allMatch(presentCardNames::contains);
+
+        if (allCardsPresent) {
+            try {
+                int bonus = Integer.parseInt(effect.getValue().trim());
+                log.info("power_if_cards_present 효과: cardName={}, slotIndex={}, requiredCards={}, bonus={}",
+                        card.getName(), slotIndex, requiredCardNames, bonus);
+                return bonus;
+            } catch (NumberFormatException e) {
+                log.error("power_if_cards_present 값 파싱 실패: value={}, error={}",
+                        effect.getValue(), e.getMessage());
+                return 0;
+            }
+        }
+
+        return 0;
+    }
+
+    // power_buff_zone 효과 계산 (손오공: 내 구역의 다른 모든 카드에 +1 파워)
+    private int calculatePowerBuffZone(CardEffect effect, Long matchId, Long guestId,
+            int slotIndex, List<Play> playerPlays, Card card) {
+        // 같은 구역의 다른 카드 수 계산 (자기 자신 제외)
+        long otherCardCount = playerPlays.stream()
+                .filter(p -> p.getSlotIndex() != null && p.getSlotIndex() == slotIndex && !p.getIsTurnEnd())
+                .filter(p -> p.getCard() != null)
+                .filter(p -> !p.getCard().getCardId().equals(card.getCardId()))
+                .count();
+
+        try {
+            int powerPerCard = Integer.parseInt(effect.getValue().trim());
+            int totalBonus = (int) otherCardCount * powerPerCard;
+            log.info("power_buff_zone 효과: cardName={}, slotIndex={}, otherCardCount={}, powerPerCard={}, totalBonus={}",
+                    card.getName(), slotIndex, otherCardCount, powerPerCard, totalBonus);
+            return totalBonus;
+        } catch (NumberFormatException e) {
+            log.error("power_buff_zone 값 파싱 실패: value={}, error={}", effect.getValue(), e.getMessage());
             return 0;
         }
     }
