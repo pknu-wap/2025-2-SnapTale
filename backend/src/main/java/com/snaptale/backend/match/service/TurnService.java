@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.*;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 // 턴 진행 로직을 처리하는 서비스
 // - 카드 제출 처리
@@ -92,7 +93,7 @@ public class TurnService {
         matchParticipantRepository.save(participant);
         log.info("에너지 소모 성공: energy={}", participant.getEnergy());
 
-        // 6. 카드 효과 적용 (on_reveal 효과 처리)
+        // 6. 카드 효과 적용 (on_reveal 및 ongoing 효과 처리)
         Integer turnCount = match.getTurnCount() != null ? match.getTurnCount() : 0;
         Integer powerSnapshot = card.getPower() != null ? card.getPower() : 0;
 
@@ -112,6 +113,7 @@ public class TurnService {
             }
         }
 
+        // Play 저장 (ongoing 효과 계산을 위해 먼저 저장)
         Play play = Play.builder()
                 .match(match)
                 .turnCount(turnCount)
@@ -125,7 +127,98 @@ public class TurnService {
         playRepository.save(play);
         match.addPlay(play);
 
+        // ongoing 효과 즉시 적용
+        if (card.getEffect() != null && !card.getEffect().isEmpty()) {
+            try {
+                CardEffect effect = parseCardEffect(card.getEffect());
+                if (effect != null && "ongoing".equals(effect.getType())) {
+                    int ongoingBonus = applyOngoingEffectOnPlay(effect, matchId, participant.getGuestId(),
+                            slotIndex, card, play);
+                    if (ongoingBonus != 0) {
+                        powerSnapshot += ongoingBonus;
+                        play.setPowerSnapshot(powerSnapshot);
+                        playRepository.save(play);
+                        log.info("카드 ongoing 효과 즉시 적용: cardName={}, action={}, bonus={}, newPower={}",
+                                card.getName(), effect.getAction(), ongoingBonus, powerSnapshot);
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("ongoing 효과 적용 실패: cardId={}, error={}",
+                        card.getCardId(), e.getMessage());
+            }
+        }
+
         log.info("카드 제출 완료: playId={}", play.getId());
+    }
+
+    // 카드 이동 처리
+    // 기존 Play를 찾아서 새로운 Play를 생성하여 이동 기록
+    // 이렇게 하면 같은 카드의 Play가 여러 개 생기고, 이동 횟수를 추적할 수 있음
+    @Transactional
+    public void moveCard(Long matchId, Long participantId, Long cardId,
+            Integer fromSlotIndex, Integer toSlotIndex, Integer cardPosition) {
+        log.info("카드 이동: matchId={}, participantId={}, cardId={}, fromSlotIndex={}, toSlotIndex={}",
+                matchId, participantId, cardId, fromSlotIndex, toSlotIndex);
+
+        // 1. 매치 및 참가자 확인
+        Match match = matchRepository.findById(matchId)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_NOT_FOUND));
+
+        if (match.getStatus() != MatchStatus.PLAYING) {
+            throw new BaseException(BaseResponseStatus.GAME_NOT_STARTED);
+        }
+
+        MatchParticipant participant = matchParticipantRepository.findByMatch_MatchIdAndGuestId(matchId, participantId)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_PARTICIPANT_NOT_FOUND));
+
+        // 2. 카드 확인
+        Card card = cardRepository.findById(cardId)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.CARD_NOT_FOUND));
+
+        // 3. 기존 Play 찾기 (같은 matchId, guestId, cardId, fromSlotIndex)
+        // 가장 최근 턴의 Play를 찾아서 확인
+        List<Play> existingPlays = playRepository.findByMatch_MatchIdAndGuestId(matchId, participantId);
+
+        Play previousPlay = existingPlays.stream()
+                .filter(p -> p.getCard() != null && p.getCard().getCardId().equals(cardId))
+                .filter(p -> p.getSlotIndex() != null && p.getSlotIndex().equals(fromSlotIndex))
+                .filter(p -> !p.getIsTurnEnd())
+                .max(Comparator.comparing(Play::getTurnCount)
+                        .thenComparing(Play::getId, Comparator.reverseOrder()))
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.PLAY_NOT_FOUND));
+
+        // 4. slotIndex 유효성 검증
+        if (toSlotIndex < 0 || toSlotIndex >= NUM_LOCATIONS) {
+            throw new BaseException(BaseResponseStatus.INVALID_SLOT_INDEX);
+        }
+
+        // 5. 새로운 Play 생성하여 이동 기록
+        Integer turnCount = match.getTurnCount() != null ? match.getTurnCount() : 0;
+        Integer powerSnapshot = previousPlay.getPowerSnapshot() != null
+                ? previousPlay.getPowerSnapshot()
+                : (card.getPower() != null ? card.getPower() : 0);
+
+        Play movePlay = Play.builder()
+                .match(match)
+                .turnCount(turnCount)
+                .guestId(participant.getGuestId())
+                .card(card)
+                .slotIndex(toSlotIndex)
+                .cardPosition(cardPosition) // 지역 내에서의 위치 (0~3)
+                .powerSnapshot(powerSnapshot) // 기존 파워 스냅샷 유지
+                .isTurnEnd(false) // 카드 이동
+                .build();
+        playRepository.save(movePlay);
+        match.addPlay(movePlay);
+
+        // 6. 이전 슬롯의 Play 파워를 0으로 설정 (중복 파워 계산 방지)
+        // Play 자체는 유지하여 이동 이력을 추적할 수 있도록 함
+        previousPlay.setPowerSnapshot(0);
+        playRepository.save(previousPlay);
+
+        log.info(
+                "카드 이동 완료: 새로운 playId={}, 이전 playId={} (파워 0으로 설정), cardId={}, fromSlotIndex={}, toSlotIndex={}, turnCount={}",
+                movePlay.getId(), previousPlay.getId(), cardId, fromSlotIndex, toSlotIndex, turnCount);
     }
 
     // 턴 종료 및 다음 턴 시작
@@ -286,7 +379,8 @@ public class TurnService {
                     String[] values = valueStr.split(",");
                     if (values.length == 1) {
                         if (random.nextDouble() > effect.getProbability()) {
-                            log.info("카드 효과 발동 실패 (확률): cardName={}, probability={}", cardName, effect.getProbability());
+                            log.info("카드 효과 발동 실패 (확률): cardName={}, probability={}", cardName,
+                                    effect.getProbability());
                             return basePower;
                         }
                         int modifier = Integer.parseInt(values[0].trim());
@@ -372,6 +466,76 @@ public class TurnService {
                 .filter(p -> p.getCard() != null)
                 .filter(p -> !p.getIsTurnEnd())
                 .anyMatch(p -> p.getCard().getName().equals(cardName));
+    }
+
+    // 카드 플레이 시 ongoing 효과 즉시 적용
+    private int applyOngoingEffectOnPlay(CardEffect effect, Long matchId, Long guestId,
+            int slotIndex, Card card, Play currentPlay) {
+        String action = effect.getAction();
+
+        return switch (action) {
+            case "power_if_cards_present" -> { // 테스트 완
+                // 같은 구역에 특정 카드들이 있으면 파워 보너스
+                String targetStr = effect.getTarget();
+                if (targetStr == null || targetStr.isEmpty()) {
+                    yield 0;
+                }
+
+                List<String> requiredCardNames = Arrays.stream(targetStr.split(","))
+                        .map(String::trim)
+                        .filter(name -> !name.isEmpty())
+                        .toList();
+
+                if (requiredCardNames.isEmpty()) {
+                    yield 0;
+                }
+
+                // 같은 구역에 있는 카드 이름들 수집
+                List<Play> allPlays = playRepository.findByMatch_MatchIdAndGuestId(matchId, guestId);
+                Set<String> presentCardNames = allPlays.stream()
+                        .filter(p -> p.getSlotIndex() != null && p.getSlotIndex() == slotIndex && !p.getIsTurnEnd())
+                        .filter(p -> p.getCard() != null)
+                        .map(p -> p.getCard().getName())
+                        .collect(Collectors.toSet()); // 중복 제거
+
+                // 모든 필수 카드가 있는지 확인
+                boolean allCardsPresent = requiredCardNames.stream()
+                        .allMatch(presentCardNames::contains);
+
+                if (allCardsPresent) {
+                    try {
+                        int bonus = Integer.parseInt(effect.getValue().trim());
+                        log.info(
+                                "power_if_cards_present 효과 즉시 적용: cardName={}, slotIndex={}, requiredCards={}, bonus={}",
+                                card.getName(), slotIndex, requiredCardNames, bonus);
+                        yield bonus;
+                    } catch (NumberFormatException e) {
+                        log.error("power_if_cards_present 값 파싱 실패: value={}", effect.getValue());
+                        yield 0;
+                    }
+                } else {
+                    yield 0;
+                }
+            }
+            case "power_buff_zone" -> {
+                // 같은 구역의 다른 카드들에 파워 보너스 (자신의 파워는 변경 안 됨)
+                // 이 효과는 자신의 파워를 올리는 것이 아니므로 0 반환
+                log.info("power_buff_zone 효과 감지: cardName={}, slotIndex={} (다른 카드들의 파워를 올림)",
+                        card.getName(), slotIndex);
+                yield 0;
+            }
+            case "power_double_zone" -> {
+                // 전체 구역의 파워를 두 배로 만드는 효과
+                // 이 효과는 전체 파워 계산 시 처리되므로 여기서는 0 반환
+                log.info("power_double_zone 효과 감지: cardName={}, slotIndex={} (전체 파워 계산 시 적용)",
+                        card.getName(), slotIndex);
+                yield 0;
+            }
+            default -> {
+                log.debug("ongoing 효과 (플레이 시): action={}, cardName={}", action, card.getName());
+                yield 0;
+            }
+        };
     }
 
     // 이번 게임에서 낸 출현(on_reveal) 카드 수 계산

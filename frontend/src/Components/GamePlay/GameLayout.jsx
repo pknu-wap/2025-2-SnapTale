@@ -152,7 +152,7 @@ export default function GameLayout({ matchId }) {
         const mapped = cards.map(item => ({
           cardId: item.cardId,
           name: item.name,
-          imageUrl: item.imageUrl || DCI,
+          imageUrl: item.imageUrl || defaultImg,
           cost: item.cost,
           power: item.power,
           faction: item.faction,

@@ -36,7 +36,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -256,7 +255,7 @@ public class MatchRESTService {
 
 		return switch (actionType) {
 			case PLAY_CARD -> handlePlayCard(message);
-			case MOVE_CARD -> handleMoveCard(message);
+			case MOVE_CARD -> handleMoveCard(message); //테스트 완
 			case END_TURN -> handleEndTurn(message);
 			default -> throw new BaseException(BaseResponseStatus.INVALID_ACTION_TYPE);
 		};
@@ -310,44 +309,24 @@ public class MatchRESTService {
 			throw new BaseException(BaseResponseStatus.INVALID_SLOT_INDEX);
 		}
 
-		// 매치 및 참가자 확인
-		Match match = matchRepository.findById(message.getMatchId())
-				.orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_NOT_FOUND));
+		// 카드 이동 처리 (새로운 Play 생성)
+		turnService.moveCard(
+				message.getMatchId(),
+				message.getParticipantId(),
+				message.getCardId(),
+				moveData.fromSlotIndex,
+				moveData.toSlotIndex,
+				moveData.cardPosition);
 
-		if (match.getStatus() != MatchStatus.PLAYING) {
-			throw new BaseException(BaseResponseStatus.GAME_NOT_STARTED);
-		}
-
+		// 참가자 정보 조회
 		MatchParticipant participant = matchParticipantRepository.findByMatch_MatchIdAndGuestId(
 				message.getMatchId(), message.getParticipantId())
 				.orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_PARTICIPANT_NOT_FOUND));
 
-		// 카드 확인
+		// 카드 정보 조회 (effect 포함)
 		Card card = cardRepository.findById(message.getCardId())
 				.orElseThrow(() -> new BaseException(BaseResponseStatus.CARD_NOT_FOUND));
-
-		// 기존 Play 찾기 (같은 matchId, guestId, cardId, fromSlotIndex)
-		// 가장 최근 턴의 Play를 찾아서 이동 처리
-		List<Play> existingPlays = playRepository.findByMatch_MatchIdAndGuestId(
-				message.getMatchId(), message.getParticipantId());
-
-		Play playToMove = existingPlays.stream()
-				.filter(p -> p.getCard() != null && p.getCard().getCardId().equals(message.getCardId()))
-				.filter(p -> p.getSlotIndex() != null && p.getSlotIndex().equals(moveData.fromSlotIndex))
-				.filter(p -> !p.getIsTurnEnd())
-				.max(Comparator.comparing(Play::getTurnCount)
-						.thenComparing(Play::getId, Comparator.reverseOrder()))
-				.orElseThrow(() -> new BaseException(BaseResponseStatus.PLAY_NOT_FOUND));
-
-		// Play의 slotIndex 업데이트
-		playToMove.setSlotIndex(moveData.toSlotIndex);
-		if (moveData.cardPosition != null) {
-			playToMove.setCardPosition(moveData.cardPosition);
-		}
-		playRepository.save(playToMove);
-
-		log.info("카드 이동 완료: playId={}, cardId={}, fromSlotIndex={}, toSlotIndex={}",
-				playToMove.getId(), message.getCardId(), moveData.fromSlotIndex, moveData.toSlotIndex);
+		String effect = card.getEffect();
 
 		// 파워 재계산 (ongoing 효과 포함) - GameCalculationService 사용
 		GameCalculationService.LocationPowerResult powerResult = gameCalculationService
@@ -368,9 +347,6 @@ public class MatchRESTService {
 			// 기본값으로 0 설정
 			myLocationPowers = List.of(0, 0, 0);
 		}
-
-		// 카드 정보 조회 (effect 포함)
-		String effect = card.getEffect();
 
 		return PlayActionRes.from(message, participant, myLocationPowers, effect);
 	}
@@ -502,7 +478,8 @@ public class MatchRESTService {
 					.map(JsonNode::asInt)
 					.orElse(null);
 
-			Integer cardPosition = Optional.ofNullable(jsonNode.get("cardPosition"))
+			// 클라에서 toCardPosition으로 보냄
+			Integer cardPosition = Optional.ofNullable(jsonNode.get("toCardPosition"))
 					.filter(JsonNode::isNumber)
 					.map(JsonNode::asInt)
 					.orElse(null);
