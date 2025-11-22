@@ -83,9 +83,35 @@
   width: 100%;
   height: 100%;
 }
+
+/* 덱 선택 페이지 카드 크기 조정 */
+.deck-section .card-container{
+  width: 54px;
+  height: 81px;
+}
+
+.deck-section .icon,
+.deck-section .card-cost-container,
+.deck-section .card-power-container {
+  width: 18px;
+  height: 18px;
+}
+.deck-section .card-cost-container {
+  top: -3px;
+  left: -1px;
+}
+
+.deck-section .card-power-container {
+  top: -3px;
+  right: -1px;
+}
+.deck-section .icon-text {
+  font-size: 12px;
+}
+
 .selected-card .enlarged-card-container {
   position: relative;
-  width: 112px;
+  width: 132px;
   height: 186px;
   animation: zoomIn 0.3s ease-out;
 }
@@ -94,8 +120,8 @@
 .selected-card .enlarged-card-container .card-image {
   inset: 8px;
   border-width: 6px;
-  border-radius: 19px;
-  width: 90px;
+  border-radius: 15px;
+  width: 110px;
   height: 171px;
 }
 
@@ -110,6 +136,9 @@
 .selected-card .enlarged-card-container .card-power-container {
   top: -2px;
 }
+.selected-card .enlarged-card-container .card-power-container {
+  right: -1px;
+}
 
 .selected-card .enlarged-card-container .icon-text {
   font-size: 30px;
@@ -117,7 +146,8 @@
 
 .selected-card .enlarged-card-container .card-name {
   width: 80%;
-  font-size: 26px;
+  font-size: 28px;
+  bottom: 5px;
 }
 
 .selected-card .enlarged-card-container .card-desc {
@@ -179,11 +209,24 @@
     gap: 8px;
   }
   .deck-layout .top-bar {
-    left: 0px ;
-    right: 0px ;
+    left: 0px;
+    right: 0px;
   }
   .DeckCheck-container {
     padding-top: 0px;
+  }
+
+  .deck-section .card-cost-container {
+    top: 0px;
+    left: 2px;
+  }
+  .deck-section .card-power-container {
+    top: 0px;
+    right: -3px;
+  }
+  .deck-section .card-name{
+    font-size: 12px;
+    left: 55%;
   }
   .deck-layout .top-bar .icon-btn {
     width: 44px;
@@ -193,6 +236,12 @@
     gap: clamp(0.1875rem, 1vw, 0.625rem); /* 3px - 10px */
   }
 
+  .deck-grid {
+    width: max-content;
+    max-width: none;
+    position: static;
+    margin: 0 auto;
+}
 }
 @media (max-width: 400px) {
 
@@ -213,13 +262,6 @@
   .deck-section {
     overflow: visible;
     position: relative;
-  }
-
-  .deck-grid {
-    width: max-content;
-    max-width: none;
-    position: static;
-    margin: 0 auto;
   }
 
 }
