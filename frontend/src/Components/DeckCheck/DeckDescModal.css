@@ -7,6 +7,7 @@
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
+  opacity: 0.9;
 }
 .deck-desc-section {
   display: flex;
@@ -39,6 +40,7 @@
   font-size: 28px;
   width: 444px;
   height: 28px;
+  
   margin-top: 64px;
   margin-bottom: 0px;
   margin-left: 17px;
@@ -66,4 +68,86 @@
 .faction-japan .deck-desc-title,
 .faction-japan .deck-desc-tags {
   color: #C4512F;
+}
+@media (max-width: 768px) {
+  .deck-desc-modal {
+    width: 360px;
+    height: 120px; 
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+  }
+
+  .deck-desc-title {
+    font-size: 24px;
+    
+    width: auto;
+    height: auto;
+
+    margin-left: 8%;  
+    margin-top: 13%; 
+  }
+
+  .deck-desc-tags {
+    font-size: 15px;
+    margin-top: 15%; 
+    margin-left: 2%;
+    width: 240px;
+    height: 15px;
+    margin-bottom: 0;
+  }
+
+  .deck-desc-text {
+    font-size: 12px;
+    width: 85%; 
+    height: auto;
+    
+    margin-top: 5%;
+    margin-left: 10%;
+    line-height: 1.2; /* 줄 간격 좁힘 */
+  }
+  
+  .deck-desc-section {
+      width: 65%; 
+  }
+}
+@media (max-width: 400px) {
+  .deck-desc-modal {
+    width: 260px;
+    height: 86.4px; 
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+  }
+
+  .deck-desc-title {
+    font-size: 18px;
+    
+    width: auto;
+    height: auto;
+
+    margin-left: 8%;  
+    margin-top: 13%; 
+  }
+
+  .deck-desc-tags {
+    font-size: 10px;
+    margin-top: 15%; 
+    margin-left: 2%;
+    width: 180px;
+    height: 10px;
+    margin-bottom: 0;
+  }
+
+  .deck-desc-text {
+    font-size: 8.4px;
+    width: 85%; 
+    height: auto;
+    
+    margin-top: 5%;
+    margin-left: 10%;
+    line-height: 1.2; /* 줄 간격 좁힘 */
+  }
+  
+  .deck-desc-section {
+      width: 65%; 
+  }
 }

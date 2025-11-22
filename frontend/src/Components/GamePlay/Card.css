@@ -162,7 +162,7 @@
 .enlarged-card-container .card-desc {
   position: absolute;
   width: 312px;
-  height: 64px;
+  height: 66px;
   left: 50%;
   bottom: -45px;
   transform: translateX(-50%);
@@ -234,7 +234,7 @@
 
 .selected-card .enlarged-card-container .card-desc {
   position: absolute;
-  width: 256px;
+  width: 320px;
   left: 50%;
   bottom: -70px;
   transform: translateX(-50%);
