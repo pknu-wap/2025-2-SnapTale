@@ -37,6 +37,17 @@ const DeckCheck = () => {
         try {
             const deckPresetId = factionToDeckPresetId[selectedFaction];
             const fetchedCards = await fetchDeckPresetCards(deckPresetId);
+
+            if (fetchedCards && Array.isArray(fetchedCards)) {
+                    fetchedCards.sort((a, b) => {
+                        // Cost가 다르면 Cost가 낮은 순서대로 (오름차순)
+                        if (a.cost !== b.cost) {
+                            return a.cost - b.cost;
+                        }
+                        // Cost가 같다면 Power가 낮은 순서대로 (오름차순)
+                        return a.power - b.power;
+                    });
+                }
             
             setCards(fetchedCards);
             
