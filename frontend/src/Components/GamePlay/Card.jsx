@@ -100,12 +100,9 @@ const Card = ({
     useEffect(() => {
       const el = nameRef.current;
     if (!el) return;
-
-    el.style.fontSize = "12px";
     el.style.whiteSpace = "nowrap";
 
     if (el.scrollWidth > el.clientWidth) {
-      el.style.fontSize = "10px";
       el.style.whiteSpace = "normal";
       el.style.wordBreak = "keep-all";
       el.style.lineHeight = "1.1";

@@ -51,3 +51,11 @@
             drop-shadow(-1px 0px 0px #C4512F);
 }
 }
+@media (max-width: 300px) {
+    .Faction{
+        width: 40px;
+        height: 50.6px;
+        border: 1px solid transparent;
+        margin-top: 8px;
+    }
+}

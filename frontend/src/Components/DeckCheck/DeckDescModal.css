@@ -1,0 +1,153 @@
+/* 모달 컨테이너 (이미지 배경은 여기 class로만 넣음) */
+.deck-desc-modal {
+  position: relative;
+  width: 720px;
+  height: 235px;
+
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  opacity: 0.9;
+}
+.deck-desc-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+/* --- 각 국가별 배경 이미지는 class로 분리 --- */
+.faction-korea {
+  background-image: url("../../assets/koreaDeckDescBg.png");
+}
+
+.faction-china {
+  background-image: url("../../assets/chinaDeckDescBg.png");
+}
+
+.faction-japan {
+  background-image: url("../../assets/japanDeckDescBg.png");
+}
+
+/* 텍스트 스타일 */
+.deck-desc-title {
+  font-size: 40px;
+  margin-left: 60px;
+  margin-top: 95px;
+  width: 148px;
+  height: 40px;
+}
+
+.deck-desc-tags {
+  font-size: 28px;
+  width: 444px;
+  height: 28px;
+  
+  margin-top: 64px;
+  margin-bottom: 0px;
+  margin-left: 17px;
+}
+
+.deck-desc-text {
+  font-size: 24px;
+  width: 383px;
+  height: 48px;
+  color: #000;
+  margin-top: 34px;
+  margin-left: 44px;
+}
+
+.faction-korea .deck-desc-title,
+.faction-korea .deck-desc-tags {
+  color: #26437B;
+}
+
+.faction-china .deck-desc-title,
+.faction-china .deck-desc-tags {
+  color: #329A88;
+}
+
+.faction-japan .deck-desc-title,
+.faction-japan .deck-desc-tags {
+  color: #C4512F;
+}
+@media (max-width: 768px) {
+  .deck-desc-modal {
+    width: 360px;
+    height: 120px; 
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+  }
+
+  .deck-desc-title {
+    font-size: 24px;
+    
+    width: auto;
+    height: auto;
+
+    margin-left: 8%;  
+    margin-top: 13%; 
+  }
+
+  .deck-desc-tags {
+    font-size: 15px;
+    margin-top: 15%; 
+    margin-left: 2%;
+    width: 240px;
+    height: 15px;
+    margin-bottom: 0;
+  }
+
+  .deck-desc-text {
+    font-size: 12px;
+    width: 85%; 
+    height: auto;
+    
+    margin-top: 5%;
+    margin-left: 10%;
+    line-height: 1.2; /* 줄 간격 좁힘 */
+  }
+  
+  .deck-desc-section {
+      width: 65%; 
+  }
+}
+@media (max-width: 400px) {
+  .deck-desc-modal {
+    width: 260px;
+    height: 86.4px; 
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+  }
+
+  .deck-desc-title {
+    font-size: 18px;
+    
+    width: auto;
+    height: auto;
+
+    margin-left: 8%;  
+    margin-top: 13%; 
+  }
+
+  .deck-desc-tags {
+    font-size: 10px;
+    margin-top: 15%; 
+    margin-left: 2%;
+    width: 180px;
+    height: 10px;
+    margin-bottom: 0;
+  }
+
+  .deck-desc-text {
+    font-size: 8.4px;
+    width: 85%; 
+    height: auto;
+    
+    margin-top: 5%;
+    margin-left: 10%;
+    line-height: 1.2; /* 줄 간격 좁힘 */
+  }
+  
+  .deck-desc-section {
+      width: 65%; 
+  }
+}
