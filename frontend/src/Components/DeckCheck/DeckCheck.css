@@ -189,7 +189,7 @@
     width: auto;
     align-items: flex-start;    /* 상단 기준 정렬 */
     justify-content: center;    /* 중앙 정렬 */
-    gap: 100px;                  /* 두 요소 사이의 간격 */
+    gap: clamp(70px, 10vw, 100px);  /* 두 요소 사이의 간격 */
   }
 
   .deck-cards-container.horizontal .deck-section {
@@ -200,7 +200,7 @@
     margin-top: 0;              
   }
   .deck-cards-container.horizontal .card-desc {
-    width: 256px;
+    width: 240px;
   }
 }
 
