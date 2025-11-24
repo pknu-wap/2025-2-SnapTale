@@ -504,7 +504,8 @@ public class TurnService {
 
                 if (allCardsPresent) {
                     try {
-                        int bonus = Integer.parseInt(effect.getValue().trim());
+                        int cardsPresentCount = presentCardNames.size();
+                        int bonus = cardsPresentCount * Integer.parseInt(effect.getValue().trim());
                         log.info(
                                 "power_if_cards_present 효과 즉시 적용: cardName={}, slotIndex={}, requiredCards={}, bonus={}",
                                 card.getName(), slotIndex, requiredCardNames, bonus);
