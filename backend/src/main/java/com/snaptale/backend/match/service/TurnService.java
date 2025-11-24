@@ -10,6 +10,7 @@ import com.snaptale.backend.match.repository.MatchRepository;
 import com.snaptale.backend.match.repository.PlayRepository;
 import com.snaptale.backend.match.service.GameCalculationService.LocationPowerResult;
 import com.snaptale.backend.match.service.GameFlowService.TurnStartResult;
+import com.snaptale.backend.location.service.LocationEffectService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +40,7 @@ public class TurnService {
     private final CardRepository cardRepository;
     private final GameCalculationService gameCalculationService;
     private final GameFlowService gameFlowService;
+    private final LocationEffectService locationEffectService;
     private static final int MAX_TURNS = 6;
     private static final int NUM_LOCATIONS = 3;
 
@@ -80,12 +82,15 @@ public class TurnService {
             throw new BaseException(BaseResponseStatus.INVALID_SLOT_INDEX);
         }
 
-        // 4. 카드 확인
+        // 4. Location 효과로 플레이 제한 검사
+        locationEffectService.validatePlayRestriction(matchId, slotIndex, participant);
+
+        // 5. 카드 확인
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.CARD_NOT_FOUND));
         log.info("카드 조회 성공: cardId={}, name={}, cost={}", card.getCardId(), card.getName(), card.getCost());
 
-        // 5. 카드 코스트와 에너지 소모
+        // 6. 카드 코스트와 에너지 소모
         Integer cardCost = card.getCost() != null ? card.getCost() : 0;
 
         // 에너지 소모
@@ -93,7 +98,7 @@ public class TurnService {
         matchParticipantRepository.save(participant);
         log.info("에너지 소모 성공: energy={}", participant.getEnergy());
 
-        // 6. 카드 효과 적용 (on_reveal 및 ongoing 효과 처리)
+        // 7. 카드 효과 적용 (on_reveal 및 ongoing 효과 처리)
         Integer turnCount = match.getTurnCount() != null ? match.getTurnCount() : 0;
         Integer powerSnapshot = card.getPower() != null ? card.getPower() : 0;
 
@@ -126,6 +131,10 @@ public class TurnService {
                 .build();
         playRepository.save(play);
         match.addPlay(play);
+
+        // Location 효과 onPlay/onReveal 훅 호출
+        locationEffectService.handleOnPlay(matchId, slotIndex, play, participant);
+        locationEffectService.handleOnReveal(matchId, slotIndex, play, participant);
 
         // ongoing 효과 즉시 적용
         if (card.getEffect() != null && !card.getEffect().isEmpty()) {
@@ -246,10 +255,13 @@ public class TurnService {
             throw new BaseException(BaseResponseStatus.WAITING_FOR_OTHER_PLAYER);
         }
 
+        // 2. 지역 효과의 턴 종료 훅 실행
+        locationEffectService.handleTurnEnd(matchId, currentTurn);
+
         // 모든 지역에서 상대, 자신의 파워 계산 후 점령 수 계산.
         LocationPowerResult locationPowerResult = gameCalculationService.calculateLocationPowers(matchId);
 
-        // 2. 마지막 턴(6턴)인지 확인
+        // 3. 마지막 턴(6턴)인지 확인
         // 6턴이 끝났을 때 게임 종료 (currentTurn이 6이면 6턴이 끝난 것)
         if (currentTurn >= MAX_TURNS) {
             log.info("마지막 턴 도달 - 게임 종료: matchId={}, currentTurn={}, MAX_TURNS={}",
@@ -263,7 +275,7 @@ public class TurnService {
 
         log.info("게임 계속 진행 - 다음 턴으로: matchId={}, currentTurn={}", matchId, currentTurn);
 
-        // 3. 다음 턴으로 진행 (에너지 지급 및 드로우 포함)
+        // 4. 다음 턴으로 진행 (에너지 지급 및 드로우 포함)
         TurnStartResult turnStartResult = gameFlowService.startNextTurn(matchId);
         int nextTurn = turnStartResult.getTurn();
         log.info("다음 턴 시작: matchId={}, turn={}", matchId, nextTurn);
