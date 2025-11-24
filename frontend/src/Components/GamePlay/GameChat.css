@@ -135,11 +135,12 @@
 }
 
 .chat-message {
-  max-width: 100%;
+  width: fit-content;
   background: rgba(51, 38, 27, 0.75);
   border-radius: 12px;
   padding: 9px 11px 10px;
   color: #f7e9d2;
+  text-align: left;
 }
 
 .chat-message.own {
