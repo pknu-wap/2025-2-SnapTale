@@ -11,14 +11,12 @@ import com.snaptale.backend.match.model.request.MatchUpdateReq;
 import com.snaptale.backend.match.repository.MatchLocationRepository;
 import com.snaptale.backend.match.repository.MatchParticipantRepository;
 import com.snaptale.backend.match.repository.MatchRepository;
-import com.snaptale.backend.match.repository.PlayRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 // 게임 전체 플로우를 관리하는 서비스
 // - 게임 초기화 (매칭, 덱 초기화, 카드 드로우)
@@ -33,12 +31,9 @@ public class GameFlowService {
     private final MatchRepository matchRepository;
     private final MatchParticipantRepository matchParticipantRepository;
     private final MatchLocationRepository matchLocationRepository;
-    private final PlayRepository playRepository;
     private final MatchLocationService matchLocationService;
     private static final int INITIAL_ENERGY = 100;
     private static final int ENERGY_PER_TURN = 1;
-    private static final long SWAP_HANDS_TURN_SIX_LOCATION_ID = 8L;
-
 
     // 게임 시작 (턴 카운트를 1로 설정하고 상태를 PLAYING으로 변경)
     @Transactional
@@ -106,9 +101,6 @@ public class GameFlowService {
 
         List<MatchParticipant> participants = matchParticipantRepository.findByMatch_MatchId(matchId);
 
-        // 턴 6 시작 시 손패 교환 위치 효과 처리
-        handleSwapHandsOnTurnSix(match, nextTurn, participants);
-
         // 모든 플레이어에게 턴마다 에너지 추가 및 다음 턴 에너지 보너스 적용
         for (MatchParticipant participant : participants) {
             // 기본 에너지 추가
@@ -124,75 +116,6 @@ public class GameFlowService {
                 matchId, nextTurn, drawnCards.keySet(), ENERGY_PER_TURN);
 
         return new TurnStartResult(nextTurn, drawnCards);
-    }
-
-    private void handleSwapHandsOnTurnSix(Match match, int nextTurn, List<MatchParticipant> participants) {
-        if (nextTurn != 6) {
-            return;
-        }
-
-        List<MatchLocation> matchLocations = matchLocationRepository.findByMatchIdWithFetch(match.getMatchId());
-
-        boolean hasSwapHandsLocation = matchLocations.stream()
-                .map(MatchLocation::getLocation)
-                .filter(Objects::nonNull)
-                .map(Location::getLocationId)
-                .anyMatch(locationId -> Objects.equals(locationId, SWAP_HANDS_TURN_SIX_LOCATION_ID));
-
-        if (!hasSwapHandsLocation || participants.size() < 2) {
-            return;
-        }
-
-        // playerIndex 기준으로 정렬하여 일관된 스왑 순서 유지
-        participants.sort(Comparator.comparing(MatchParticipant::getPlayerIndex));
-
-        List<Play> plays = playRepository.findByMatch_MatchId(match.getMatchId());
-
-        MatchParticipant first = participants.get(0);
-        MatchParticipant second = participants.get(1);
-
-        List<Long> firstHand = calculateCurrentHand(first, plays);
-        List<Long> secondHand = calculateCurrentHand(second, plays);
-
-        rebuildDeckAfterSwap(first, secondHand);
-        rebuildDeckAfterSwap(second, firstHand);
-
-        matchParticipantRepository.save(first);
-        matchParticipantRepository.save(second);
-    }
-
-    private List<Long> calculateCurrentHand(MatchParticipant participant, List<Play> plays) {
-        List<Long> deckOrder = participant.getDeckOrder();
-        int drawIndex = Math.min(participant.getDrawIndex(), deckOrder.size());
-
-        List<Long> drawnCards = new ArrayList<>(deckOrder.subList(0, drawIndex));
-
-        List<Long> activePlayedCards = plays.stream()
-                .filter(play -> Boolean.FALSE.equals(play.getIsTurnEnd()))
-                .filter(play -> Objects.equals(play.getGuestId(), participant.getGuestId()))
-                .map(Play::getCard)
-                .filter(Objects::nonNull)
-                .map(Card::getCardId)
-                .collect(Collectors.toList());
-
-        for (Long playedCardId : activePlayedCards) {
-            drawnCards.remove(playedCardId);
-        }
-
-        return drawnCards;
-    }
-
-    private void rebuildDeckAfterSwap(MatchParticipant participant, List<Long> incomingHand) {
-        List<Long> deckOrder = participant.getDeckOrder();
-        int drawIndex = Math.min(participant.getDrawIndex(), deckOrder.size());
-
-        List<Long> remainingDeck = deckOrder.subList(drawIndex, deckOrder.size());
-
-        List<Long> newDeckOrder = new ArrayList<>(incomingHand);
-        newDeckOrder.addAll(remainingDeck);
-
-        participant.setDeckOrder(newDeckOrder);
-        participant.setDrawIndex(incomingHand.size());
     }
 
     public static class TurnStartResult {
