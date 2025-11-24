@@ -18,9 +18,9 @@
   display: flex;
   align-items: stretch;
   justify-content: space-between;
-  gap: 50px;
+  gap: 40px;
   padding: 29px 34px;
-  width: 1180px;
+  width: 1216px;
   box-sizing: border-box;
   height: 700px;
 }
@@ -168,7 +168,7 @@
   width: 640px;
   display: grid;
   grid-template-columns: repeat(3, 192px);
-  grid-template-rows: 154px 330px 154px;
+  grid-template-rows: 154px 320px 154px;
   column-gap: 28px;
   row-gap: 18px;
   justify-content: center;
