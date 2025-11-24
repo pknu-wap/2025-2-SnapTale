@@ -47,6 +47,8 @@ public class TurnService {
     private static final int MAX_TURNS = 6;
     private static final int NUM_LOCATIONS = 3;
     private static final long TURN_SIX_ONLY_LOCATION_ID = 6L;
+    private static final long GYEONGBOKGUNG_LOCATION_ID = 3L;
+
 
     // 카드 제출 처리
     @Transactional
@@ -114,10 +116,21 @@ public class TurnService {
             try {
                 CardEffect effect = parseCardEffect(card.getEffect());
                 if (effect != null && "on_reveal".equals(effect.getType())) {
-                    powerSnapshot = applyOnRevealEffect(effect, powerSnapshot, card.getName(),
-                            matchId, participant.getGuestId(), slotIndex, participant);
-                    log.info("카드 on_reveal 효과 적용: cardName={}, originalPower={}, newPower={}",
-                            card.getName(), card.getPower(), powerSnapshot);
+                    boolean isGyeongbokgung = isGyeongbokgungLocation(matchId, slotIndex);
+                    int onRevealIterations = isGyeongbokgung ? 2 : 1;
+
+                    if (isGyeongbokgung) {
+                        log.info("경복궁 위치에서 on_reveal 효과 2회 적용: matchId={}, slotIndex={}, locationId={}",
+                                matchId, slotIndex, GYEONGBOKGUNG_LOCATION_ID);
+                    }
+
+                    for (int i = 1; i <= onRevealIterations; i++) {
+                        Integer updatedPowerSnapshot = applyOnRevealEffect(effect, powerSnapshot, card.getName(),
+                                matchId, participant.getGuestId(), slotIndex, participant);
+                        log.info("카드 on_reveal 효과 적용: cardName={}, iteration={}, previousPower={}, newPower={}",
+                                card.getName(), i, powerSnapshot, updatedPowerSnapshot);
+                        powerSnapshot = updatedPowerSnapshot;
+                    }
                 }
             } catch (Exception e) {
                 log.warn("카드 효과 파싱 실패: cardId={}, effect={}, error={}",
@@ -506,6 +519,35 @@ public class TurnService {
                 .filter(p -> p.getCard() != null)
                 .filter(p -> !p.getIsTurnEnd())
                 .anyMatch(p -> p.getCard().getName().equals(cardName));
+    }
+
+    private boolean isGyeongbokgungLocation(Long matchId, Integer slotIndex) {
+        try {
+            List<MatchLocation> matchLocations = matchLocationRepository.findByMatchIdWithFetch(matchId);
+            Optional<MatchLocation> matchLocation = matchLocations.stream()
+                    .filter(ml -> ml.getSlotIndex() != null && ml.getSlotIndex().equals(slotIndex))
+                    .findFirst();
+
+            if (matchLocation.isEmpty()) {
+                log.warn("매치 지역을 찾을 수 없습니다: matchId={}, slotIndex={}", matchId, slotIndex);
+                return false;
+            }
+
+            MatchLocation location = matchLocation.get();
+            if (location.getLocation() == null || location.getLocation().getLocationId() == null) {
+                log.warn("매치 지역 정보가 부족합니다: matchLocationId={}, slotIndex={}", location.getId(), slotIndex);
+                return false;
+            }
+
+            boolean isGyeongbokgung = Objects.equals(location.getLocation().getLocationId(),
+                    GYEONGBOKGUNG_LOCATION_ID);
+            log.info("매치 지역 확인: matchId={}, slotIndex={}, locationId={}, isGyeongbokgung={}",
+                    matchId, slotIndex, location.getLocation().getLocationId(), isGyeongbokgung);
+            return isGyeongbokgung;
+        } catch (Exception e) {
+            log.warn("매치 지역 조회 중 오류 발생: matchId={}, slotIndex={}, error={}", matchId, slotIndex, e.getMessage());
+            return false;
+        }
     }
 
     // 카드 플레이 시 ongoing 효과 즉시 적용
