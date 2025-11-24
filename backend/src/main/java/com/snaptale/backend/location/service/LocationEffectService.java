@@ -39,6 +39,10 @@ public class LocationEffectService {
     public void initializeHandlers() {
         registerHandler(1L, createLocationOneHandler());
         registerHandler(2L, createLocationTwoHandler());
+        // registerHandler(3L, createLocationTwoHandler()); // 경복궁 효과 수정
+        registerHandler(4L, createLocationFourHandler());
+
+
     }
 
     public void registerHandler(Long locationId, LocationEffectHandler handler) {
@@ -242,6 +246,38 @@ public class LocationEffectService {
         }
 
         return List.copyOf(latestByGuestAndCard.values());
+    }
+
+    // location_id = 4인
+    // 상하이 금융지구 : 이 구역에 카드를 내면, 다음 턴에 에너지를 추가로 1 얻습니다.
+    // 효과를 처리하는 핸들러
+    private LocationEffectHandler createLocationFourHandler() {
+        return new LocationEffectHandler() {
+            @Override
+            public void onPlay(LocationEffectContext context) {
+                MatchParticipant participant = context.getParticipant();
+
+                if (participant == null) {
+                    log.warn("Location#4 onPlay 호출 시 participant 가 null 입니다: matchId={}, slotIndex={}",
+                            Optional.ofNullable(context.getMatch()).map(match -> match.getMatchId()).orElse(null),
+                            context.getSlotIndex());
+                    return;
+                }
+
+                int previousBonus = participant.getNextTurnEnergyBonus();
+                int updatedBonus = previousBonus + 1;
+                participant.setNextTurnEnergyBonus(updatedBonus);
+                matchParticipantRepository.save(participant);
+
+                log.info(
+                        "Location#4 onPlay effect applied: matchId={}, slotIndex={}, guestId={}, previousBonus={}, updatedBonus={}",
+                        Optional.ofNullable(context.getMatch()).map(match -> match.getMatchId()).orElse(null),
+                        context.getSlotIndex(),
+                        participant.getGuestId(),
+                        previousBonus,
+                        updatedBonus);
+            }
+        };
     }
 
 }
