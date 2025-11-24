@@ -39,9 +39,11 @@ public class LocationEffectService {
     public void initializeHandlers() {
         registerHandler(1L, createLocationOneHandler());
         registerHandler(2L, createLocationTwoHandler());
-        // registerHandler(3L, createLocationTwoHandler()); // 경복궁 효과 수정
+        // 경복궁(location_id=3) 효과는 TurnService에서 처리함.
         registerHandler(4L, createLocationFourHandler());
-
+        //registerHandler(5L, createLocationFiveHandler());
+        // 인천 공항(location_id=6) 효과는 TurnService에서 처리함.
+        registerHandler(7L, createLocationSevenHandler());
 
     }
 
@@ -228,9 +230,9 @@ public class LocationEffectService {
                 continue;
             }
 
-            Integer powerSnapshot = play.getPowerSnapshot();
-            if (powerSnapshot == null || powerSnapshot <= 0) {
-                continue;
+            int powerSnapshot = Optional.ofNullable(play.getPowerSnapshot()).orElse(0);
+            if (play.getPowerSnapshot() == null) {
+                play.setPowerSnapshot(powerSnapshot);
             }
 
             if (play.getCard() == null || play.getCard().getCardId() == null) {
@@ -276,6 +278,56 @@ public class LocationEffectService {
                         participant.getGuestId(),
                         previousBonus,
                         updatedBonus);
+            }
+        };
+    }
+
+    // location_id = 7인
+    // 백두산 : 턴 종료 시, 이 구역에 있는 카드의 파워가 1 감소합니다.
+    // 효과를 처리하는 핸들러
+    private LocationEffectHandler createLocationSevenHandler() {
+        return new LocationEffectHandler() {
+            @Override
+            public void onTurnEnd(LocationEffectContext context) {
+                Long matchId = Optional.ofNullable(context.getMatch())
+                        .map(match -> match.getMatchId())
+                        .orElse(null);
+                Integer slotIndex = context.getSlotIndex();
+                Integer turnCount = context.getTurnCount();
+
+                if (matchId == null || slotIndex == null || turnCount == null) {
+                    log.warn("Location#2 onTurnEnd 호출 시 필수 값이 누락되었습니다: matchId={}, slotIndex={}, turnCount={}",
+                            matchId, slotIndex, turnCount);
+                    return;
+                }
+
+                if (isLocationTurnEndLogged(matchId, turnCount, slotIndex)) {
+                    log.info("Location#2 onTurnEnd 이미 처리됨: matchId={}, slotIndex={}, turnCount={}",
+                            matchId, slotIndex, turnCount);
+                    return;
+                }
+
+                List<Play> latestPlays = findLatestActivePlaysForSlot(matchId, slotIndex);
+
+                if (!latestPlays.isEmpty()) {
+                    latestPlays.forEach(play -> play.setPowerSnapshot(play.getPowerSnapshot() - 1));
+                    playRepository.saveAll(latestPlays);
+
+                    log.info("Location#2 onTurnEnd effect applied: matchId={}, slotIndex={}, affectedPlays={}",
+                            matchId, slotIndex, latestPlays.size());
+                } else {
+                    log.info("Location#2 onTurnEnd 적용 대상 없음: matchId={}, slotIndex={}", matchId, slotIndex);
+                }
+
+                Play turnEndLog = Play.builder()
+                        .match(context.getMatch())
+                        .turnCount(turnCount)
+                        .guestId(0L)
+                        .slotIndex(slotIndex)
+                        .isTurnEnd(true)
+                        .build();
+
+                playRepository.save(turnEndLog);
             }
         };
     }
