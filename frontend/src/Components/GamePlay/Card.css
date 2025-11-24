@@ -19,7 +19,8 @@
 }
 
 .card-movable {
-  box-shadow: 0 0 0 2px #6dd3ff;
+  box-shadow: 0 0 0 3px #6dd3ff;
+  border-radius: 4px;
 }
 
 .card-image {
@@ -28,8 +29,8 @@
   border: 3px solid transparent;
   border-radius: 7px;
   object-fit: cover;
-  width: calc(100% - 7px);
-  height: calc(100% - 7px);
+  width: calc(100% - 4px);
+  height: calc(100% - 4px);
   z-index: 1;
   transition: border-color 0.2s ease, border-width 0.2s ease; /* 테두리 변화에 애니메이션 추가, 별로면 제거할것 */
 }
