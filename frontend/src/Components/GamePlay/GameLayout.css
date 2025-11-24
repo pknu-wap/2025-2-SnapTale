@@ -200,6 +200,36 @@
   align-self: flex-end;
 }
 
+.gameplay-shell.is-review-mode {
+  pointer-events: auto;
+}
+
+.final-home-button {
+  position: fixed;
+  right: 28px;
+  bottom: 80px;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #2c1105;
+  background: linear-gradient(135deg, rgba(234, 210, 167, 0.95), rgba(200, 160, 108, 0.95));
+  box-shadow: 0 12px 28px rgba(28, 18, 4, 0.25);
+  cursor: pointer;
+  z-index: 1050;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.final-home-button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+
+.final-home-button:active {
+  transform: translateY(0);
+}
+
 .board-message {
   display: flex;
   align-items: center;

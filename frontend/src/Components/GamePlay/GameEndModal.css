@@ -52,6 +52,12 @@
   overflow-y: auto;
 }
 
+.game-end-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .game-end-button {
   width: 100%;
   border: none;
