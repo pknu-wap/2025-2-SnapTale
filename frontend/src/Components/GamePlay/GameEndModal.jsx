@@ -1,6 +1,6 @@
 import "./GameEndModal.css";
 
-const GameEndModal = ({ isOpen, detail, onConfirm }) => {
+const GameEndModal = ({ isOpen, detail, onConfirm, onViewBoard }) => {
     if (!isOpen) {
         return null;
     }
@@ -14,9 +14,14 @@ const GameEndModal = ({ isOpen, detail, onConfirm }) => {
                     {detail}
                 </pre>
                 )}
-                <button type="button" className="game-end-button" onClick={onConfirm}>
-                    홈으로 이동
-                </button>
+                <div className="game-end-buttons">
+                    <button type="button" className="game-end-button" onClick={onViewBoard}>
+                        게임판 확인
+                    </button>
+                    <button type="button" className="game-end-button" onClick={onConfirm}>
+                        홈으로 이동
+                    </button>
+                </div>
             </div>
         </div>
     );

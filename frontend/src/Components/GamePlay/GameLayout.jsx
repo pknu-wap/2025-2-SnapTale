@@ -57,21 +57,23 @@ export default function GameLayout({ matchId }) {
     isOpen: false,
     detail: "",
   });
+  const [isGameEnded, setIsGameEnded] = useState(false);
+  const [isReviewingBoard, setIsReviewingBoard] = useState(false);
   const [movedThisTurn, setMovedThisTurn] = useState({});
-
   const { subscribe } = useWebSocket();
-
+  const isInteractionLocked = isGameEnded;
   const handleCardClick = (card, e) => {
-  // 버블링 방지 (외부 클릭 감지와 충돌 방지)
-  e.stopPropagation();
+  if (isInteractionLocked) return;
+    // 버블링 방지 (외부 클릭 감지와 충돌 방지)
+    e.stopPropagation();
 
-  if (selectedCardId === card.cardId) {
-    setSelectedCard(card);  // 오버레이 띄우기
-    setSelectedCardId(null); // 선택 해제
-  } else {
-    setSelectedCardId(card.cardId);
-  }
-};
+    if (selectedCardId === card.cardId) {
+      setSelectedCard(card);  // 오버레이 띄우기
+      setSelectedCardId(null); // 선택 해제
+    } else {
+      setSelectedCardId(card.cardId);
+    }
+  };
   useEffect( () => { 
     const clearSelection = () => setSelectedCardId(null); 
     document.addEventListener("click", clearSelection); //빈 공간 클릭 시 선택 해제
@@ -257,10 +259,15 @@ export default function GameLayout({ matchId }) {
     setOpponentPowers,
     setOpponentBoardLanes,
     setGameEndModalState,
+    setIsGameEnded,
+    setIsReviewingBoard,
   });
 
   useEffect(() => {
     setIsWaitingForOpponent(false);
+    setIsGameEnded(false);
+    setIsReviewingBoard(false);
+    setGameEndModalState({ isOpen: false, detail: ""});
   }, [matchId]);
 
   useEffect(() => {
@@ -283,6 +290,7 @@ export default function GameLayout({ matchId }) {
   };
 
   const endTurn = async () => {
+    if (isInteractionLocked) return;
     if (turn <= maxTurn) { // 6턴도 종료 가능하도록 변경
       try {
         // 서버에 턴 종료 요청
@@ -339,6 +347,7 @@ export default function GameLayout({ matchId }) {
   };
 
   const handleLocationClick = (locationData, index) => {
+    if (isInteractionLocked) return;
     // locationData에 myPower, opponentPower가 없다면,
     // GameLayout의 state에서 가져와 합쳐줍니다.
     const locationWithPowers = {
@@ -355,10 +364,20 @@ export default function GameLayout({ matchId }) {
 
   const handleConfirmGameEnd = () => {
     setGameEndModalState({ isOpen: false, detail: "" });
+    setIsGameEnded(false);
+    setIsReviewingBoard(false);
     navigate("/home");
   };
 
+  const handleViewFinalBoard = () => {
+    setGameEndModalState((prev) => ({ ...prev, isOpen: false }));
+    setIsReviewingBoard(true);
+  };
+
   const handleCardDrop = async ({ card, laneIndex, fromLaneIndex, fromSlotIndex, origin }) => {
+    if (isInteractionLocked) {
+      return;
+    }
     if (!card || !card.cardId) {
       console.warn("[GameLayout] Slot에서 유효하지 않은 카드 데이터를 받았습니다.", { card, laneIndex });
       return;
@@ -546,7 +565,7 @@ export default function GameLayout({ matchId }) {
 
   return (
     <>
-    <div className="gameplay-shell">
+    <div className={`gameplay-shell ${isReviewingBoard ? "is-review-mode" : ""}`}>
       <DndProvider backend={TouchBackend} options={{ enableMouseEvents: true }}>
         <CustomDragLayer selectedCard={selectedCard} />
         <div className="gameplay-body">
@@ -567,7 +586,7 @@ export default function GameLayout({ matchId }) {
               <button
                 className="end-turn-button"
                 onClick={endTurn}
-                disabled={turn === maxTurn + 1 || isWaitingForOpponent}
+                disabled={turn === maxTurn + 1 || isWaitingForOpponent || isInteractionLocked}
               >
                 <span>{endTurnButtonLabel.line1}</span>
                 <br />
@@ -584,7 +603,7 @@ export default function GameLayout({ matchId }) {
                     key={`enemy-${i}`} 
                     isMySide={false} 
                     disabled={getLocationDisabled(i)}
-                    cards={opponentBoardLanes[i]}
+                    cards={opponentBoardLanes[i] || isInteractionLocked}
                   />
                 </div>
               ))}
@@ -609,7 +628,9 @@ export default function GameLayout({ matchId }) {
                         turnsLeft={turnsLeft > 0 ? turnsLeft : 0}
                         opponentPower={opponentPowers[i]}
                         myPower={myPowers[i]}
-                        onLocationClick={() => handleLocationClick(loc, i)}
+                        onLocationClick={
+                          !isInteractionLocked ? () => handleLocationClick(loc, i) : undefined
+                        }
                       />
                     </div>
                   );
@@ -623,7 +644,7 @@ export default function GameLayout({ matchId }) {
                   <Slot 
                     key={`ally-${i}`} 
                     isMySide={true} 
-                    disabled={getLocationDisabled(i)}
+                    disabled={getLocationDisabled(i) || isInteractionLocked}
                     laneIndex={i}                 
                     onDropCard={handleCardDrop}
                     cards={boardLanes[i]}
@@ -638,9 +659,13 @@ export default function GameLayout({ matchId }) {
                 <div
                   key={card.cardId}
                   className="hand-card"
-                  onClick={(e) => handleCardClick(card, e)}
+                  onClick={!isInteractionLocked ? (e) => handleCardClick(card, e) : undefined}
                 >
-                  <Card {...card} isDraggable={true} isSelected={selectedCardId === card.cardId} />
+                  <Card
+                    {...card}
+                    isDraggable={!isInteractionLocked}
+                    isSelected={selectedCardId === card.cardId}
+                  />
                 </div>
               ))}
             </div>
@@ -649,6 +674,16 @@ export default function GameLayout({ matchId }) {
       </DndProvider>
     </div>
       <GameChatFloatingButton matchId={matchId} />
+
+      {isGameEnded && !gameEndModalState.isOpen && (
+        <button
+          type="button"
+          className="final-home-button"
+          onClick={handleConfirmGameEnd}
+        >
+          홈으로 이동
+        </button>
+      )}
 
       {selectedCard && (
         <div className="modal-backdrop" onClick={handleCloseModal}>
@@ -666,6 +701,7 @@ export default function GameLayout({ matchId }) {
         isOpen={gameEndModalState.isOpen}
         detail={gameEndModalState.detail}
         onConfirm={handleConfirmGameEnd}
+        onViewBoard={handleViewFinalBoard}
       />
     </>
   );
