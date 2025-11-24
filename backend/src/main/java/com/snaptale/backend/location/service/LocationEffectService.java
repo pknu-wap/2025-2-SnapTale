@@ -1,8 +1,10 @@
 package com.snaptale.backend.location.service;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
@@ -36,6 +38,7 @@ public class LocationEffectService {
     @PostConstruct
     public void initializeHandlers() {
         registerHandler(1L, createLocationOneHandler());
+        registerHandler(2L, createLocationTwoHandler());
     }
 
     public void registerHandler(Long locationId, LocationEffectHandler handler) {
@@ -147,4 +150,98 @@ public class LocationEffectService {
             }
         };
     }
+
+    // location_id = 2인
+    // 나가노 온천 : 턴 종료 시, 이 구역에 있는 카드의 파워가 1 증가합니다.
+    // 효과를 처리하는 핸들러
+    private LocationEffectHandler createLocationTwoHandler() {
+        return new LocationEffectHandler() {
+            @Override
+            public void onTurnEnd(LocationEffectContext context) {
+                Long matchId = Optional.ofNullable(context.getMatch())
+                        .map(match -> match.getMatchId())
+                        .orElse(null);
+                Integer slotIndex = context.getSlotIndex();
+                Integer turnCount = context.getTurnCount();
+
+                if (matchId == null || slotIndex == null || turnCount == null) {
+                    log.warn("Location#2 onTurnEnd 호출 시 필수 값이 누락되었습니다: matchId={}, slotIndex={}, turnCount={}",
+                            matchId, slotIndex, turnCount);
+                    return;
+                }
+
+                if (isLocationTurnEndLogged(matchId, turnCount, slotIndex)) {
+                    log.info("Location#2 onTurnEnd 이미 처리됨: matchId={}, slotIndex={}, turnCount={}",
+                            matchId, slotIndex, turnCount);
+                    return;
+                }
+
+                List<Play> latestPlays = findLatestActivePlaysForSlot(matchId, slotIndex);
+
+                if (!latestPlays.isEmpty()) {
+                    latestPlays.forEach(play -> play.setPowerSnapshot(play.getPowerSnapshot() + 1));
+                    playRepository.saveAll(latestPlays);
+
+                    log.info("Location#2 onTurnEnd effect applied: matchId={}, slotIndex={}, affectedPlays={}",
+                            matchId, slotIndex, latestPlays.size());
+                } else {
+                    log.info("Location#2 onTurnEnd 적용 대상 없음: matchId={}, slotIndex={}", matchId, slotIndex);
+                }
+
+                Play turnEndLog = Play.builder()
+                        .match(context.getMatch())
+                        .turnCount(turnCount)
+                        .guestId(0L)
+                        .slotIndex(slotIndex)
+                        .isTurnEnd(true)
+                        .build();
+
+                playRepository.save(turnEndLog);
+            }
+        };
+    }
+
+    private boolean isLocationTurnEndLogged(Long matchId, int turnCount, Integer slotIndex) {
+        return playRepository.findTurnEndsByMatchAndTurn(matchId, turnCount).stream()
+                .anyMatch(play -> Boolean.TRUE.equals(play.getIsTurnEnd())
+                        && Objects.equals(play.getGuestId(), 0L)
+                        && Objects.equals(play.getSlotIndex(), slotIndex));
+    }
+
+    private List<Play> findLatestActivePlaysForSlot(Long matchId, Integer slotIndex) {
+        Comparator<Play> recencyComparator = Comparator
+                .comparing((Play p) -> Optional.ofNullable(p.getTurnCount()).orElse(0))
+                .thenComparing(Play::getId);
+
+        Map<String, Play> latestByGuestAndCard = new HashMap<>();
+
+        for (Play play : playRepository.findByMatch_MatchId(matchId)) {
+            if (Boolean.TRUE.equals(play.getIsTurnEnd())) {
+                continue;
+            }
+
+            if (!Objects.equals(play.getSlotIndex(), slotIndex)) {
+                continue;
+            }
+
+            Integer powerSnapshot = play.getPowerSnapshot();
+            if (powerSnapshot == null || powerSnapshot <= 0) {
+                continue;
+            }
+
+            if (play.getCard() == null || play.getCard().getCardId() == null) {
+                continue;
+            }
+
+            String key = play.getGuestId() + ":" + play.getCard().getCardId();
+            Play existing = latestByGuestAndCard.get(key);
+
+            if (existing == null || recencyComparator.compare(play, existing) > 0) {
+                latestByGuestAndCard.put(key, play);
+            }
+        }
+
+        return List.copyOf(latestByGuestAndCard.values());
+    }
+
 }
