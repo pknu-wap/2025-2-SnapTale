@@ -5,12 +5,14 @@ import com.snaptale.backend.card.repository.CardRepository;
 import com.snaptale.backend.common.exceptions.BaseException;
 import com.snaptale.backend.common.response.BaseResponseStatus;
 import com.snaptale.backend.match.entity.*;
+import com.snaptale.backend.match.repository.MatchLocationRepository;
 import com.snaptale.backend.match.repository.MatchParticipantRepository;
 import com.snaptale.backend.match.repository.MatchRepository;
 import com.snaptale.backend.match.repository.PlayRepository;
 import com.snaptale.backend.match.service.GameCalculationService.LocationPowerResult;
 import com.snaptale.backend.match.service.GameFlowService.TurnStartResult;
 import com.snaptale.backend.location.service.LocationEffectService;
+import com.snaptale.backend.location.entity.Location;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +38,7 @@ public class TurnService {
 
     private final MatchRepository matchRepository;
     private final MatchParticipantRepository matchParticipantRepository;
+    private final MatchLocationRepository matchLocationRepository;
     private final PlayRepository playRepository;
     private final CardRepository cardRepository;
     private final GameCalculationService gameCalculationService;
@@ -43,6 +46,7 @@ public class TurnService {
     private final LocationEffectService locationEffectService;
     private static final int MAX_TURNS = 6;
     private static final int NUM_LOCATIONS = 3;
+    private static final long TURN_SIX_ONLY_LOCATION_ID = 6L;
 
     // 카드 제출 처리
     @Transactional
@@ -82,15 +86,18 @@ public class TurnService {
             throw new BaseException(BaseResponseStatus.INVALID_SLOT_INDEX);
         }
 
-        // 4. Location 효과로 플레이 제한 검사
+        // 4. 턴 6 전용 지역 제한 검증
+        validateTurnSixLocationRestriction(matchId, match, slotIndex);
+
+        // 5. Location 효과로 플레이 제한 검사
         locationEffectService.validatePlayRestriction(matchId, slotIndex, participant);
 
-        // 5. 카드 확인
+        // 6. 카드 확인
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.CARD_NOT_FOUND));
         log.info("카드 조회 성공: cardId={}, name={}, cost={}", card.getCardId(), card.getName(), card.getCost());
 
-        // 6. 카드 코스트와 에너지 소모
+        // 7. 카드 코스트와 에너지 소모
         Integer cardCost = card.getCost() != null ? card.getCost() : 0;
 
         // 에너지 소모
@@ -98,7 +105,7 @@ public class TurnService {
         matchParticipantRepository.save(participant);
         log.info("에너지 소모 성공: energy={}", participant.getEnergy());
 
-        // 7. 카드 효과 적용 (on_reveal 및 ongoing 효과 처리)
+        // 8. 카드 효과 적용 (on_reveal 및 ongoing 효과 처리)
         Integer turnCount = match.getTurnCount() != null ? match.getTurnCount() : 0;
         Integer powerSnapshot = card.getPower() != null ? card.getPower() : 0;
 
@@ -158,6 +165,27 @@ public class TurnService {
         }
 
         log.info("카드 제출 완료: playId={}", play.getId());
+    }
+
+    private void validateTurnSixLocationRestriction(Long matchId, Match match, Integer slotIndex) {
+        if (!Objects.equals(match.getTurnCount(), MAX_TURNS)) {
+            return;
+        }
+
+        List<MatchLocation> matchLocations = matchLocationRepository.findByMatchIdWithFetch(matchId);
+
+        Integer turnSixOnlySlotIndex = matchLocations.stream()
+                .filter(location -> Optional.ofNullable(location.getLocation())
+                        .map(Location::getLocationId)
+                        .map(locationId -> Objects.equals(locationId, TURN_SIX_ONLY_LOCATION_ID))
+                        .orElse(false))
+                .map(MatchLocation::getSlotIndex)
+                .findFirst()
+                .orElse(null);
+
+        if (turnSixOnlySlotIndex != null && !Objects.equals(slotIndex, turnSixOnlySlotIndex)) {
+            throw new BaseException(BaseResponseStatus.INVALID_LOCATION_FOR_TURN);
+        }
     }
 
     // 카드 이동 처리
