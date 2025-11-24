@@ -41,7 +41,7 @@ public class LocationEffectService {
         registerHandler(2L, createLocationTwoHandler());
         // 경복궁(location_id=3) 효과는 TurnService에서 처리함.
         registerHandler(4L, createLocationFourHandler());
-        //registerHandler(5L, createLocationFiveHandler());
+        registerHandler(5L, createLocationFiveHandler());
         // 인천 공항(location_id=6) 효과는 TurnService에서 처리함.
         registerHandler(7L, createLocationSevenHandler());
 
@@ -278,6 +278,70 @@ public class LocationEffectService {
                         participant.getGuestId(),
                         previousBonus,
                         updatedBonus);
+            }
+        };
+    }
+
+
+    // location_id = 5인
+    // 복숭아 나무 아래 : 한 턴에 이 구역에 카드를 정확히 3장 내면, 각 카드에 파워를 +2 부여합니다.
+    // 효과를 처리하는 핸들러
+    private LocationEffectHandler createLocationFiveHandler() {
+        return new LocationEffectHandler() {
+            @Override
+            public void onTurnEnd(LocationEffectContext context) {
+                Long matchId = Optional.ofNullable(context.getMatch())
+                        .map(match -> match.getMatchId())
+                        .orElse(null);
+                Integer slotIndex = context.getSlotIndex();
+                Integer turnCount = context.getTurnCount();
+
+                if (matchId == null || slotIndex == null || turnCount == null) {
+                    log.warn("Location#5 onTurnEnd 호출 시 필수 값이 누락되었습니다: matchId={}, slotIndex={}, turnCount={}",
+                            matchId, slotIndex, turnCount);
+                    return;
+                }
+
+                if (isLocationTurnEndLogged(matchId, turnCount, slotIndex)) {
+                    log.info("Location#5 onTurnEnd 이미 처리됨: matchId={}, slotIndex={}, turnCount={}",
+                            matchId, slotIndex, turnCount);
+                    return;
+                }
+
+                List<Play> slotPlays = Optional.ofNullable(context.getSlotPlays())
+                        .orElseGet(() -> playRepository.findByMatch_MatchIdAndTurnCount(matchId, turnCount).stream()
+                                .filter(play -> Objects.equals(play.getSlotIndex(), slotIndex))
+                                .collect(Collectors.toList()));
+
+                List<Play> nonTurnEndPlays = slotPlays.stream()
+                        .filter(play -> !Boolean.TRUE.equals(play.getIsTurnEnd()))
+                        .collect(Collectors.toList());
+
+                if (nonTurnEndPlays.size() == 3) {
+                    nonTurnEndPlays.forEach(play -> {
+                        int currentPower = Optional.ofNullable(play.getPowerSnapshot()).orElse(0);
+                        play.setPowerSnapshot(currentPower + 2);
+                    });
+
+                    playRepository.saveAll(nonTurnEndPlays);
+
+                    log.info("Location#5 onTurnEnd effect applied: matchId={}, slotIndex={}, turnCount={}, affectedPlays={}",
+                            matchId, slotIndex, turnCount, nonTurnEndPlays.size());
+                } else {
+                    log.info(
+                            "Location#5 onTurnEnd 적용 대상 없음: matchId={}, slotIndex={}, turnCount={}, nonTurnEndPlays={}",
+                            matchId, slotIndex, turnCount, nonTurnEndPlays.size());
+                }
+
+                Play turnEndLog = Play.builder()
+                        .match(context.getMatch())
+                        .turnCount(turnCount)
+                        .guestId(0L)
+                        .slotIndex(slotIndex)
+                        .isTurnEnd(true)
+                        .build();
+
+                playRepository.save(turnEndLog);
             }
         };
     }
