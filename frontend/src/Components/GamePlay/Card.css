@@ -6,11 +6,12 @@
   align-items: center;
   justify-content: center;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
+  border-radius: 7px;
 }
 
 .card-container:hover {
   transform: translateY(-4px) scale(1.03);
-  box-shadow: 0 10px 45px 25px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .card-undraggable {
