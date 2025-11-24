@@ -92,7 +92,7 @@ const Location = ({
 
           <div className="location-name" ref={ref}>
             {name}
-          </div>
+          </div >
           <div className="location-desc">{effectDesc}</div>
         </>
       )}

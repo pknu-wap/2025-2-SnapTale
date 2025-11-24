@@ -11,4 +11,6 @@
   white-space: nowrap;   /* 한 줄로 유지 */
   overflow: hidden;      /* 닉네임 길면 잘림 */
   text-overflow: ellipsis; /* ... 처리 */
+  color: #5B1B17;
+
 }

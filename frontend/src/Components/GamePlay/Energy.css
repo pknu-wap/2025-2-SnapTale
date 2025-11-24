@@ -2,7 +2,7 @@
   position: relative;
   display: grid;
   place-items: center;
-  width: clamp(2.6rem, 5.4vw, 3.8rem);
+  width: 100px;
   aspect-ratio: 1;
   font-weight: 900;
   background: url("../../assets/energy.png") center/contain no-repeat;
@@ -15,8 +15,19 @@
 
 .energy-value {
   position: absolute;
-  font-size: clamp(0.95rem, 2.1vw, 1.45rem);
+  font-size: 23px;
   font-weight: 700;
   color: #2c1105;
-  text-shadow: 0 0 clamp(0.25rem, 0.8vw, 0.5rem) rgba(255, 255, 255, 0.95);
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.95);
+}
+
+@media (max-width: 767px) {
+  .energy {
+    width: 56px;
+  }
+
+  .energy-value {
+    font-size: 18px;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.95);
+  }
 }

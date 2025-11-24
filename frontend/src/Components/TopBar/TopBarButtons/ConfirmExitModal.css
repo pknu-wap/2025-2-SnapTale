@@ -13,23 +13,23 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: clamp(280px, 80vw, 360px);
+  width: 380px;
   background-color: rgba(255, 255, 255, 0.9);
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-  padding: clamp(16px, 5vw, 24px);
+  padding: 24px;
   text-align: center;
   color: #222222;
   backdrop-filter: blur(2px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(16px, 4vw, 24px);
+  gap: 20px;
 }
 
 .confirm-exit-message {
   margin: 0;
-  font-size: clamp(1rem, 2.5vw, 1.2rem);
+  font-size: 19px;
   font-weight: 600;
   line-height: 1.5;
   color: #2c1105;
@@ -37,7 +37,7 @@
 
 .confirm-exit-subtext {
   margin: 0;
-  font-size: clamp(0.85rem, 2vw, 1rem);
+  font-size: 16px;
   line-height: 1.4;
   color: #2c1105;
 }
@@ -46,20 +46,20 @@
   display: flex;
   justify-content: center;
   align-items: stretch;
-  gap: clamp(12px, 4vw, 16px);
-  width: 100%;
+  gap: 16px;
+  width: 332px;
   flex-wrap: nowrap;
 }
 
 .confirm-exit-button {
   flex: 1 1 0;
-  min-width: clamp(72px, 24vw, 140px);
-  max-width: clamp(120px, 32vw, 180px);
-  height: clamp(38px, 6vh, 44px);
-  padding: 0 clamp(12px, 3vw, 20px);
+  min-width: 140px;
+  max-width: 180px;
+  height: 46px;
+  padding: 0 18px;
   border: none;
   border-radius: 8px;
-  font-size: clamp(0.95rem, 2.5vw, 1.05rem);
+  font-size: 17px;
   font-weight: 600;
   cursor: pointer;
   transition: filter 0.2s ease;
@@ -83,32 +83,31 @@
   filter: brightness(1.1);
 }
 
-@media (min-width: 768px) {
+@media (max-width: 767px) {
   .confirm-exit-modal {
-    width: clamp(320px, 50vw, 420px);
-    padding: clamp(18px, 3vw, 28px);
+    width: 320px;
+    padding: 18px;
+    gap: 16px;
+  }
+
+  .confirm-exit-message {
+    font-size: 18px;
+  }
+
+  .confirm-exit-subtext {
+    font-size: 15px;
   }
 
   .confirm-exit-actions {
-    gap: clamp(16px, 2.5vw, 24px);
+    width: 288px;
+    gap: 14px;
   }
 
   .confirm-exit-button {
-    min-width: clamp(96px, 16vw, 168px);
-    max-width: clamp(140px, 24vw, 200px);
-    height: clamp(42px, 5.5vh, 48px);
-  }
-}
-
-@media (min-width: 1024px) {
-  .confirm-exit-modal {
-    width: clamp(360px, 30vw, 480px);
-    padding: clamp(24px, 2.5vw, 32px);
-  }
-
-  .confirm-exit-button {
-    min-width: clamp(110px, 14vw, 192px);
-    max-width: clamp(160px, 20vw, 240px);
-    height: clamp(44px, 5vh, 52px);
+    min-width: 120px;
+    max-width: 150px;
+    height: 40px;
+    font-size: 16px;
+    padding: 0 14px;
   }
 }

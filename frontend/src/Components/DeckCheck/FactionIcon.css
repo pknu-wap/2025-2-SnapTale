@@ -24,3 +24,38 @@
             drop-shadow(3px 0px 0px #C4512F)
             drop-shadow(-3px 0px 0px #C4512F);
 }
+@media (max-width: 767px) {
+    .Faction{
+        width: 50px;
+        height: 63.3px;
+        border: 1px solid transparent;
+    }
+    .Faction.selected[src*="koreaIcon"] {
+    filter: drop-shadow(0px 1px 0px #26437B)
+            drop-shadow(0px -1px 0px #26437B)
+            drop-shadow(1px 0px 0px #26437B)
+            drop-shadow(-1px 0px 0px #26437B);
+}
+
+.Faction.selected[src*="chinaIcon"] {
+    filter: drop-shadow(0px 1px 0px #329A88)
+            drop-shadow(0px -1px 0px #329A88)
+            drop-shadow(1px 0px 0px #329A88)
+            drop-shadow(-1px 0px 0px #329A88);
+}
+
+.Faction.selected[src*="japanIcon"] {
+    filter: drop-shadow(0px 1px 0px #C4512F)
+            drop-shadow(0px -1px 0px #C4512F)
+            drop-shadow(1px 0px 0px #C4512F)
+            drop-shadow(-1px 0px 0px #C4512F);
+}
+}
+@media (max-width: 300px) {
+    .Faction{
+        width: 40px;
+        height: 50.6px;
+        border: 1px solid transparent;
+        margin-top: 8px;
+    }
+}

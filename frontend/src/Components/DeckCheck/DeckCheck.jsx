@@ -8,6 +8,7 @@ import Card from "../GamePlay/Card";
 import EnlargedCard from "../GamePlay/EnlargedCard";
 import TopBar from "../TopBar/TopBar.jsx";
 import FactionIcon from "./FactionIcon"
+import DeckDescModal from "./DeckDescModal.jsx";
 //import DCI from "../../assets/defaultCardImg.svg";
 import koreaIcon from "../../assets/koreaIcon.png";
 import chinaIcon from "../../assets/chinaIcon.png";
@@ -27,49 +28,31 @@ const DeckCheck = () => {
     const [cards, setCards] = useState([]);
     const { user, updateUser } = useUser();
     const [selectedCard, setSelectedCard] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isDeckDescOpen, setIsDeckDescOpen] = useState(true);
 
     const navigate = useNavigate();
 
-//     const handleDeckSelect = async (selectedDeckId) => {
-    
-//     if (!user || isLoading) { // 유저 정보가 없거나 로딩 중이면 실행 방지
-//       alert("유저 정보가 없거나 로딩 중입니다.");
-//       return;
-//     }
-
-//     setIsLoading(true);
-
-//     try {
-//       //API 호출 
-//       const response = await updateSelectedDeck(user.guestId, selectedDeckId);
-
-//       if (response.success && response.result) {
-//         // 서버로부터 받은 최신 유저 정보(response.result)로
-//         // 전역 UserContext 상태를 업데이트합니다.
-//         updateUser(response.result);
-//         navigate('/home');
-//       } else {
-//         // API는 성공했으나, 서버 로직상 실패한 경우 (e.g., response.success === false)
-//         alert(response.message || "덱 선택에 실패했습니다.");
-//       }
-
-//     } catch (error) {
-//       // 네트워크 오류 등 API 호출 자체에 실패한 경우
-//       console.error("덱 업데이트 처리 중 오류:", error);
-//       alert("덱을 선택하는 중 오류가 발생했습니다.");
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   };
-    
     useEffect(() => {
     const loadCards = async () => {
         try {
             const deckPresetId = factionToDeckPresetId[selectedFaction];
             const fetchedCards = await fetchDeckPresetCards(deckPresetId);
+
+            if (fetchedCards && Array.isArray(fetchedCards)) {
+                    fetchedCards.sort((a, b) => {
+                        // Cost가 다르면 Cost가 낮은 순서대로 (오름차순)
+                        if (a.cost !== b.cost) {
+                            return a.cost - b.cost;
+                        }
+                        // Cost가 같다면 Power가 낮은 순서대로 (오름차순)
+                        return a.power - b.power;
+                    });
+                }
+            
             setCards(fetchedCards);
-            if (fetchedCards.length > 0) {
+            
+            // 카드가 있으면 첫 번째 카드를 선택 상태로, 없으면 null
+            if (fetchedCards && fetchedCards.length > 0) {
                 setSelectedCard(fetchedCards[0]);
             } else {
                 setSelectedCard(null);
@@ -77,16 +60,21 @@ const DeckCheck = () => {
 
         } catch (err) {
             console.error("덱 카드 불러오기 실패:", err);
-            }
-        };
-        loadCards();
-    }, [selectedFaction]);
+        } 
+    };
+
+    loadCards();
+}, [selectedFaction]);
 
     const handleCardClick = (cardData) => {
         setSelectedCard(cardData);
     };
     const handleFactionClick = (faction) => {
         setSelectedFaction(faction);
+    };
+
+    const handleFactionTextClick = () => {
+        setIsDeckDescOpen(!isDeckDescOpen);
     };
 
     const handleSaveClick = async () => {
@@ -96,8 +84,6 @@ const DeckCheck = () => {
         alert("유저 정보가 없습니다. 다시 로그인 해주세요.");
         return;
     }
-
-    setIsLoading(true);
 
     try {
         const response = await updateSelectedDeck(user.guestId, selectedDeckId);
@@ -111,17 +97,15 @@ const DeckCheck = () => {
       } catch (err) {
         console.error(err);
         alert("덱 저장 중 오류 발생");
-      } finally {
-        setIsLoading(false);
-      }
-      //handleDeckSelect(selectedDeckId);
+      } 
     };
 
   return (
     <>
     <DndProvider backend={TouchBackend} options={{ enableMouseEvents: true }}>
-        <TopBar screenType="deckcheck" onSave={handleSaveClick} />
-        <div className="DeckCheck-container">
+        <div className="deck-layout">
+          <TopBar screenType="deckcheck" onSave={handleSaveClick} />
+          <div className="DeckCheck-container">
             {/* 한중일 지역 선택 아이콘, 텍스트*/}
             <div className="deck-select">
                 <div className="faction-icons">
@@ -147,41 +131,50 @@ const DeckCheck = () => {
                         />
                     </div>
                 </div>
-                <div className="faction-text">
+                <div className={`faction-text ${isDeckDescOpen ? 'hidden' : ''}`} onClick={handleFactionTextClick}>
                     {selectedFaction === "korea" && "한국"}
                     {selectedFaction === "china" && "중국"}
                     {selectedFaction === "japan" && "일본"}
                 </div>
+                {isDeckDescOpen && (
+                    <DeckDescModal
+                        faction={selectedFaction}
+                        onClose={() => setIsDeckDescOpen(false)}
+                    />
+                )}
             </div>
-            {/* 덱 카드 전체 보기*/}
+        </div>
+        {/* deck-section, selected-card 레이아웃 조절*/}
+        <div className={`deck-cards-container ${isDeckDescOpen ? 'horizontal' : ''}`}>
+            {/* 덱 카드 12장 전체 보기*/}
             <section className="deck-section">
-            {cards.length > 0 ? (
-                cards.map((card) => (
-                    <Card
-                        key={card.cardId}
-                        cardId={card.cardId}
-                        name={card.name}
-                        imageUrl={card.imageUrl}
-                        cost={card.cost}
-                        power={card.power}
-                        faction={card.faction}
-                        effectDesc={card.effectDesc}
-                        active={card.active}
-                        createdAt={card.createdAt}
-                        updatedAt={card.updatedAt}
-                        onCardClick={() => handleCardClick(card)}
-                        isDraggable={false}
-                />
-                ))
-            ) : (
-                <p className="loading-text">카드를 불러오는 중...</p>
-            )}
+                    <div className="deck-grid">
+                        {cards.map((card) => (
+                            <div key={card.cardId} className="deck-grid-item">
+                                <Card
+                                    cardId={card.cardId}
+                                    name={card.name}
+                                    imageUrl={card.imageUrl}
+                                    cost={card.cost}
+                                    power={card.power}
+                                    faction={card.faction}
+                                    effectDesc={card.effectDesc}
+                                    active={card.active}
+                                    createdAt={card.createdAt}
+                                    updatedAt={card.updatedAt}
+                                    onCardClick={() => handleCardClick(card)}
+                                    isDraggable={false}
+                                />
+                            </div>
+                        ))}
+                    </div>
             </section>
             {/* 선택된 카드 자세히 보기*/}
             <div className="selected-card">
                 <EnlargedCard card={selectedCard} onClose={null} />
             </div>
-        </div>
+        </div>  
+    </div>
     </DndProvider>
     </>
     );

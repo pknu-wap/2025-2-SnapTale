@@ -4,6 +4,7 @@ import { useUser } from "../../contexts/UserContext";
 import { useWebSocket } from "../../contexts/WebSocketContext";
 import { useNavigate } from "react-router-dom";
 import "./GameLayout.css";
+import "./GameLayoutMobile.css";
 import Card from "./Card";
 import Location from "./Location";
 import Energy from "./Energy";
@@ -12,42 +13,23 @@ import EnlargedCard from "./EnlargedCard";
 import EnlargedLocation from "./EnlargedLocation";
 import CustomDragLayer from "./CustomDragLayer";
 import defaultImg from "../../assets/koreaIcon.png";
-import DCI from "../../assets/defaultCardImg.svg";
-// import { fetchLocations } from "./api/location";
 import GameChatFloatingButton from "./GameChatFloatingButton";
+import GameEndModal from "./GameEndModal";
 import { getMatch, verifyParticipant } from "../Home/api/match";
 import { fetchLocationsByMatchId } from "./api/location";
 import { playAction } from "./api/matchTurn";
+import useMatchWebSocket from "./GameLayout/hooks/useMatchWebSocket";
 import { DndProvider } from "react-dnd";
 import { TouchBackend } from "react-dnd-touch-backend";
-
-
-let pressTimer = null;
-
-const handlePressStart = (card, setSelectedCard, e) => {
-  // 모바일에서 터치할 때, 또는 우클릭일 때 메뉴 방지
-  if (e.type === "touchstart" || e.button === 2) e.preventDefault();
-
-  const wrapper = e.currentTarget?.querySelector?.(".card-wrapper");
-  wrapper?.classList.add("is-pressed");
-
-  pressTimer = setTimeout(() => {
-    setSelectedCard(card);
-  }, 600);
-};
-
-const handlePressEnd = (e) => {
-  clearTimeout(pressTimer);
-  const wrapper = e?.currentTarget?.querySelector?.(".card-wrapper");
-  wrapper?.classList.remove("is-pressed");
-};
+import { canMoveCard, isMoveLimitedPerTurn } from "./utils/effect";
 
 export default function GameLayout({ matchId }) {
   const maxTurn = 6;
   const navigate = useNavigate();
 
   const { user, updateUser } = useUser();
-  const [selectedCard, setSelectedCard] = useState(null);
+  const [selectedCardId, setSelectedCardId] = useState(null); // 첫 번째 클릭 -> 카드 ID 저장
+  const [selectedCard, setSelectedCard] = useState(null); //두 번째 클릭 -> 카드 오버레이 표시
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [locations, setLocations] = useState([]); // 서버에서 불러올 위치 데이터
   const [loading, setLoading] = useState(true);
@@ -71,8 +53,31 @@ export default function GameLayout({ matchId }) {
   const [energy, setEnergy] = useState(3);
   const [allCards, setAllCards] = useState([]);
   const [isWaitingForOpponent, setIsWaitingForOpponent] = useState(false);
+  const [gameEndModalState, setGameEndModalState] = useState({
+    isOpen: false,
+    detail: "",
+  });
+  const [movedThisTurn, setMovedThisTurn] = useState({});
 
   const { subscribe } = useWebSocket();
+
+  const handleCardClick = (card, e) => {
+  // 버블링 방지 (외부 클릭 감지와 충돌 방지)
+  e.stopPropagation();
+
+  if (selectedCardId === card.cardId) {
+    setSelectedCard(card);  // 오버레이 띄우기
+    setSelectedCardId(null); // 선택 해제
+  } else {
+    setSelectedCardId(card.cardId);
+  }
+};
+  useEffect( () => { 
+    const clearSelection = () => setSelectedCardId(null); 
+    document.addEventListener("click", clearSelection); //빈 공간 클릭 시 선택 해제
+    return () => document.removeEventListener("click", clearSelection); //종료될 때 정리
+    }, []
+  );
 
   const opponentName = useMemo(() => {
     if (!user?.enemyPlayer) {
@@ -147,11 +152,12 @@ export default function GameLayout({ matchId }) {
         const mapped = cards.map(item => ({
           cardId: item.cardId,
           name: item.name,
-          imageUrl: item.imageUrl || DCI,
+          imageUrl: item.imageUrl || defaultImg,
           cost: item.cost,
           power: item.power,
           faction: item.faction,
           effectDesc: item.effectDesc,
+          effect: item.effect || null, // effect 필드 추가
           active: item.active,
           createdAt: item.createdAt,
           updatedAt: item.updatedAt,
@@ -240,207 +246,32 @@ export default function GameLayout({ matchId }) {
     loadLocations();
   }, [matchId, user?.participantId]);
 
-  useEffect(() => {
-    if (!matchId) {
-      return undefined;
-    }
-
-    const destination = `/topic/match/${matchId}`;
-    const subscriptionKey = `game-layout-match-${matchId}`;
-
-    const unsubscribe = subscribe(destination, {
-      key: subscriptionKey,
-      onMessage: (entry) => {
-        const body = entry?.body;
-        if (!body?.success) {
-          return;
-        }
-
-        const wsMessage = body.data;
-        const messageType = wsMessage?.type;
-        const payload = wsMessage?.data;
-
-        if (!messageType) {
-          return;
-        }
-
-        if (messageType === "GAME_END") {
-          // 게임 종료 메시지 처리
-          const gameState = payload;
-          const message = wsMessage?.message || "게임이 종료되었습니다.";
-          
-          console.log("게임 종료:", message, gameState);
-          
-          // 게임 종료 메시지 표시
-          alert(message);
-          
-          // home으로 리다이렉트
-          setTimeout(() => {
-            navigate("/home");
-          }, 1000); // 1초 후 리다이렉트 (메시지를 볼 시간 제공)
-          return; // GAME_END 처리 후 다른 메시지 처리하지 않음
-        }
-
-        // payload가 없으면 다른 메시지 처리하지 않음
-        if (!payload) {
-          console.log("payload가 없습니다.");
-          return;
-        }
-
-        if (messageType === "LEAVE") {
-          // 상대방이 나간 경우 처리
-          const leaveMessage = wsMessage?.message || "상대방이 나갔습니다.";
-          
-          console.log("상대방 퇴장:", leaveMessage);
-          
-          // GAME_END 메시지가 곧 올 것이므로 여기서는 로그만 남김
-          // (GAME_END에서 처리하도록 함)
-        }
-
-        if (messageType === "TURN_WAITING") {
-          if (!payload) {
-            console.log("payload가 없습니다.");
-            return;
-          }
-          const endedGuestId = payload?.endedGuestId;
-          const waitingForOpponent = Boolean(payload?.waitingForOpponent);
-
-          if (endedGuestId === user?.guestId && waitingForOpponent) {
-            setIsWaitingForOpponent(true);
-          } else if (!waitingForOpponent) {
-            setIsWaitingForOpponent(false);
-          } else if (endedGuestId !== user?.guestId) {
-            setIsWaitingForOpponent(false);
-          }
-
-          const scores = payload?.gameState?.participantScores;
-          if (Array.isArray(scores)) {
-            const myParticipantId = user?.participantId;
-            const myGuestId = user?.guestId;
-            const meScore = scores.find(
-              (score) =>
-                score.participantId === myParticipantId || score.guestId === myGuestId
-            );
-            if (meScore && typeof meScore.energy === "number") {
-              setEnergy(meScore.energy);
-            }
-          }
-        }
-
-        if (messageType === "TURN_START") {
-          if (!payload) {
-            console.log("payload가 없습니다.");
-            return;
-          }
-
-          setIsWaitingForOpponent(false);
-
-          if (typeof payload?.currentTurn === "number") {
-            setTurn(payload.currentTurn);
-          }
-
-          const scores = payload?.gameState?.participantScores;
-          if (Array.isArray(scores)) {
-            const myParticipantId = user?.participantId;
-            const myGuestId = user?.guestId;
-            const meScore = scores.find(
-              (score) =>
-                score.participantId === myParticipantId || score.guestId === myGuestId
-            );
-            if (meScore && typeof meScore.energy === "number") {
-              setEnergy(meScore.energy);
-            }
-          }
-          if (payload?.locationPowerResult) {
-            console.log("TURN_START locationPowerResult:", payload.locationPowerResult);
-            const normalizePowers = (source) => {
-              if (Array.isArray(source)) {
-                return source.map((value) => Number(value) || 0);
-              }
-              if (source && typeof source === 'object') {
-                // 객체를 배열로 변환 {0: 4, 1: 0, 2: 0} -> [4, 0, 0]
-                return [0, 1, 2].map(idx => Number(source[idx]) || 0);
-              }
-              return null;
-            };
-            const myGuestId = user?.guestId;
-            const { player1Id, player2Id, player1Powers, player2Powers } = payload.locationPowerResult;
-
-            if (myGuestId && player1Id && player2Id) {
-              if (myGuestId === player1Id) {
-                const myLocationPowers = normalizePowers(player1Powers);
-                const opponentLocationPowers = normalizePowers(player2Powers);
-                if (myLocationPowers) setMyPowers(myLocationPowers);
-                if (opponentLocationPowers) setOpponentPowers(opponentLocationPowers);
-              } else if (myGuestId === player2Id) {
-                const myLocationPowers = normalizePowers(player2Powers);
-                const opponentLocationPowers = normalizePowers(player1Powers);
-                if (myLocationPowers) setMyPowers(myLocationPowers);
-                if (opponentLocationPowers) setOpponentPowers(opponentLocationPowers);
-              }
-            }
-          }
-
-          // 상대 카드 배치 정보 처리
-          if (payload?.playerCardPlays) {
-            console.log("TURN_START playerCardPlays:", payload.playerCardPlays);
-            const myGuestId = user?.guestId;
-            
-            // 상대 guestId 찾기
-            const allGuestIds = Object.keys(payload.playerCardPlays).map(id => parseInt(id));
-            const opponentGuestId = allGuestIds.find(id => id !== myGuestId);
-            
-            if (opponentGuestId) {
-              const opponentCards = payload.playerCardPlays[opponentGuestId];
-              console.log("상대 카드 정보:", opponentCards);
-              
-              // 지역별로 카드 그룹핑 (slotIndex 0, 1, 2, 3)
-              const cardsByLocation = [
-                [null, null, null, null], 
-                [null, null, null, null], 
-                [null, null, null, null]];
-
-              if (Array.isArray(opponentCards)) {
-                opponentCards.forEach(card => {
-                  if (card.slotIndex !== null && card.slotIndex !== undefined) {
-                    const locationIndex = card.slotIndex;
-                    const position = card.position !== null && card.position !== undefined ? card.position : 0;
-                    
-                    // 정확한 위치에 카드 배치
-                    if (locationIndex >= 0 && locationIndex < 3 && position >= 0 && position < 4) {
-                      cardsByLocation[locationIndex][position] = {
-                        cardId: card.cardId,
-                        name: card.cardName,
-                        imageUrl: card.cardImageUrl,
-                        cost: card.cost,
-                        power: card.power,
-                        faction: card.faction,
-                      };
-                    }
-                  }
-                });
-              }
-              
-              console.log("정확한 위치의 상대 카드:", cardsByLocation);
-              setOpponentBoardLanes(cardsByLocation);
-            }
-          }
-        }
-      },
-    });
-
-    return unsubscribe;
-  }, [matchId, subscribe, user?.guestId, user?.participantId, navigate]);
+  useMatchWebSocket({
+    matchId,
+    user,
+    subscribe,
+    setIsWaitingForOpponent,
+    setTurn,
+    setEnergy,
+    setMyPowers,
+    setOpponentPowers,
+    setOpponentBoardLanes,
+    setGameEndModalState,
+  });
 
   useEffect(() => {
     setIsWaitingForOpponent(false);
   }, [matchId]);
 
+  useEffect(() => {
+    setMovedThisTurn({});
+  }, [turn]);
+
   const endTurnButtonLabel = useMemo(() => {
-    if (isWaitingForOpponent) {
-      return "상대의 턴을 기다리는 중...";
+    if (isWaitingForOpponent) { 
+      return { line1: "상대의 턴을", line2: "기다리는 중...", };
     }
-    return `턴 종료 (${turn} / ${maxTurn})`;
+    return { line1: "턴 종료", line2: `(${turn} / ${maxTurn})` };
   }, [isWaitingForOpponent, turn, maxTurn]);
 
   // const handleCardClick = (cardData) => {
@@ -522,9 +353,14 @@ export default function GameLayout({ matchId }) {
     setSelectedLocation(null);
   };
 
-  const handleCardDrop = async ({ card, laneIndex}) => {
+  const handleConfirmGameEnd = () => {
+    setGameEndModalState({ isOpen: false, detail: "" });
+    navigate("/home");
+  };
+
+  const handleCardDrop = async ({ card, laneIndex, fromLaneIndex, fromSlotIndex, origin }) => {
     if (!card || !card.cardId) {
-      console.warn("[GameLayout] Slot에서 유효하지 않은 카드 데이터를 받았습니다.", { card, laneIndex, slotIndex });
+      console.warn("[GameLayout] Slot에서 유효하지 않은 카드 데이터를 받았습니다.", { card, laneIndex });
       return;
     }
 
@@ -534,12 +370,91 @@ export default function GameLayout({ matchId }) {
       alert("참가자 정보가 없습니다. 페이지를 새로고침해주세요.");
       return;
     }
-    const targetLane = boardLanes[laneIndex]; //이 레인의 첫 번째 빈 슬롯(0~3)을 찾습니다.
-    const slotIndex = targetLane.findIndex(c => !c); // 0~3 사이의 인덱스
+    const targetLane = boardLanes[laneIndex];
+    const slotIndex = targetLane.findIndex(c => !c);
 
     if (slotIndex === -1) {
-    return; 
-  }
+      return;
+    }
+
+    const isMoveAction = origin === "board" && fromLaneIndex !== undefined && fromSlotIndex !== undefined;
+
+    if (isMoveAction) {
+      const limited = isMoveLimitedPerTurn(card);
+      const alreadyMoved = limited && movedThisTurn[card.cardId] === turn;
+
+      if (!canMoveCard(card) || alreadyMoved) {
+        console.warn("이동 불가능한 카드이거나 이번 턴에 이미 이동했습니다.");
+        return;
+      }
+
+      const prevBoardLanes = boardLanes.map((lane) => [...lane]);
+      const prevPowers = [...myPowers];
+
+      setBoardLanes((prevLanes) => {
+        const newLanes = prevLanes.map((lane) => [...lane]);
+        const originLane = [...newLanes[fromLaneIndex]];
+        originLane[fromSlotIndex] = null;
+        newLanes[fromLaneIndex] = originLane;
+
+        const newTargetLane = [...newLanes[laneIndex]];
+        newTargetLane[slotIndex] = card;
+        newLanes[laneIndex] = newTargetLane;
+        return newLanes;
+      });
+
+      if (fromLaneIndex !== laneIndex) {
+        setMyPowers((prev) => {
+          const next = [...prev];
+          next[fromLaneIndex] = Math.max(0, (next[fromLaneIndex] ?? 0) - (card?.power ?? 0));
+          next[laneIndex] = (next[laneIndex] ?? 0) + (card?.power ?? 0);
+          return next;
+        });
+      }
+
+      if (limited) {
+        setMovedThisTurn((prev) => ({ ...prev, [card.cardId]: turn }));
+      }
+
+      try {
+        const response = await playAction(matchId, {
+          playId: 0,
+          matchId,
+          participantId: user.participantId,
+          cardId: card.cardId,
+          actionType: "MOVE_CARD",
+          additionalData: JSON.stringify({
+            fromSlotIndex: fromLaneIndex,
+            fromCardPosition: fromSlotIndex,
+            toSlotIndex: laneIndex,
+            toCardPosition: slotIndex,
+          }),
+        });
+
+        const normalizePowers = (source) =>
+          Array.isArray(source) ? source.map((value) => Number(value) || 0) : null;
+
+        const myLocationPowers = normalizePowers(response?.myLocationPowers);
+        if (myLocationPowers) {
+          setMyPowers(myLocationPowers);
+        }
+      } catch (error) {
+        console.error("MOVE_CARD playAction 실패:", error);
+
+        setBoardLanes(prevBoardLanes);
+        setMyPowers(prevPowers);
+        if (limited) {
+          setMovedThisTurn((prev) => {
+            const next = { ...prev };
+            delete next[card.cardId];
+            return next;
+          });
+        }
+        alert(`카드 이동 실패: ${error.message || "알 수 없는 오류"}`);
+      }
+
+      return;
+    }
 
     // 이전 상태 저장 (실패 시 롤백용)
     const prevHand = hand;
@@ -593,6 +508,21 @@ export default function GameLayout({ matchId }) {
       if (myLocationPowers) {
         setMyPowers(myLocationPowers);
       }
+      // 응답에서 받은 effect를 boardLanes의 카드에 업데이트
+      if (response?.effect !== undefined) {
+        setBoardLanes((prevLanes) => {
+          const newLanes = [...prevLanes];
+          const newTargetLane = [...newLanes[laneIndex]];
+          if (newTargetLane[slotIndex]) {
+            newTargetLane[slotIndex] = {
+              ...newTargetLane[slotIndex],
+              effect: response.effect
+            };
+          }
+          newLanes[laneIndex] = newTargetLane;
+          return newLanes;
+        });
+      }
     } catch (error) {
       console.error("playAction 실패:", error);
       console.log("playAction 호출 실패:", matchId, user.participantId, card.cardId, laneIndex, slotIndex, error.energy);
@@ -618,6 +548,7 @@ export default function GameLayout({ matchId }) {
     <>
     <div className="gameplay-shell">
       <DndProvider backend={TouchBackend} options={{ enableMouseEvents: true }}>
+        <CustomDragLayer selectedCard={selectedCard} />
         <div className="gameplay-body">
           <aside className="hud-panel" aria-label="턴 정보">
             <div className="hud-matchup" aria-label="플레이어 정보">
@@ -633,10 +564,15 @@ export default function GameLayout({ matchId }) {
             <div className="hud-section turn-panel">
             </div>
             <div className="hud-section">
-              <button className="end-turn-button" onClick={endTurn}
-              disabled={turn === maxTurn + 1 || isWaitingForOpponent}>
-              {endTurnButtonLabel}
-            </button>
+              <button
+                className="end-turn-button"
+                onClick={endTurn}
+                disabled={turn === maxTurn + 1 || isWaitingForOpponent}
+              >
+                <span>{endTurnButtonLabel.line1}</span>
+                <br />
+                <span>{endTurnButtonLabel.line2}</span>
+              </button>
             </div>
           </aside>
 
@@ -695,37 +631,23 @@ export default function GameLayout({ matchId }) {
                 </div>
               ))}
             </div>
-              <section className="hand-row" aria-label="내 손패">
-                <div className="hand-grid">
-                  {hand.map((card) => (
-                  <div
-                    key={card.cardId}
-                    className="hand-card"
-                    onMouseDown={(e) => handlePressStart(card, setSelectedCard, e)}
-                    onMouseUp={handlePressEnd}
-                    onMouseLeave={handlePressEnd}
-                    onTouchStart={(e) => handlePressStart(card, setSelectedCard, e)}
-                    onTouchEnd={handlePressEnd}
-                    onTouchMove={handlePressEnd}
-                    onContextMenu={(e) => e.preventDefault()} //배포
-                  >
-                    <div className="card-wrapper">
-                      <div className="card-outline" aria-hidden>
-                        <span className="outline-top" />
-                        <span className="outline-right" />
-                        <span className="outline-bottom" />
-                        <span className="outline-left" />
-                      </div>
-                      <Card {...card} isDraggable={true} />
-                    </div>
-                  </div>
-                  ))}
+              </main>
+          <aside className="hand-panel" aria-label="내 손패">
+            <div className="hand-grid">
+              {hand.map((card) => (
+                <div
+                  key={card.cardId}
+                  className="hand-card"
+                  onClick={(e) => handleCardClick(card, e)}
+                >
+                  <Card {...card} isDraggable={true} isSelected={selectedCardId === card.cardId} />
                 </div>
-              </section>
-            </main>
-          </div>
-        </DndProvider>
-      </div>
+              ))}
+            </div>
+          </aside>
+        </div>
+      </DndProvider>
+    </div>
       <GameChatFloatingButton matchId={matchId} />
 
       {selectedCard && (
@@ -740,6 +662,11 @@ export default function GameLayout({ matchId }) {
           />
         </div>
       )}
+      <GameEndModal
+        isOpen={gameEndModalState.isOpen}
+        detail={gameEndModalState.detail}
+        onConfirm={handleConfirmGameEnd}
+      />
     </>
   );
 }

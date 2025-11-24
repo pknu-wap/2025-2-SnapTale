@@ -1,25 +1,18 @@
+.deck-layout {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
 .DeckCheck-container {
   display: flex;
   flex-direction: column; 
   align-items: center; 
   justify-content: flex-start; 
-  height: 100%;
-  width: 100%;
+  padding-top: 20px;
   box-sizing: border-box;
-  padding-top: calc(
-    clamp(32px, 4vw, 56px) +
-    clamp(8px, 2vw, 24px) * 2 +
-    clamp(12px, 3vw, 24px)
-  );
-}
-
-/* 상단 메뉴 (나가기 버튼) */
-.deck-top-menu {
-  display: flex;
-  align-self: flex-end;
-  justify-content: flex-end; /* 오른쪽 정렬 */
-  margin-top: 24px;
-  margin-right: 24px;
 }
 
 /* 지역 선택 영역 */
@@ -27,6 +20,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  z-index: 100;
 }
 
 .faction-icons {
@@ -40,16 +34,38 @@
   line-height: 40px;
   text-align: center;
   color: #fff;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.faction-text.hidden {
+  display: none;
+}
+
+.faction-text:hover {
+  color: #ffecde;
 }
 
 /* 카드 섹션 */
 .deck-section {
-  display: flex;
-  flex-wrap: wrap; /* 여러 줄 정렬 */
-  justify-content: center;
-  gap: 10px;
+  max-width: 400px;
+  width: 100%;
   margin-top: 10px;
-  max-width: 326px;
+  display: flex;
+  justify-content: center;
+}
+
+.deck-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: clamp(0.625rem, 1vw, 0.9375rem); /* 10px - 15px */
+  width: 100%;
+  max-width: 400px;
+}
+
+.deck-grid-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 /* 카드 자세히 보기 */
@@ -58,4 +74,194 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.deck-cards-container{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* 덱 선택 페이지 카드 크기 조정 */
+.deck-section .card-container{
+  width: 54px;
+  height: 81px;
+}
+
+.deck-section .icon,
+.deck-section .card-cost-container,
+.deck-section .card-power-container {
+  width: 18px;
+  height: 18px;
+}
+.deck-section .card-cost-container {
+  top: -3px;
+  left: -1px;
+}
+
+.deck-section .card-power-container {
+  top: -3px;
+  right: -1px;
+}
+.deck-section .icon-text {
+  font-size: 12px;
+}
+
+.selected-card .enlarged-card-container {
+  position: relative;
+  width: 132px;
+  height: 186px;
+  animation: zoomIn 0.3s ease-out;
+}
+
+
+.selected-card .enlarged-card-container .card-image {
+  inset: 8px;
+  border-width: 6px;
+  border-radius: 15px;
+  width: 110px;
+  height: 171px;
+}
+
+.selected-card .enlarged-card-container .card-cost-container,
+.selected-card .enlarged-card-container .card-power-container,
+.selected-card .enlarged-card-container .icon {
+  width: 44px;
+  height: 44px;
+}
+
+.selected-card .enlarged-card-container .card-cost-container,
+.selected-card .enlarged-card-container .card-power-container {
+  top: -2px;
+}
+.selected-card .enlarged-card-container .card-power-container {
+  right: -1px;
+}
+
+.selected-card .enlarged-card-container .icon-text {
+  font-size: 30px;
+}
+
+.selected-card .enlarged-card-container .card-name {
+  width: 80%;
+  font-size: 28px;
+  bottom: 5px;
+}
+
+.selected-card .enlarged-card-container .card-desc {
+  position: absolute;
+  width: 320px;
+  left: 50%;
+  bottom: -70px;
+  transform: translateX(-50%);
+  font-size: 25px;
+  color: #ffecde;
+  z-index: 6;
+  text-align: center;
+}
+/* 덱 카드 컨테이너 표시 공간 부족할 시  스크롤 가능 */
+.deck-cards-container {
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 커스텀 스크롤바 스타일 */
+.deck-cards-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.deck-cards-container::-webkit-scrollbar-track {
+  background: transparent; 
+}
+
+.deck-cards-container::-webkit-scrollbar-thumb {
+  background: rgba(150, 150, 150, 0.5);  
+  border-radius: 10px;                   
+}
+
+
+@media (min-width: 768px) {
+  .deck-cards-container.horizontal {
+    flex-direction: row;        /* 가로 정렬로 변경 */
+    width: auto;
+    align-items: flex-start;    /* 상단 기준 정렬 */
+    justify-content: center;    /* 중앙 정렬 */
+    gap: clamp(70px, 10vw, 100px);  /* 두 요소 사이의 간격 */
+  }
+
+  .deck-cards-container.horizontal .deck-section {
+    margin-top: 43px;      
+  }
+
+  .deck-cards-container.horizontal .selected-card {
+    margin-top: 0;              
+  }
+  .deck-cards-container.horizontal .card-desc {
+    width: 240px;
+  }
+}
+
+@media (max-width: 767px) {
+  .faction-icons {
+    gap: 8px;
+  }
+  .deck-layout .top-bar {
+    left: 0px;
+    right: 0px;
+  }
+  .DeckCheck-container {
+    padding-top: 0px;
+  }
+
+  .deck-section .card-cost-container {
+    top: 0px;
+    left: 2px;
+  }
+  .deck-section .card-power-container {
+    top: 0px;
+    right: -3px;
+  }
+  .deck-section .card-name{
+    font-size: 12px;
+    left: 55%;
+  }
+  .deck-layout .top-bar .icon-btn {
+    width: 44px;
+    height: 44px;
+  }
+  .deck-grid {
+    gap: clamp(0.1875rem, 1vw, 0.625rem); /* 3px - 10px */
+  }
+
+  .deck-grid {
+    width: max-content;
+    max-width: none;
+    position: static;
+    margin: 0 auto;
+}
+}
+@media (max-width: 400px) {
+
+  .deck-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .deck-layout .top-bar .icon-btn {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .deck-layout .enlarged-card-container .card-desc {
+    width: 208px;
+    font-size: 16px;
+  }
+
+  .deck-section {
+    overflow: visible;
+    position: relative;
+  }
+
 }

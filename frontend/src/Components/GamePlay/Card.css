@@ -1,25 +1,41 @@
 .card-container {
   position: relative;
-  width: clamp(2.1rem, 5.4vw, 3.4rem);
-  aspect-ratio: 2 / 3;
+  width: 70px;
+  height: 105px;
   cursor: grab;
+  align-items: center;
+  justify-content: center;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .card-container:hover {
-  transform: translateY(clamp(-0.15rem, -0.5vw, -0.25rem)) scale(1.03);
-  box-shadow: 0 clamp(0.5rem, 2vw, 1.4rem) clamp(1.2rem, 3.4vw, 2.2rem) rgba(0, 0, 0, 0.35);
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 10px 45px 25px rgba(0, 0, 0, 0.12);
+}
+
+.card-undraggable {
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
+.card-movable {
+  box-shadow: 0 0 0 2px #6dd3ff;
 }
 
 .card-image {
   position: absolute;
-  inset: clamp(0.1rem, 0.32vw, 0.22rem);
-  border: clamp(0.1rem, 0.28vw, 0.18rem) solid transparent;
-  border-radius: clamp(0.26rem, 0.68vw, 0.42rem);
+  inset: 0px; 
+  border: 3px solid transparent;
+  border-radius: 7px;
   object-fit: cover;
-  width: calc(100% - clamp(0.24rem, 0.76vw, 0.44rem));
-  height: calc(100% - clamp(0.24rem, 0.76vw, 0.44rem));
+  width: calc(100% - 7px);
+  height: calc(100% - 7px);
   z-index: 1;
+  transition: border-color 0.2s ease, border-width 0.2s ease; /* 테두리 변화에 애니메이션 추가, 별로면 제거할것 */
+}
+
+.card-image-selected {
+  border-color: #d4af37 !important; /* !important는 최우선 적용 표시 */
 }
 
 .card-border-korea { border-color: #26437b; }
@@ -29,8 +45,8 @@
 
 /* 아이콘 공통 스타일 */
 .icon {
-  width: clamp(0.76rem, 1.9vw, 1.15rem);
-  height: clamp(0.76rem, 1.9vw, 1.15rem);
+  width: 25px;
+  height: 25px;
   display: block;
   position: relative;
   z-index: 3;
@@ -43,25 +59,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: clamp(0.76rem, 1.9vw, 1.12rem);
-  height: clamp(0.76rem, 1.9vw, 1.12rem);
+  width: 18px;
+  height: 18px;
   z-index: 5;
-  filter: drop-shadow(0 0 clamp(0.18rem, 0.5vw, 0.3rem) rgba(0, 0, 0, 0.55));
 }
 
 .card-cost-container {
-  top: clamp(0.1rem, 0.32vw, 0.2rem);
-  left: clamp(0.1rem, 0.32vw, 0.2rem);
+  top: -3px;
+  left: 1px;
 }
 
 .card-power-container {
-  top: clamp(0.1rem, 0.32vw, 0.2rem);
-  right: clamp(0.1rem, 0.32vw, 0.2rem);
+  top: -3px;
+  right: 1px;
 }
 
 .icon-text {
   position: absolute;
-  font-size: clamp(0.54rem, 1.3vw, 0.74rem);
+  font-size: 12px;
   color: #ffffff;
   user-select: none;
   pointer-events: none;
@@ -69,71 +84,93 @@
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 10;
-  text-shadow: 0 0 clamp(0.22rem, 0.7vw, 0.42rem) rgba(0, 0, 0, 0.45);
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.45);
 }
 
 .card-name {
   position: absolute;
   width: 72%;
-  min-height: clamp(0.72rem, 1.8vw, 0.94rem);
+  min-height: 15px;
   left: 50%;
-  bottom: clamp(0.16rem, 0.46vw, 0.28rem);
+  bottom: 8px;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(0.5rem, 1.18vw, 0.7rem);
+  font-size: 12px;
   color: #ffffff;
   z-index: 6;
   text-align: center;
   line-height: 1.12;
-  text-shadow: 0 0 clamp(0.2rem, 0.62vw, 0.36rem) rgba(0, 0, 0, 0.6);
-  padding-inline: clamp(0.16rem, 0.46vw, 0.26rem);
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+  padding-inline: 4px;
+}
+
+.card-move-badge {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 174, 255, 0.9);
+  color: #fff;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 9px;
+  z-index: 7;
+  pointer-events: none;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.35);
 }
 
 .enlarged-card-container {
   position: relative;
-  width: clamp(10.5rem, 28vw, 13rem);
-  aspect-ratio: 2 / 3;
+  width: 208px;
+  height: 312px;
   animation: zoomIn 0.3s ease-out;
 }
 
 .enlarged-card-container .card-image {
-  inset: clamp(0.4rem, 1vw, 0.6rem);
-  border-width: clamp(0.3rem, 0.9vw, 0.55rem);
-  border-radius: clamp(0.8rem, 2vw, 1.2rem);
-  width: calc(100% - clamp(0.8rem, 2vw, 1.2rem));
-  height: calc(100% - clamp(0.8rem, 2vw, 1.2rem));
+  inset: 10px;
+  border-width: 9px;
+  border-radius: 19px;
+  width: calc(100% - 38px);
+  height: calc(100% - 38px);
 }
 
 .enlarged-card-container .card-cost-container,
 .enlarged-card-container .card-power-container,
 .enlarged-card-container .icon {
-  width: clamp(2.7rem, 6.4vw, 3.3rem);
-  height: clamp(2.7rem, 6.4vw, 3.3rem);
+  width: 53px;
+  height: 53px;
 }
 
-.enlarged-card-container .card-cost-container,
+.enlarged-card-container .card-cost-container
+{
+  top: -2px;
+  left: 5px;
+}
 .enlarged-card-container .card-power-container {
-  top: clamp(-0.35rem, -0.8vw, -0.15rem);
+  top: -2px;
+  right: 5px;
 }
 
 .enlarged-card-container .icon-text {
-  font-size: clamp(1.5rem, 3.4vw, 1.9rem);
+  font-size: 30px;
 }
 
 .enlarged-card-container .card-name {
   width: 80%;
-  font-size: clamp(1.2rem, 3vw, 1.6rem);
+  font-size: 36px;
+  bottom: 20px;
 }
 
 .enlarged-card-container .card-desc {
   position: absolute;
-  width: clamp(12rem, 32vw, 16rem);
+  width: 312px;
+  height: 66px;
   left: 50%;
-  bottom: clamp(-4.2rem, -12vw, -2.8rem);
+  bottom: -65px;
   transform: translateX(-50%);
-  font-size: clamp(1rem, 2.6vw, 1.4rem);
+  font-size: 22px;
   color: #ffecde;
   z-index: 6;
   text-align: center;
@@ -145,76 +182,6 @@
   user-select: none;      /* 텍스트 드래그 방지 */
 }
 
-/* Animated outline (top -> right -> bottom -> left). Total reveal time = 0.6s */
-.card-outline {
-  position: absolute;
-  width: clamp(2.1rem, 5.4vw, 3.4rem);
-  aspect-ratio: 2 / 3;
-  pointer-events: none;
-  z-index: 20;
-}
-.card-outline span {
-  position: absolute;
-  display: block;
-  box-sizing: border-box;
-}
-
-/* border thickness (consistent with design) */
-.card-outline span {
-  --bw: clamp(0.09rem, 0.25vw, 0.16rem);
-}
-
-.card-outline .outline-top {
-  border-top: var(--bw) solid #ffffff;
-  top: 0;
-  left: 0;
-  right: 100%;
-  transition: right 0.15s ease;
-  transition-delay: 0s;
-}
-.card-wrapper.is-pressed .card-outline .outline-top {
-  right: 0;
-}
-
-.card-outline .outline-right {
-  border-right: var(--bw) solid #ffffff;
-  top: 0;
-  right: 0;
-  bottom: 100%;
-  transition: bottom 0.15s ease;
-  transition-delay: 0.15s;
-}
-
-.card-wrapper.is-pressed .card-outline .outline-right {
-  bottom: 0;
-}
-
-.card-outline .outline-bottom {
-  border-bottom: var(--bw) solid #ffffff;
-  bottom: 0;
-  left: 100%;
-  right: 0;
-  transition: left 0.15s ease;
-  transition-delay: 0.3s;
-}
-
-.card-wrapper.is-pressed .card-outline .outline-bottom {
-  left: 0;
-}
-
-.card-outline .outline-left {
-  border-left: var(--bw) solid #ffffff;
-  top: 100%;
-  left: 0;
-  bottom: 0;
-  transition: top 0.15s ease;
-  transition-delay: 0.45s;
-}
-
-.card-wrapper.is-pressed .card-outline .outline-left {
-  top: 0;
-}
-
 @keyframes zoomIn {
   from {
     transform: scale(0.5);
@@ -223,5 +190,102 @@
   to {
     transform: scale(1);
     opacity: 1;
+  }
+}
+
+@media (max-width: 767px) {
+  .card-container {
+    width: 72px;
+    height: 108px;
+  }
+
+  .card-container:hover {
+    transform: translateY(-2px) scale(1.02);
+  }
+
+  .card-image {
+    inset: 3px;
+    border-radius: 6px;
+    width: calc(100% - 6px);
+    height: calc(100% - 6px);
+  }
+
+  .icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .card-cost-container,
+  .card-power-container {
+    width: 18px;
+    height: 18px;
+    filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.45));
+  }
+
+  .card-cost-container {
+    top: 0px;
+    left: -1px;
+  }
+
+  .card-power-container {
+    top: 0px;
+    right: -1px;
+  }
+
+  .icon-text {
+    font-size: 11px;
+    text-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+  }
+
+  .card-name {
+    /* min-height: 14px; */
+    bottom: 4px;
+    font-size: 10px;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.6);
+    padding-inline: 4px;
+  }
+
+  .enlarged-card-container {
+    width: 182px;
+    height: 273px;
+  }
+
+  .enlarged-card-container .card-image {
+    inset: 8px;
+    border-width: 6px;
+    border-radius: 15px;
+    width: calc(100% - 28px);
+    height: calc(100% - 28px);
+  }
+
+  .enlarged-card-container .card-cost-container,
+  .enlarged-card-container .card-power-container,
+  .enlarged-card-container .icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .enlarged-card-container .card-cost-container,
+  .enlarged-card-container .card-power-container {
+    top: -4px;
+  }
+
+  .enlarged-card-container .icon-text {
+    font-size: 27px;
+  }
+
+  .enlarged-card-container .card-name {
+    font-size: 28px;
+  }
+
+  .enlarged-card-container .card-desc {
+    width: 208px;
+    bottom: -58px;
+    font-size: 18px;
+  }
+
+  .hand-card .card-container {
+    width: 64px;
+    height: 96px;
   }
 }

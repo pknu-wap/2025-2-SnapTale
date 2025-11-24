@@ -1,22 +1,33 @@
 package com.snaptale.backend.match.service;
 
+import com.snaptale.backend.card.entity.Card;
 import com.snaptale.backend.common.exceptions.BaseException;
 import com.snaptale.backend.common.response.BaseResponseStatus;
-import com.snaptale.backend.match.entity.*;
+import com.snaptale.backend.match.entity.Match;
+import com.snaptale.backend.match.entity.MatchParticipant;
+import com.snaptale.backend.match.entity.MatchStatus;
+import com.snaptale.backend.match.entity.MatchLocation;
+import com.snaptale.backend.match.entity.Play;
 import com.snaptale.backend.match.model.request.MatchParticipantUpdateReq;
 import com.snaptale.backend.match.model.request.MatchUpdateReq;
 import com.snaptale.backend.match.repository.MatchParticipantRepository;
 import com.snaptale.backend.match.repository.MatchRepository;
 import com.snaptale.backend.match.repository.PlayRepository;
+import com.snaptale.backend.match.repository.MatchLocationRepository;
 import com.snaptale.backend.user.entity.User;
+import com.snaptale.backend.user.model.UserUpdateReq;
 import com.snaptale.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 // 게임 계산 로직 처리 서비스
 // - 각 Location별 파워 계산
@@ -31,6 +42,7 @@ public class GameCalculationService {
     private final MatchRepository matchRepository;
     private final MatchParticipantRepository matchParticipantRepository;
     private final PlayRepository playRepository;
+    private final MatchLocationRepository matchLocationRepository;
     private final UserRepository userRepository;
 
     private static final int NUM_LOCATIONS = 3;
@@ -54,6 +66,10 @@ public class GameCalculationService {
         Map<Integer, Integer> player1Powers = new HashMap<>();
         Map<Integer, Integer> player2Powers = new HashMap<>();
 
+        // ongoing 효과를 위한 플레이어별 카드 목록 조회
+        List<Play> player1Plays = playRepository.findByMatch_MatchIdAndGuestId(matchId, player1Id);
+        List<Play> player2Plays = playRepository.findByMatch_MatchIdAndGuestId(matchId, player2Id);
+
         for (int slotIndex = 0; slotIndex < NUM_LOCATIONS; slotIndex++) {
 
             Integer p1Sum = playRepository.sumPowerSnapshotByMatchAndGuestIdAndSlotIndex(matchId, player1Id, slotIndex);
@@ -61,6 +77,14 @@ public class GameCalculationService {
 
             Integer p2Sum = playRepository.sumPowerSnapshotByMatchAndGuestIdAndSlotIndex(matchId, player2Id, slotIndex);
             int p2Power = p2Sum != null ? p2Sum.intValue() : 0;
+
+            // power_double_zone 효과 적용 (다른 효과보다 먼저 적용)
+            p1Power = applyPowerDoubleZone(matchId, player1Id, slotIndex, player1Plays, p1Power);
+            p2Power = applyPowerDoubleZone(matchId, player2Id, slotIndex, player2Plays, p2Power);
+
+            // 다른 ongoing 효과 적용
+            p1Power += applyOngoingEffects(matchId, player1Id, slotIndex, player1Plays);
+            p2Power += applyOngoingEffects(matchId, player2Id, slotIndex, player2Plays);
 
             player1Powers.put(slotIndex, p1Power);
             player2Powers.put(slotIndex, p2Power);
@@ -92,23 +116,34 @@ public class GameCalculationService {
         // 1. Location별 파워 계산
         LocationPowerResult powerResult = calculateLocationPowers(matchId);
 
-        // 2. 각 Location의 승자 판정
+        // 2. Location 메타 정보 조회
+        List<MatchLocation> matchLocations = matchLocationRepository.findByMatchIdWithFetch(matchId);
+        Map<Integer, String> locationNamesBySlot = matchLocations.stream()
+                .collect(Collectors.toMap(MatchLocation::getSlotIndex,
+                        ml -> ml.getLocation().getName(), (name1, name2) -> name1));
+
+        // 3. 각 Location의 승자 판정
         int player1Wins = 0;
         int player2Wins = 0;
         int totalPlayer1Power = 0;
         int totalPlayer2Power = 0;
+        List<String> player1CapturedLocations = new ArrayList<>();
+        List<String> player2CapturedLocations = new ArrayList<>();
 
         for (int i = 0; i < NUM_LOCATIONS; i++) {
             int p1Power = powerResult.getPlayer1Powers().get(i);
             int p2Power = powerResult.getPlayer2Powers().get(i);
+            String locationName = locationNamesBySlot.getOrDefault(i, "Unknown Location");
 
             totalPlayer1Power += p1Power;
             totalPlayer2Power += p2Power;
 
             if (p1Power > p2Power) {
                 player1Wins++;
+                player1CapturedLocations.add(locationName);
             } else if (p2Power > p1Power) {
                 player2Wins++;
+                player2CapturedLocations.add(locationName);
             }
             // 동점인 경우는 아무도 점령하지 않음
         }
@@ -116,23 +151,57 @@ public class GameCalculationService {
         log.info("Location 점령 수 - Player1: {}, Player2: {}", player1Wins, player2Wins);
         log.info("총 파워 - Player1: {}, Player2: {}", totalPlayer1Power, totalPlayer2Power);
 
-        // 3. 최종 승자 결정
+        // 4. 최종 승자 결정
         Long winnerId = null;
+        String winnerNickname = null;
+        List<String> winnerCapturedLocationNames = new ArrayList<>();
+        String loserNickname = null;
+        List<String> loserCapturedLocationNames = new ArrayList<>();
+        int winnerTotalPower = 0;
+        int loserTotalPower = 0;
         if (player1Wins > player2Wins) {
             winnerId = powerResult.getPlayer1Id();
+            winnerNickname = userRepository.findById(winnerId)
+                    .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND)).getNickname();
+            winnerCapturedLocationNames.addAll(player1CapturedLocations);
+            winnerTotalPower = totalPlayer1Power;
+            loserNickname = userRepository.findById(powerResult.getPlayer2Id())
+                    .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND)).getNickname();
+            loserCapturedLocationNames.addAll(player2CapturedLocations);
+            loserTotalPower = totalPlayer2Power;
         } else if (player2Wins > player1Wins) {
             winnerId = powerResult.getPlayer2Id();
+            winnerNickname = userRepository.findById(winnerId)
+                    .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND)).getNickname();
+            winnerCapturedLocationNames.addAll(player2CapturedLocations);
+            winnerTotalPower = totalPlayer2Power;
+            loserNickname = userRepository.findById(powerResult.getPlayer1Id())
+                    .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND)).getNickname();
+            loserCapturedLocationNames.addAll(player1CapturedLocations);
+            loserTotalPower = totalPlayer1Power;
         } else {
             // Location 점령 수가 같으면 총 파워로 결정
             if (totalPlayer1Power > totalPlayer2Power) {
                 winnerId = powerResult.getPlayer1Id();
+                winnerCapturedLocationNames.addAll(player1CapturedLocations);
+                loserCapturedLocationNames.addAll(player2CapturedLocations);
+                winnerTotalPower = totalPlayer1Power;
+                loserTotalPower = totalPlayer2Power;
             } else if (totalPlayer2Power > totalPlayer1Power) {
                 winnerId = powerResult.getPlayer2Id();
+                winnerCapturedLocationNames.addAll(player2CapturedLocations);
+                loserCapturedLocationNames.addAll(player1CapturedLocations);
+                winnerTotalPower = totalPlayer2Power;
+                loserTotalPower = totalPlayer1Power;
+            } else {
+                // 쩔 수 없이 이렇게 해야 함. 다음엔 변수 설정할 때 확장성을 고려해야겠음.
+                winnerTotalPower = totalPlayer1Power;
+                loserTotalPower = totalPlayer2Power;
             }
-            // 그래도 같으면 무승부 (winnerId = null)
+
         }
 
-        // 4. Match 업데이트
+        // 5. Match 업데이트
         log.info("게임 종료 - 매치 상태를 ENDED로 변경: matchId={}, winnerId={}", matchId, winnerId);
         match.apply(new MatchUpdateReq(
                 MatchStatus.ENDED,
@@ -140,10 +209,10 @@ public class GameCalculationService {
                 null,
                 LocalDateTime.now()));
         match = matchRepository.save(match);
-        log.info("게임 종료 - 매치 상태 변경 완료: matchId={}, status={}, winnerId={}", 
+        log.info("게임 종료 - 매치 상태 변경 완료: matchId={}, status={}, winnerId={}",
                 matchId, match.getStatus(), match.getWinnerId());
 
-        // 5. MatchParticipant 최종 점수 업데이트
+        // 6. MatchParticipant 최종 점수 업데이트
         List<MatchParticipant> participants = matchParticipantRepository.findByMatch_MatchId(matchId);
         for (MatchParticipant participant : participants) {
             int finalScore = participant.getGuestId().equals(powerResult.getPlayer1Id())
@@ -156,7 +225,7 @@ public class GameCalculationService {
             matchParticipantRepository.save(participant);
         }
 
-        // 6. 사용자 통계 업데이트
+        // 7. 사용자 통계 업데이트
         updateUserStatistics(powerResult.getPlayer1Id(), powerResult.getPlayer2Id(), winnerId);
 
         log.info("게임 종료 완료 - 승자: {}", winnerId);
@@ -164,10 +233,12 @@ public class GameCalculationService {
         return GameEndResult.builder()
                 .matchId(matchId)
                 .winnerId(winnerId)
-                .player1LocationWins(player1Wins)
-                .player2LocationWins(player2Wins)
-                .player1TotalPower(totalPlayer1Power)
-                .player2TotalPower(totalPlayer2Power)
+                .winnerNickname(winnerNickname)
+                .loserNickname(loserNickname)
+                .winnerCapturedLocationNames(winnerCapturedLocationNames)
+                .loserCapturedLocationNames(loserCapturedLocationNames)
+                .winnerTotalPower(winnerTotalPower)
+                .loserTotalPower(loserTotalPower)
                 .build();
     }
 
@@ -183,14 +254,14 @@ public class GameCalculationService {
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
         // 매치 플레이 수 증가
-        player1.apply(new com.snaptale.backend.user.model.UserUpdateReq(
+        player1.apply(new UserUpdateReq(
                 null,
                 null,
                 player1.getMatchesPlayed() + 1,
                 null,
                 null,
                 null));
-        player2.apply(new com.snaptale.backend.user.model.UserUpdateReq(
+        player2.apply(new UserUpdateReq(
                 null,
                 null,
                 player2.getMatchesPlayed() + 1,
@@ -202,14 +273,14 @@ public class GameCalculationService {
         if (winnerId != null) {
             if (winnerId.equals(player1Id)) {
                 // Player 1 승리
-                player1.apply(new com.snaptale.backend.user.model.UserUpdateReq(
+                player1.apply(new UserUpdateReq(
                         null,
                         player1.getRankPoint() + 25,
                         null,
                         player1.getWins() + 1,
                         null,
                         null));
-                player2.apply(new com.snaptale.backend.user.model.UserUpdateReq(
+                player2.apply(new UserUpdateReq(
                         null,
                         Math.max(0, player2.getRankPoint() - 10),
                         null,
@@ -218,14 +289,14 @@ public class GameCalculationService {
                         null));
             } else {
                 // Player 2 승리
-                player2.apply(new com.snaptale.backend.user.model.UserUpdateReq(
+                player2.apply(new UserUpdateReq(
                         null,
                         player2.getRankPoint() + 25,
                         null,
                         player2.getWins() + 1,
                         null,
                         null));
-                player1.apply(new com.snaptale.backend.user.model.UserUpdateReq(
+                player1.apply(new UserUpdateReq(
                         null,
                         Math.max(0, player1.getRankPoint() - 10),
                         null,
@@ -235,14 +306,14 @@ public class GameCalculationService {
             }
         } else {
             // 무승부 - 각자 +5 포인트
-            player1.apply(new com.snaptale.backend.user.model.UserUpdateReq(
+            player1.apply(new UserUpdateReq(
                     null,
                     player1.getRankPoint() + 5,
                     null,
                     null,
                     null,
                     null));
-            player2.apply(new com.snaptale.backend.user.model.UserUpdateReq(
+            player2.apply(new UserUpdateReq(
                     null,
                     player2.getRankPoint() + 5,
                     null,
@@ -255,6 +326,247 @@ public class GameCalculationService {
         userRepository.save(player2);
 
         log.info("사용자 통계 업데이트 완료");
+    }
+
+    // ongoing 효과 적용
+    private int applyOngoingEffects(Long matchId, Long guestId, int slotIndex, List<Play> playerPlays) {
+        int totalBonus = 0;
+
+        // 해당 슬롯에 있는 카드들 확인 (턴 종료가 아닌 카드 플레이만)
+        // 각 카드는 한 번만 플레이되므로, 같은 slotIndex에 있는 카드들은 각각 하나의 Play 엔티티
+        List<Play> slotPlays = playerPlays.stream()
+                .filter(p -> p.getSlotIndex() != null && p.getSlotIndex() == slotIndex && !p.getIsTurnEnd())
+                .filter(p -> p.getCard() != null)
+                .toList();
+
+        // 각 카드별로 ongoing 효과 적용
+        for (Play play : slotPlays) {
+            Card card = play.getCard();
+            if (card == null || card.getEffect() == null || card.getEffect().isEmpty()) {
+                continue;
+            }
+
+            try {
+                CardEffect effect = parseCardEffect(card.getEffect());
+                if (effect != null && "ongoing".equals(effect.getType())) {
+                    // power_double_zone은 별도로 처리
+                    if ("power_double_zone".equals(effect.getAction())) {
+                        continue;
+                    }
+                    // 각 카드 인스턴스마다 효과 적용
+                    int bonus = calculateOngoingBonus(effect, matchId, guestId, playerPlays, card, slotIndex);
+                    totalBonus += bonus;
+                    if (bonus > 0) {
+                        log.info("ongoing 효과 적용: cardName={}, slotIndex={}, bonus={}",
+                                card.getName(), slotIndex, bonus);
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("ongoing 효과 파싱 실패: cardId={}, effect={}, error={}",
+                        card.getCardId(), card.getEffect(), e.getMessage());
+            }
+        }
+
+        return totalBonus;
+    }
+
+    // ongoing 효과 보너스 계산
+    private int calculateOngoingBonus(CardEffect effect, Long matchId, Long guestId,
+            List<Play> playerPlays, Card card, int slotIndex) {
+        String action = effect.getAction();
+
+        return switch (action) {
+            case "power_per_moved" -> calculatePowerPerMoved(effect, matchId, guestId, playerPlays, card);
+            case "power_if_cards_present" -> 0; // 카드 플레이 시 powerSnapshot에 이미 반영되므로 0
+            case "power_buff_zone" -> calculatePowerBuffZone(
+                    effect, matchId, guestId, slotIndex, playerPlays, card);
+            case "enable_move" -> {
+                log.debug("enable_move 효과 감지: cardName={}", card.getName());
+                yield 0; // 파워 보너스는 없음
+            }
+            case "power_double_zone" -> 0; // power_double_zone은 별도로 처리되므로 여기서는 0
+            default -> {
+                log.warn("지원하지 않는 ongoing 액션: action={}, cardName={}", action, card.getName());
+                yield 0;
+            }
+        };
+    }
+
+    // power_per_moved 효과 계산
+    private int calculatePowerPerMoved(CardEffect effect, Long matchId, Long guestId,
+            List<Play> playerPlays, Card card) {
+        int movedCardCount = countMovedCards(matchId, guestId, playerPlays);
+        try {
+            int powerPerCard = Integer.parseInt(effect.getValue().trim());
+            int totalBonus = movedCardCount * powerPerCard;
+            log.info("power_per_moved 효과: cardName={}, movedCardCount={}, powerPerCard={}, totalBonus={}",
+                    card.getName(), movedCardCount, powerPerCard, totalBonus);
+            return totalBonus;
+        } catch (NumberFormatException e) {
+            log.error("power_per_moved 값 파싱 실패: value={}, error={}", effect.getValue(), e.getMessage());
+            return 0;
+        }
+    }
+
+    // power_buff_zone 효과 계산 (손오공: 내 구역의 다른 모든 카드에 +1 파워) 테스트 완
+    private int calculatePowerBuffZone(CardEffect effect, Long matchId, Long guestId,
+            int slotIndex, List<Play> playerPlays, Card card) {
+        // 같은 구역의 다른 카드 수 계산 (자기 자신 제외)
+        long otherCardCount = playerPlays.stream()
+                .filter(p -> p.getSlotIndex() != null && p.getSlotIndex() == slotIndex && !p.getIsTurnEnd())
+                .filter(p -> p.getCard() != null)
+                .filter(p -> !p.getCard().getCardId().equals(card.getCardId()))
+                .count();
+
+        try {
+            int powerPerCard = Integer.parseInt(effect.getValue().trim());
+            int totalBonus = (int) otherCardCount * powerPerCard;
+            log.info("power_buff_zone 효과: cardName={}, slotIndex={}, otherCardCount={}, powerPerCard={}, totalBonus={}",
+                    card.getName(), slotIndex, otherCardCount, powerPerCard, totalBonus);
+            return totalBonus;
+        } catch (NumberFormatException e) {
+            log.error("power_buff_zone 값 파싱 실패: value={}, error={}", effect.getValue(), e.getMessage());
+            return 0;
+        }
+    }
+
+    // power_double_zone 효과 적용 (전체 파워를 두 배로 만드는 효과) 테스트 완
+    private int applyPowerDoubleZone(Long matchId, Long guestId, int slotIndex,
+            List<Play> playerPlays, int basePower) {
+        List<Play> slotPlays = playerPlays.stream()
+                .filter(p -> p.getSlotIndex() != null && p.getSlotIndex() == slotIndex && !p.getIsTurnEnd())
+                .filter(p -> p.getCard() != null)
+                .toList();
+
+        for (Play play : slotPlays) {
+            Card card = play.getCard();
+            if (card == null || card.getEffect() == null || card.getEffect().isEmpty()) {
+                continue;
+            }
+
+            try {
+                CardEffect effect = parseCardEffect(card.getEffect());
+                if (effect != null && "ongoing".equals(effect.getType())
+                        && "power_double_zone".equals(effect.getAction())) {
+                    // 전체 파워를 두 배로 만듦
+                    int doubledPower = basePower * 2;
+                    log.info("power_double_zone 효과 적용: cardName={}, slotIndex={}, basePower={}, doubledPower={}",
+                            card.getName(), slotIndex, basePower, doubledPower);
+                    return doubledPower;
+                }
+            } catch (Exception e) {
+                log.warn("power_double_zone 효과 파싱 실패: cardId={}, error={}",
+                        card.getCardId(), e.getMessage());
+            }
+        }
+
+        return basePower;
+    }
+
+    // 이동한 카드 수 계산
+    // 각 카드가 이전 턴과 비교하여 slotIndex가 변경되었는지 확인
+    // 같은 cardId를 가진 카드는 없으므로, 각 cardId는 고유함
+    private int countMovedCards(Long matchId, Long guestId, List<Play> playerPlays) {
+        // isTurnEnd가 false인 카드 플레이만 고려
+        List<Play> cardPlays = playerPlays.stream()
+                .filter(p -> p.getCard() != null && !p.getIsTurnEnd())
+                .sorted(Comparator.comparing(Play::getTurnCount)) // turnCount로 정렬
+                .toList();
+
+        // cardId별로 그룹화 (각 cardId는 고유하므로 각 그룹은 최대 1개의 Play만 가짐)
+        // 카드 이동 시 같은 cardId를 가진 새로운 Play가 생성되거나, 기존 Play의 slotIndex가 업데이트됨
+        Map<Long, List<Play>> playsByCardId = cardPlays.stream()
+                .collect(Collectors.groupingBy(p -> p.getCard().getCardId()));
+
+        int movedCount = 0;
+        for (Map.Entry<Long, List<Play>> entry : playsByCardId.entrySet()) {
+            List<Play> plays = entry.getValue();
+            if (plays.size() < 2) {
+                continue; // 한 번만 플레이된 카드는 이동하지 않음
+            }
+
+            // turnCount 순으로 정렬하여 이전 턴과 비교
+            plays.sort(Comparator.comparing(Play::getTurnCount));
+
+            // 이전 턴의 slotIndex를 추적
+            Integer lastSlotIndex = null;
+            for (Play play : plays) {
+                Integer currentSlotIndex = play.getSlotIndex();
+
+                if (lastSlotIndex != null && !lastSlotIndex.equals(currentSlotIndex)) {
+                    // 이전 턴의 slotIndex와 현재 턴의 slotIndex가 다르면 이동한 것으로 간주
+                    movedCount++;
+                    log.debug("카드 이동 감지: cardId={}, 이전 slotIndex={}, 현재 slotIndex={}, turnCount={}",
+                            play.getCard().getCardId(), lastSlotIndex, currentSlotIndex, play.getTurnCount());
+                }
+
+                // 현재 slotIndex를 기록 (다음 턴 비교를 위해)
+                if (currentSlotIndex != null) {
+                    lastSlotIndex = currentSlotIndex;
+                }
+            }
+        }
+
+        return movedCount;
+    }
+
+    // 카드 효과 파싱
+    private CardEffect parseCardEffect(String effectJson) {
+        if (effectJson == null || effectJson.isEmpty()) {
+            return null;
+        }
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode jsonNode = mapper.readTree(effectJson);
+
+            String type = jsonNode.has("type") ? jsonNode.get("type").asText() : null;
+            String action = jsonNode.has("action") ? jsonNode.get("action").asText() : null;
+            String target = jsonNode.has("target") ? jsonNode.get("target").asText() : null;
+            String value = jsonNode.has("value") ? jsonNode.get("value").asText() : null;
+            double probability = jsonNode.has("probability") ? jsonNode.get("probability").asDouble() : 1.0;
+
+            return new CardEffect(type, action, target, value, probability);
+        } catch (Exception e) {
+            log.error("카드 효과 JSON 파싱 실패: effectJson={}, error={}", effectJson, e.getMessage());
+            return null;
+        }
+    }
+
+    // 카드 효과를 담는 내부 클래스
+    private static class CardEffect {
+        private final String type;
+        private final String action;
+        private final String target;
+        private final String value;
+        private final double probability;
+
+        public CardEffect(String type, String action, String target, String value, double probability) {
+            this.type = type;
+            this.action = action;
+            this.target = target;
+            this.value = value;
+            this.probability = probability;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public String getAction() {
+            return action;
+        }
+
+        public String getTarget() {
+            return target;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        public double getProbability() {
+            return probability;
+        }
     }
 
     // Location별 파워 결과 DTO
@@ -301,20 +613,26 @@ public class GameCalculationService {
     public static class GameEndResult {
         private final Long matchId;
         private final Long winnerId;
-        private final int player1LocationWins;
-        private final int player2LocationWins;
-        private final int player1TotalPower;
-        private final int player2TotalPower;
+        private final String winnerNickname;
+        private final String loserNickname;
+        private final List<String> winnerCapturedLocationNames;
+        private final List<String> loserCapturedLocationNames;
+        private final int winnerTotalPower;
+        private final int loserTotalPower;
 
         @lombok.Builder
-        public GameEndResult(Long matchId, Long winnerId, int player1LocationWins,
-                int player2LocationWins, int player1TotalPower, int player2TotalPower) {
+        public GameEndResult(Long matchId, Long winnerId, String winnerNickname, String loserNickname,
+                List<String> winnerCapturedLocationNames,
+                List<String> loserCapturedLocationNames,
+                int winnerTotalPower, int loserTotalPower) {
             this.matchId = matchId;
             this.winnerId = winnerId;
-            this.player1LocationWins = player1LocationWins;
-            this.player2LocationWins = player2LocationWins;
-            this.player1TotalPower = player1TotalPower;
-            this.player2TotalPower = player2TotalPower;
+            this.winnerNickname = winnerNickname;
+            this.loserNickname = loserNickname;
+            this.winnerCapturedLocationNames = winnerCapturedLocationNames;
+            this.loserCapturedLocationNames = loserCapturedLocationNames;
+            this.winnerTotalPower = winnerTotalPower;
+            this.loserTotalPower = loserTotalPower;
         }
 
         public Long getMatchId() {
@@ -325,20 +643,28 @@ public class GameCalculationService {
             return winnerId;
         }
 
-        public int getPlayer1LocationWins() {
-            return player1LocationWins;
+        public String getWinnerNickname() {
+            return winnerNickname;
         }
 
-        public int getPlayer2LocationWins() {
-            return player2LocationWins;
+        public String getLoserNickname() {
+            return loserNickname;
         }
 
-        public int getPlayer1TotalPower() {
-            return player1TotalPower;
+        public List<String> getWinnerCapturedLocationNames() {
+            return winnerCapturedLocationNames;
         }
 
-        public int getPlayer2TotalPower() {
-            return player2TotalPower;
+        public List<String> getLoserCapturedLocationNames() {
+            return loserCapturedLocationNames;
+        }
+
+        public int getWinnerTotalPower() {
+            return winnerTotalPower;
+        }
+
+        public int getLoserTotalPower() {
+            return loserTotalPower;
         }
     }
 }
