@@ -113,7 +113,7 @@ public class LocationEffectService {
     }
 
     // location_id = 1인
-    // 도쿄 타워 : 이 구역에 낸 카드는 50% 확률로 파워를 +4 또는 -2 합니다.
+    // 도쿄 타워 : 이 구역에 낸 카드는 50% 확률로 파워를 +4 또는 -4 합니다.
     // 효과를 처리하는 핸들러
     private LocationEffectHandler createLocationOneHandler() {
         return new LocationEffectHandler() {
@@ -129,7 +129,7 @@ public class LocationEffectService {
                 }
 
                 int basePower = Optional.ofNullable(play.getPowerSnapshot()).orElse(0);
-                int delta = ThreadLocalRandom.current().nextBoolean() ? 4 : -2;
+                int delta = ThreadLocalRandom.current().nextBoolean() ? 4 : -4;
                 int updatedPower = basePower + delta;
 
                 play.setPowerSnapshot(updatedPower);
