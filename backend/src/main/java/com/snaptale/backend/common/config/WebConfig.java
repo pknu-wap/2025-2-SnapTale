@@ -17,6 +17,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "http://localhost:8080",
                         "https://snaptale.p-e.kr",
                         "https://www.snaptale.p-e.kr",
+                        "http://172.18.158.254:5173",
                         "https://snap-tale.netlify.app")
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 .allowedHeaders("*")

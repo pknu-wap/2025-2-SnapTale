@@ -7,6 +7,7 @@
   font-weight: 900;
   background: url("../../assets/energy.png") center/contain no-repeat;
   transition: transform 0.25s ease;
+  cursor: pointer;
 }
 
 .energy:hover {
@@ -21,6 +22,55 @@
   text-shadow: 0 0 8px rgba(255, 255, 255, 0.95);
 }
 
+.energy-tooltip {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translate(-50%, 10px);
+  width: 190%;
+  max-width: 190px;
+  padding: 12px 14px;
+  background: #fffaf4;
+  border: 1px solid #d3b48b;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+  color: #2c1105;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 3;
+}
+
+.energy-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 8px;
+  border-style: solid;
+  border-color: #fffaf4 transparent transparent transparent;
+  filter: drop-shadow(0 -1px 0 #d3b48b);
+}
+
+.energy-tooltip.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+}
+
+.energy-tooltip-title {
+  font-weight: 800;
+  margin-bottom: 6px;
+  color: #2c1105;
+}
+
+.energy-tooltip-text {
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: pre-line;
+}
+
 @media (max-width: 767px) {
   .energy {
     width: 56px;
@@ -29,5 +79,20 @@
   .energy-value {
     font-size: 18px;
     text-shadow: 0 0 5px rgba(255, 255, 255, 0.95);
+  }
+
+  .energy-tooltip {
+    width: 300%;
+    max-width: 220px;
+    padding: 6px 10px;
+  }
+
+  .energy-tooltip-title {
+    font-weight: 800;
+    margin-bottom: 5px;
+  }
+
+  .energy-tooltip-text {
+    font-size: 11px;
   }
 }

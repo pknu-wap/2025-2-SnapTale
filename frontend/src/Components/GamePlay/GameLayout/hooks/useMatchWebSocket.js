@@ -11,6 +11,8 @@ export default function useMatchWebSocket({
   setOpponentPowers,
   setOpponentBoardLanes,
   setGameEndModalState,
+  setIsGameEnded,
+  setIsReviewingBoard,
 }) {
   useEffect(() => {
     if (!matchId) {
@@ -51,6 +53,8 @@ export default function useMatchWebSocket({
         if (messageType === "GAME_END") {
           const gameState = payload;
 
+          setIsGameEnded(true);
+          setIsReviewingBoard(false);
           setGameEndModalState({
             isOpen: true,
             detail: gameState?.lastPlayInfo || "",
