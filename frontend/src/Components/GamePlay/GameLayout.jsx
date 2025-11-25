@@ -358,7 +358,15 @@ export default function GameLayout({ matchId }) {
     navigate("/home");
   };
 
-  const handleCardDrop = async ({ card, laneIndex, fromLaneIndex, fromSlotIndex, origin }) => {
+  const handleCardDrop = async ({ 
+    card,
+    laneIndex,
+    fromLaneIndex,
+    fromSlotIndex,
+    origin,
+    fromLocationId,
+    toLocationId,
+   }) => {
     if (!card || !card.cardId) {
       console.warn("[GameLayout] Slot에서 유효하지 않은 카드 데이터를 받았습니다.", { card, laneIndex });
       return;
@@ -380,10 +388,16 @@ export default function GameLayout({ matchId }) {
     const isMoveAction = origin === "board" && fromLaneIndex !== undefined && fromSlotIndex !== undefined;
 
     if (isMoveAction) {
+      if (fromLocationId === 9) {
+        alert("이 구역에서는 카드를 이동할 수 없습니다.");
+        return;
+      }
+
+      const sourceLocationId = fromLocationId ?? locations?.[fromLaneIndex]?.locationId;
       const limited = isMoveLimitedPerTurn(card);
       const alreadyMoved = limited && movedThisTurn[card.cardId] === turn;
 
-      if (!canMoveCard(card) || alreadyMoved) {
+      if (!canMoveCard(card, sourceLocationId) || alreadyMoved) {
         console.warn("이동 불가능한 카드이거나 이번 턴에 이미 이동했습니다.");
         return;
       }
@@ -428,6 +442,8 @@ export default function GameLayout({ matchId }) {
             fromCardPosition: fromSlotIndex,
             toSlotIndex: laneIndex,
             toCardPosition: slotIndex,
+            fromLocationId: sourceLocationId,
+            toLocationId,
           }),
         });
 
@@ -627,6 +643,7 @@ export default function GameLayout({ matchId }) {
                     laneIndex={i}                 
                     onDropCard={handleCardDrop}
                     cards={boardLanes[i]}
+                    locationId={locations[i]?.locationId}
                   />
                 </div>
               ))}
