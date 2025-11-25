@@ -228,6 +228,30 @@ public class MatchWebSocketService {
 
 		gameState.setLastPlayInfo(nickname + "님이 턴을 종료했습니다. 상대 종료 대기 중");
 
+		// 각 플레이어의 카드 배치 정보 수집 (턴 종료 시 상대방 카드도 보이도록)
+		Map<Long, List<TurnStatusMessage.CardPlayInfo>> playerCardPlays = new HashMap<>();
+		for (MatchParticipant participant : participants) {
+			List<Play> plays = playRepository.findByMatch_MatchIdAndGuestId(matchId, participant.getGuestId());
+
+			// 현재 턴까지의 카드 플레이만 필터링 (isTurnEnd가 false인 플레이만)
+			List<TurnStatusMessage.CardPlayInfo> cardPlays = plays.stream()
+					.filter(play -> !play.getIsTurnEnd() && play.getCard() != null)
+					.filter(play -> play.getTurnCount() != null && play.getTurnCount() <= match.getTurnCount())
+					.map(play -> TurnStatusMessage.CardPlayInfo.builder()
+							.cardId(play.getCard().getCardId())
+							.cardName(play.getCard().getName())
+							.cardImageUrl(play.getCard().getImageUrl())
+							.slotIndex(play.getSlotIndex())
+							.position(play.getCardPosition())
+							.cost(play.getCard().getCost())
+							.power(play.getPowerSnapshot())
+							.faction(play.getCard().getFaction())
+							.build())
+					.toList();
+
+			playerCardPlays.put(participant.getGuestId(), cardPlays);
+		}
+
 		TurnStatusMessage payload = TurnStatusMessage.builder()
 				.matchId(matchId)
 				.currentTurn(match.getTurnCount())
@@ -238,6 +262,7 @@ public class MatchWebSocketService {
 				.bothPlayersEnded(false)
 				.nextTurn(null)
 				.gameState(gameState)
+				.playerCardPlays(playerCardPlays)
 				.build();
 
 		broadcastToMatch(matchId, "TURN_WAITING", payload, nickname + "님이 턴을 종료했습니다.");

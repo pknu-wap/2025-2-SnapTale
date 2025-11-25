@@ -33,7 +33,6 @@ public class GameFlowService {
     private final MatchLocationRepository matchLocationRepository;
     private final MatchLocationService matchLocationService;
     private static final int INITIAL_ENERGY = 1;
-    private static final int ENERGY_PER_TURN = 1;
 
     // 게임 시작 (턴 카운트를 1로 설정하고 상태를 PLAYING으로 변경)
     @Transactional
@@ -99,21 +98,20 @@ public class GameFlowService {
         match.apply(new MatchUpdateReq(null, null, nextTurn, null));
         matchRepository.save(match);
 
+        // 모든 플레이어에게 턴 수에 맞는 에너지 설정 및 다음 턴 에너지 보너스 적용
         List<MatchParticipant> participants = matchParticipantRepository.findByMatch_MatchId(matchId);
-
-        // 모든 플레이어에게 턴마다 에너지 추가 및 다음 턴 에너지 보너스 적용
         for (MatchParticipant participant : participants) {
-            // 기본 에너지 추가
-            MatchParticipant updatedParticipant = participant.addEnergy(ENERGY_PER_TURN);
+            // 턴 수에 맞는 에너지로 설정 (1턴 = 1, 2턴 = 2, 3턴 = 3)
+            participant.setEnergy(nextTurn);
             // 다음 턴 에너지 보너스 적용
-            updatedParticipant.applyNextTurnEnergyBonus();
-            matchParticipantRepository.save(updatedParticipant);
+            participant.applyNextTurnEnergyBonus();
+            matchParticipantRepository.save(participant);
         }
 
         // 이번 턴 드로우 수행
         Map<Long, Card> drawnCards = performTurnDraw(match);
-        log.info("턴 시작 완료: matchId={}, turn={}, drawnParticipants={}, addedEnergy={}",
-                matchId, nextTurn, drawnCards.keySet(), ENERGY_PER_TURN);
+        log.info("턴 시작 완료: matchId={}, turn={}, drawnParticipants={}, energy={}",
+                matchId, nextTurn, drawnCards.keySet(), nextTurn);
 
         return new TurnStartResult(nextTurn, drawnCards);
     }
