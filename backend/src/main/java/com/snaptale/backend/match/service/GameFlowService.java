@@ -32,7 +32,7 @@ public class GameFlowService {
     private final MatchParticipantRepository matchParticipantRepository;
     private final MatchLocationRepository matchLocationRepository;
     private final MatchLocationService matchLocationService;
-    private static final int INITIAL_ENERGY = 100;
+    private static final int INITIAL_ENERGY = 1;
     private static final int ENERGY_PER_TURN = 1;
 
     // 게임 시작 (턴 카운트를 1로 설정하고 상태를 PLAYING으로 변경)
