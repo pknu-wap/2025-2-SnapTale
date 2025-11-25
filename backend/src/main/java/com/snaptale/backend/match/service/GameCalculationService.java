@@ -46,6 +46,7 @@ public class GameCalculationService {
     private final UserRepository userRepository;
 
     private static final int NUM_LOCATIONS = 3;
+    private static final long CARD_EFFECTS_DISABLED_LOCATION_ID = 9L;
 
     // 각 Location별 현재 파워 계산
     public LocationPowerResult calculateLocationPowers(Long matchId) {
@@ -62,6 +63,15 @@ public class GameCalculationService {
         Long player1Id = participants.get(0).getGuestId();
         Long player2Id = participants.get(1).getGuestId();
 
+        List<MatchLocation> matchLocations = matchLocationRepository.findByMatchIdWithFetch(matchId);
+        Map<Integer, Long> locationIdsBySlot = matchLocations.stream()
+                .collect(Collectors.toMap(MatchLocation::getSlotIndex,
+                        ml -> Optional.ofNullable(ml.getLocation())
+                                .map(location -> location.getLocationId())
+                                .orElse(null),
+                        (existing, replacement) -> existing));
+
+
         // 각 Location별 파워 계산
         Map<Integer, Integer> player1Powers = new HashMap<>();
         Map<Integer, Integer> player2Powers = new HashMap<>();
@@ -72,19 +82,26 @@ public class GameCalculationService {
 
         for (int slotIndex = 0; slotIndex < NUM_LOCATIONS; slotIndex++) {
 
+            Long locationId = locationIdsBySlot.get(slotIndex);
+            boolean cardEffectsDisabled = Objects.equals(locationId, CARD_EFFECTS_DISABLED_LOCATION_ID);
+
             Integer p1Sum = playRepository.sumPowerSnapshotByMatchAndGuestIdAndSlotIndex(matchId, player1Id, slotIndex);
             int p1Power = p1Sum != null ? p1Sum.intValue() : 0;
 
             Integer p2Sum = playRepository.sumPowerSnapshotByMatchAndGuestIdAndSlotIndex(matchId, player2Id, slotIndex);
             int p2Power = p2Sum != null ? p2Sum.intValue() : 0;
 
-            // power_double_zone 효과 적용 (다른 효과보다 먼저 적용)
-            p1Power = applyPowerDoubleZone(matchId, player1Id, slotIndex, player1Plays, p1Power);
-            p2Power = applyPowerDoubleZone(matchId, player2Id, slotIndex, player2Plays, p2Power);
+            // power_double_zone 및 다른 ongoing 효과 적용
+            if (!cardEffectsDisabled) {
+                p1Power = applyPowerDoubleZone(matchId, player1Id, slotIndex, player1Plays, p1Power);
+                p2Power = applyPowerDoubleZone(matchId, player2Id, slotIndex, player2Plays, p2Power);
 
-            // 다른 ongoing 효과 적용
-            p1Power += applyOngoingEffects(matchId, player1Id, slotIndex, player1Plays);
-            p2Power += applyOngoingEffects(matchId, player2Id, slotIndex, player2Plays);
+                p1Power += applyOngoingEffects(matchId, player1Id, slotIndex, player1Plays, cardEffectsDisabled);
+                p2Power += applyOngoingEffects(matchId, player2Id, slotIndex, player2Plays, cardEffectsDisabled);
+            } else {
+                log.info("카드 효과 비활성화 지역 - ongoing 계산 스킵: matchId={}, slotIndex={}, locationId={}",
+                        matchId, slotIndex, locationId);
+            }
 
             player1Powers.put(slotIndex, p1Power);
             player2Powers.put(slotIndex, p2Power);
@@ -328,8 +345,11 @@ public class GameCalculationService {
         log.info("사용자 통계 업데이트 완료");
     }
 
-    // ongoing 효과 적용
-    private int applyOngoingEffects(Long matchId, Long guestId, int slotIndex, List<Play> playerPlays) {
+    private int applyOngoingEffects(Long matchId, Long guestId, int slotIndex, List<Play> playerPlays,
+                                    boolean cardEffectsDisabled) {
+        if (cardEffectsDisabled) {
+            return 0;
+        }
         int totalBonus = 0;
 
         // 해당 슬롯에 있는 카드들 확인 (턴 종료가 아닌 카드 플레이만)

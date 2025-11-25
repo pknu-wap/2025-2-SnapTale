@@ -46,6 +46,7 @@ const Card = ({
   fromLaneIndex = null,
   fromSlotIndex = null,
   isMoveAvailable = false,
+  locationId = null,
 }) => {
   console.log({
     cardId,
@@ -76,6 +77,7 @@ const Card = ({
           origin,
           fromLaneIndex,
           fromSlotIndex,
+          fromLocationId: locationId,
         },
         collect: (monitor) => ({
           isDragging: monitor.isDragging(),
@@ -94,6 +96,7 @@ const Card = ({
         origin,
         fromLaneIndex,
         fromSlotIndex,
+        locationId,
         isDraggable,
       ]
     );

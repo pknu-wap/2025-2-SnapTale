@@ -99,8 +99,9 @@ public class GameFlowService {
         match.apply(new MatchUpdateReq(null, null, nextTurn, null));
         matchRepository.save(match);
 
-        // 모든 플레이어에게 턴마다 에너지 추가 및 다음 턴 에너지 보너스 적용
         List<MatchParticipant> participants = matchParticipantRepository.findByMatch_MatchId(matchId);
+
+        // 모든 플레이어에게 턴마다 에너지 추가 및 다음 턴 에너지 보너스 적용
         for (MatchParticipant participant : participants) {
             // 기본 에너지 추가
             MatchParticipant updatedParticipant = participant.addEnergy(ENERGY_PER_TURN);

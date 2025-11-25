@@ -12,6 +12,7 @@ export default function Slot({
   cards = [null, null, null, null],
   movedThisTurnMap = {},
   currentTurn = 1,
+  locationId = null,
 }) {
   const firstEmpty = useMemo(() => cards.findIndex((c) => !c), [cards]); //cards 배열에서 첫 번째 빈 칸의 인덱스 찾기
   const isFull = firstEmpty === -1;
@@ -23,7 +24,7 @@ export default function Slot({
       if (!allowDrop) return false;
       if (item?.origin === "board") {
         if (item.fromLaneIndex === laneIndex) return false; // 같은 지역으로 이동 방지
-        if (!canMoveCard(item)) return false;
+        if (!canMoveCard(item, item.fromLocationId)) return false;
 
         const limited = isMoveLimitedPerTurn(item);
         if (limited && movedThisTurnMap[item.cardId] === currentTurn) return false;
@@ -37,6 +38,8 @@ export default function Slot({
         fromLaneIndex: item.fromLaneIndex,
         fromSlotIndex: item.fromSlotIndex,
         origin: item.origin,
+        fromLocationId: item.fromLocationId,
+        toLocationId: locationId,
       });
       return { moved: true };
     },
@@ -78,15 +81,16 @@ export default function Slot({
                 isDraggable={
                   isMySide &&
                   !disabled &&
-                  canMoveCard(card) &&
+                  canMoveCard(card, locationId) &&
                   !(isMoveLimitedPerTurn(card) && movedThisTurnMap[card.cardId] === currentTurn)
                 }
                 isMoveAvailable={
                   isMySide &&
                   !disabled &&
-                  canMoveCard(card) &&
+                  canMoveCard(card, locationId) &&
                   !(isMoveLimitedPerTurn(card) && movedThisTurnMap[card.cardId] === currentTurn)
                 }
+                locationId={locationId}
               />
             )}
           </div>
