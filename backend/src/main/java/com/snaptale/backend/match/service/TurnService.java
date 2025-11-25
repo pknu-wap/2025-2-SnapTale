@@ -48,6 +48,7 @@ public class TurnService {
     private static final int NUM_LOCATIONS = 3;
     private static final long TURN_SIX_ONLY_LOCATION_ID = 6L;
     private static final long GYEONGBOKGUNG_LOCATION_ID = 3L;
+    private static final long CARD_EFFECTS_DISABLED_LOCATION_ID = 9L;
 
 
     // 카드 제출 처리
@@ -110,9 +111,10 @@ public class TurnService {
         // 8. 카드 효과 적용 (on_reveal 및 ongoing 효과 처리)
         Integer turnCount = match.getTurnCount() != null ? match.getTurnCount() : 0;
         Integer powerSnapshot = card.getPower() != null ? card.getPower() : 0;
+        boolean cardEffectsDisabled = isCardEffectDisabledLocation(matchId, slotIndex);
 
         // on_reveal 효과 처리
-        if (card.getEffect() != null && !card.getEffect().isEmpty()) {
+        if (!cardEffectsDisabled && card.getEffect() != null && !card.getEffect().isEmpty()) {
             try {
                 CardEffect effect = parseCardEffect(card.getEffect());
                 if (effect != null && "on_reveal".equals(effect.getType())) {
@@ -136,6 +138,9 @@ public class TurnService {
                 log.warn("카드 효과 파싱 실패: cardId={}, effect={}, error={}",
                         card.getCardId(), card.getEffect(), e.getMessage());
             }
+        } else if (cardEffectsDisabled) {
+            log.info("카드 효과 비활성화 지역 - on_reveal 스킵: matchId={}, slotIndex={}, locationId={}",
+                    matchId, slotIndex, CARD_EFFECTS_DISABLED_LOCATION_ID);
         }
 
         // Play 저장 (ongoing 효과 계산을 위해 먼저 저장)
@@ -157,7 +162,7 @@ public class TurnService {
         locationEffectService.handleOnReveal(matchId, slotIndex, play, participant);
 
         // ongoing 효과 즉시 적용
-        if (card.getEffect() != null && !card.getEffect().isEmpty()) {
+        if (!cardEffectsDisabled && card.getEffect() != null && !card.getEffect().isEmpty()) {
             try {
                 CardEffect effect = parseCardEffect(card.getEffect());
                 if (effect != null && "ongoing".equals(effect.getType())) {
@@ -175,8 +180,10 @@ public class TurnService {
                 log.warn("ongoing 효과 적용 실패: cardId={}, error={}",
                         card.getCardId(), e.getMessage());
             }
+        } else if (cardEffectsDisabled) {
+            log.info("카드 효과 비활성화 지역 - ongoing 스킵: matchId={}, slotIndex={}, locationId={}",
+                    matchId, slotIndex, CARD_EFFECTS_DISABLED_LOCATION_ID);
         }
-
         log.info("카드 제출 완료: playId={}", play.getId());
     }
 
@@ -522,31 +529,43 @@ public class TurnService {
     }
 
     private boolean isGyeongbokgungLocation(Long matchId, Integer slotIndex) {
+        Optional<MatchLocation> matchLocation = findMatchLocation(matchId, slotIndex);
+
+        if (matchLocation.isEmpty()) {
+            return false;
+        }
+
+        MatchLocation location = matchLocation.get();
+        Long locationId = Optional.ofNullable(location.getLocation()).map(Location::getLocationId).orElse(null);
+        boolean isGyeongbokgung = Objects.equals(locationId, GYEONGBOKGUNG_LOCATION_ID);
+        log.info("매치 지역 확인: matchId={}, slotIndex={}, locationId={}, isGyeongbokgung={}",
+                matchId, slotIndex, locationId, isGyeongbokgung);
+        return isGyeongbokgung;
+    }
+
+    private boolean isCardEffectDisabledLocation(Long matchId, Integer slotIndex) {
+        Optional<MatchLocation> matchLocation = findMatchLocation(matchId, slotIndex);
+
+        if (matchLocation.isEmpty()) {
+            return false;
+        }
+
+        Long locationId = Optional.ofNullable(matchLocation.get().getLocation()).map(Location::getLocationId)
+                .orElse(null);
+        boolean effectDisabled = Objects.equals(locationId, CARD_EFFECTS_DISABLED_LOCATION_ID);
+        log.info("카드 효과 비활성화 지역 확인: matchId={}, slotIndex={}, locationId={}, disabled={}",
+                matchId, slotIndex, locationId, effectDisabled);
+        return effectDisabled;
+    }
+
+    private Optional<MatchLocation> findMatchLocation(Long matchId, Integer slotIndex) {
         try {
-            List<MatchLocation> matchLocations = matchLocationRepository.findByMatchIdWithFetch(matchId);
-            Optional<MatchLocation> matchLocation = matchLocations.stream()
+            return matchLocationRepository.findByMatchIdWithFetch(matchId).stream()
                     .filter(ml -> ml.getSlotIndex() != null && ml.getSlotIndex().equals(slotIndex))
                     .findFirst();
-
-            if (matchLocation.isEmpty()) {
-                log.warn("매치 지역을 찾을 수 없습니다: matchId={}, slotIndex={}", matchId, slotIndex);
-                return false;
-            }
-
-            MatchLocation location = matchLocation.get();
-            if (location.getLocation() == null || location.getLocation().getLocationId() == null) {
-                log.warn("매치 지역 정보가 부족합니다: matchLocationId={}, slotIndex={}", location.getId(), slotIndex);
-                return false;
-            }
-
-            boolean isGyeongbokgung = Objects.equals(location.getLocation().getLocationId(),
-                    GYEONGBOKGUNG_LOCATION_ID);
-            log.info("매치 지역 확인: matchId={}, slotIndex={}, locationId={}, isGyeongbokgung={}",
-                    matchId, slotIndex, location.getLocation().getLocationId(), isGyeongbokgung);
-            return isGyeongbokgung;
         } catch (Exception e) {
             log.warn("매치 지역 조회 중 오류 발생: matchId={}, slotIndex={}, error={}", matchId, slotIndex, e.getMessage());
-            return false;
+            return Optional.empty();
         }
     }
 
@@ -627,6 +646,10 @@ public class TurnService {
 
         for (Play play : plays) {
             if (play.getCard() == null || play.getIsTurnEnd()) {
+                continue;
+            }
+
+            if (play.getSlotIndex() != null && isCardEffectDisabledLocation(matchId, play.getSlotIndex())) {
                 continue;
             }
 
