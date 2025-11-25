@@ -228,6 +228,12 @@ public class TurnService {
         MatchParticipant participant = matchParticipantRepository.findByMatch_MatchIdAndGuestId(matchId, participantId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_PARTICIPANT_NOT_FOUND));
 
+        if (isCardEffectDisabledLocation(matchId, fromSlotIndex)) {
+            log.info("카드 이동 차단: 카드 효과 비활성화 지역에서 이동 시도 - matchId={}, fromSlotIndex={} (locationId={})",
+                    matchId, fromSlotIndex, CARD_EFFECTS_DISABLED_LOCATION_ID);
+            throw new BaseException(BaseResponseStatus.INVALID_LOCATION_FOR_TURN);
+        }
+
         // 2. 카드 확인
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.CARD_NOT_FOUND));
