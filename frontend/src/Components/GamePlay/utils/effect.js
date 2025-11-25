@@ -30,7 +30,8 @@ export function getMoveEffects(card) {
   );
 }
 
-export function canMoveCard(card) {
+export function canMoveCard(card, locationId) {
+  if (locationId === 9) return false;
   return getMoveEffects(card).length > 0;
 }
 
