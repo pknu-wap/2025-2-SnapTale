@@ -44,6 +44,7 @@ public class LocationEffectService {
         registerHandler(5L, createLocationFiveHandler());
         // 인천 공항(location_id=6) 효과는 TurnService에서 처리함.
         registerHandler(7L, createLocationSevenHandler());
+        registerHandler(8L, createLocationEightHandler());
 
     }
 
@@ -360,13 +361,13 @@ public class LocationEffectService {
                 Integer turnCount = context.getTurnCount();
 
                 if (matchId == null || slotIndex == null || turnCount == null) {
-                    log.warn("Location#2 onTurnEnd 호출 시 필수 값이 누락되었습니다: matchId={}, slotIndex={}, turnCount={}",
+                    log.warn("Location#7 onTurnEnd 호출 시 필수 값이 누락되었습니다: matchId={}, slotIndex={}, turnCount={}",
                             matchId, slotIndex, turnCount);
                     return;
                 }
 
                 if (isLocationTurnEndLogged(matchId, turnCount, slotIndex)) {
-                    log.info("Location#2 onTurnEnd 이미 처리됨: matchId={}, slotIndex={}, turnCount={}",
+                    log.info("Location#7 onTurnEnd 이미 처리됨: matchId={}, slotIndex={}, turnCount={}",
                             matchId, slotIndex, turnCount);
                     return;
                 }
@@ -377,10 +378,10 @@ public class LocationEffectService {
                     latestPlays.forEach(play -> play.setPowerSnapshot(play.getPowerSnapshot() - 1));
                     playRepository.saveAll(latestPlays);
 
-                    log.info("Location#2 onTurnEnd effect applied: matchId={}, slotIndex={}, affectedPlays={}",
+                    log.info("Location#7 onTurnEnd effect applied: matchId={}, slotIndex={}, affectedPlays={}",
                             matchId, slotIndex, latestPlays.size());
                 } else {
-                    log.info("Location#2 onTurnEnd 적용 대상 없음: matchId={}, slotIndex={}", matchId, slotIndex);
+                    log.info("Location#7 onTurnEnd 적용 대상 없음: matchId={}, slotIndex={}", matchId, slotIndex);
                 }
 
                 Play turnEndLog = Play.builder()
@@ -392,6 +393,45 @@ public class LocationEffectService {
                         .build();
 
                 playRepository.save(turnEndLog);
+            }
+        };
+    }
+
+    // location_id = 8인
+    // 백귀야행 거리 : 이 구역에 낸 카드는 25% 확률로 파워가 0이 됩니다.
+    // 효과를 처리하는 핸들러
+    private LocationEffectHandler createLocationEightHandler() {
+        return new LocationEffectHandler() {
+            @Override
+            public void onPlay(LocationEffectContext context) {
+                Play play = context.getPlay();
+
+                if (play == null) {
+                    log.warn("Location#8 onPlay 호출 시 play 가 null 입니다: matchId={}, slotIndex={}, participantGuestId={}",
+                            Optional.ofNullable(context.getMatch()).map(match -> match.getMatchId()).orElse(null),
+                            context.getSlotIndex(),
+                            Optional.ofNullable(context.getParticipant()).map(MatchParticipant::getGuestId).orElse(null));
+                    return;
+                }
+
+                boolean shouldZeroPower = ThreadLocalRandom.current().nextInt(100) < 25;
+                if (!shouldZeroPower) {
+                    log.info("Location#8 onPlay 효과 미발동: matchId={}, slotIndex={}, guestId={}, cardId={}",
+                            Optional.ofNullable(context.getMatch()).map(match -> match.getMatchId()).orElse(null),
+                            context.getSlotIndex(),
+                            play.getGuestId(),
+                            Optional.ofNullable(play.getCard()).map(card -> card.getCardId()).orElse(null));
+                    return;
+                }
+
+                play.setPowerSnapshot(0);
+                playRepository.save(play);
+
+                log.info("Location#8 onPlay effect applied: matchId={}, slotIndex={}, guestId={}, cardId={}",
+                        Optional.ofNullable(context.getMatch()).map(match -> match.getMatchId()).orElse(null),
+                        context.getSlotIndex(),
+                        play.getGuestId(),
+                        Optional.ofNullable(play.getCard()).map(card -> card.getCardId()).orElse(null));
             }
         };
     }
