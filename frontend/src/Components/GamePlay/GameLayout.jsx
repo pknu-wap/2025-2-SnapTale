@@ -258,6 +258,7 @@ export default function GameLayout({ matchId }) {
     setMyPowers,
     setOpponentPowers,
     setOpponentBoardLanes,
+    setBoardLanes,
     setGameEndModalState,
     setIsGameEnded,
     setIsReviewingBoard,
