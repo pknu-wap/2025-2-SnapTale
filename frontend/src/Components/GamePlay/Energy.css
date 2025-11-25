@@ -23,10 +23,10 @@
 }
 
 .energy-tooltip {
-  position: absolute;
-  bottom: calc(100% + 10px);
-  left: 50%;
-  transform: translate(-50%, 10px);
+  position: fixed;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, calc(-100% + 10px));
   width: 190%;
   max-width: 190px;
   padding: 12px 14px;
@@ -38,7 +38,7 @@
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.2s ease, transform 0.2s ease;
-  z-index: 3;
+  z-index: 1300;
 }
 
 .energy-tooltip::after {
@@ -54,18 +54,21 @@
 }
 
 .energy-tooltip.show {
+  width: 160px;
   opacity: 1;
   visibility: visible;
-  transform: translate(-50%, 0);
+  transform: translate(-50%, calc(-100% - 4px));
 }
 
 .energy-tooltip-title {
+  text-align: center;
   font-weight: 800;
   margin-bottom: 6px;
   color: #2c1105;
 }
 
 .energy-tooltip-text {
+  text-align: center;
   font-size: 13px;
   line-height: 1.4;
   white-space: pre-line;
