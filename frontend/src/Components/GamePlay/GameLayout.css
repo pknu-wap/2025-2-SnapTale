@@ -167,8 +167,8 @@
 .board-grid {
   width: 640px;
   display: grid;
-  grid-template-columns: repeat(3, 192px);
-  grid-template-rows: 154px 320px 154px;
+  grid-template-columns: repeat(3, 195px);
+  grid-template-rows: 154px 330px 154px;
   column-gap: 28px;
   row-gap: 18px;
   justify-content: center;

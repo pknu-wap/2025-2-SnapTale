@@ -52,7 +52,7 @@
     max-width: 280px;
     height: 165px;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 0.6fr 1.4fr;
     grid-template-rows: auto 1fr;
     grid-template-areas:
       "matchup matchup"
@@ -62,7 +62,7 @@
     align-content: center;
     row-gap: 10px;
     column-gap: 10px;
-    padding: 20px 12px 12px;
+    padding: 15px 1px 15px;
     border-radius: 20px;
     background: linear-gradient(158deg, rgba(22, 13, 5, 0.5) 0px, rgba(22, 13, 5, 0.24) 200px);
     box-shadow: 0 0 22px rgba(0, 0, 0, 0.24);
@@ -70,10 +70,9 @@
 
   .hud-matchup {
     grid-area: matchup;
-    width: 100%;
-    max-width: 230px;
-    min-height: 50px;
-    padding: 14px 10px;
+    width: 230px;
+    min-height: 30px;
+    padding: 12px 10px;
     flex-direction: row;
     justify-content: center;
     align-self: center;
@@ -96,6 +95,7 @@
     width: 100%;
     align-items: center;
     justify-content: center;
+    padding: 7px;
   }
 
   .hud-section > * {
@@ -138,7 +138,7 @@
 
   .end-turn-button {
     grid-area: button;
-    width: 100px;
+    width: 150px;
     padding: 8px 8px;
     border-radius: 17px;
     font-size: 15px;

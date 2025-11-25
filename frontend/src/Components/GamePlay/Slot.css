@@ -96,16 +96,63 @@
   }
 
   .slot__grid {
-    gap: 6px;
+    gap: 5px;
   }
 
   .slot__cell {
-    width: 30px;
-    height: 40px;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
   }
 
   .slot__cell .card-container {
-    width: 62px;
-    height: 92px;
+    width: 100%;
+    height: 100%;
+    border-radius: 5px;
+  }
+
+   .slot__cell .card-image {
+    border-width: 2px;
+    border-radius: 5px;
+    width: 100%;
+    height: 100%;
+    inset: 0;
+    object-fit: cover;
+  }
+
+  .slot__cell .card-cost-container,
+  .slot__cell .card-power-container {
+    width: 12px;
+    height: 12px;
+  }
+
+  .slot__cell .icon {
+    width: 12px;
+    height: 12px;
+  }
+
+  .slot__cell .icon-text {
+    font-size: 8px;
+    text-shadow: 0 0 3px rgba(0,0,0,0.5);
+  }
+
+  .slot__cell .card-cost-container {
+    top: -3px;
+    left: -2px;
+  }
+
+  .slot__cell .card-power-container {
+    top: -3px;
+    right: -5px;
+  }
+
+  .slot__cell .card-name {
+    font-size: 9.5px;
+    bottom: 0px;
+    width: 92%;
+    padding-inline: 2px;
+    line-height: 0;
+    white-space: nowrap;
   }
 }
