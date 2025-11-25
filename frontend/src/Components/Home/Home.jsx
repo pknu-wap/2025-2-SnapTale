@@ -9,6 +9,7 @@ import DCModal from './DeckCheckModal';
 import { useState, useEffect } from "react"; 
 import { joinMatch, createMatch } from "./api/match";
 import { useUser } from "../../contexts/UserContext";
+import { useNavigate } from "react-router-dom";
 
 
 const Home = () => {
@@ -20,6 +21,7 @@ const Home = () => {
   const [matchCode, setMatchCode] = useState(""); // 매치코드 값 저장
   const [currentMatchId, setCurrentMatchId] = useState(null); // 매치의 matchId 저장
   const { user, updateUser } = useUser();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!user) {
@@ -187,6 +189,7 @@ const Home = () => {
             />
             <Button 
               text={"튜토리얼"} 
+              onClick={() => navigate("/tutorial")}
               disabled={showDeckModal || openRDModal || openFriendlyModal || openCreateModal || openJoinModal} 
             />
           {showDeckModal && <DCModal />}

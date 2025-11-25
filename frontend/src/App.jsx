@@ -2,6 +2,7 @@ import './App.css'
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import  Init  from "./Components/Init/Init";
 import  Home  from "./Components/Home/Home";
+import Tutorial from "./Components/Tutorial/Tutorial";
 import  DeckCheck from "./Components/DeckCheck/DeckCheck";
 import  GameLoading from "./Components/Home/GameLoading";
 import  GamePlay  from "./Components/GamePlay/Index";
@@ -20,6 +21,8 @@ function AppShell() {
             <Route path="/" element={<Init />} />
             {/* 메인 홈 화면 */}
             <Route path="/home" element={<Home />} />
+            {/* 튜토리얼 화면 */}
+            <Route path="/tutorial" element={<Tutorial />} />
             {/* 덱 확인 화면 */}
             <Route path="/deck" element={<DeckCheck />} />
             {/* 게임 로딩 화면 */}
