@@ -26,11 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.snaptale.backend.match.model.request.MatchUpdateReq;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 // Match 도메인 WebSocket 비즈니스 로직 처리
@@ -280,11 +277,18 @@ public class MatchWebSocketService {
 		// 각 플레이어의 카드 배치 정보 수집
 		Map<Long, List<TurnStatusMessage.CardPlayInfo>> playerCardPlays = new HashMap<>();
 		for (MatchParticipant participant : participants) {
-			List<Play> plays = playRepository.findByMatch_MatchIdAndGuestId(matchId, participant.getGuestId());
+			List<Play> plays = playRepository.findActiveByMatchIdAndGuestId(matchId, participant.getGuestId());
 
-			// isTurnEnd가 false인 플레이만 필터링 (실제 카드 플레이)
-			List<TurnStatusMessage.CardPlayInfo> cardPlays = plays.stream()
-					.filter(play -> !play.getIsTurnEnd() && play.getCard() != null)
+			// 동일 카드에 대한 최신 이동 기록만 유지
+			Map<Long, Play> latestPlaysByCard = plays.stream()
+					.filter(play -> play.getCard() != null)
+					.filter(this::isActiveBoardPlay)
+					.collect(Collectors.toMap(
+							play -> play.getCard().getCardId(),
+							Function.identity(),
+							this::selectLatestPlay));
+
+			List<TurnStatusMessage.CardPlayInfo> cardPlays = latestPlaysByCard.values().stream()
 					.map(play -> TurnStatusMessage.CardPlayInfo.builder()
 							.cardId(play.getCard().getCardId())
 							.cardName(play.getCard().getName())
@@ -313,6 +317,18 @@ public class MatchWebSocketService {
 				.build();
 
 		broadcastToMatch(matchId, "TURN_START", payload, "턴 " + turnResult.getNextTurn() + "이 시작되었습니다.");
+	}
+
+	private boolean isActiveBoardPlay(Play play) {
+		int powerSnapshot = Optional.ofNullable(play.getPowerSnapshot()).orElse(0);
+		return !Boolean.TRUE.equals(play.getIsTurnEnd()) || powerSnapshot > 0;
+	}
+
+	private Play selectLatestPlay(Play existing, Play candidate) {
+		Comparator<Play> playRecencyComparator = Comparator.comparing(Play::getTurnCount)
+				.thenComparing(Play::getId);
+
+		return playRecencyComparator.compare(existing, candidate) >= 0 ? existing : candidate;
 	}
 
 	// 매치 채팅 처리
