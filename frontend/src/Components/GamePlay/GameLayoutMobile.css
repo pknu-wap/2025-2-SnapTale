@@ -41,9 +41,8 @@
     height: auto;
     min-height: 540px;
     box-sizing: border-box;
-
+    margin: 0 auto;
     margin-top: 170px;
-    margin-left: 10px;
   }
 
   .hud-panel {
