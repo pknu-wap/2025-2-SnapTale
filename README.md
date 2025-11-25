@@ -10,7 +10,10 @@
 <img width="2000" height="1125" alt="image" src="https://github.com/user-attachments/assets/2376acea-97e5-45c8-8ccd-f168f3103016" />
 
 SnapTale은 **WebSocket 기반 실시간 카드 배틀 게임**입니다.  
-삼국지, 홍길동 등 동양의 전설적인 영웅들을 카드로 활용하여, 친숙하면서도 독특한 전략적 재미를 제공합니다.  
+홍길동, 각시탈, 닌자, 오니, 여포, 손오공 등 동양의 캐릭터를 활용하여, 친숙하면서도 독특한 재미를 제공합니다.
+<img width="1827" height="424" alt="image" src="https://github.com/user-attachments/assets/98e407a0-e0f3-4c43-bef4-419cc0b24aa7" />
+
+ 
 
 - **플랫폼**: 웹앱(Web App)  
 - **지원 환경**: PC 및 모바일 브라우저  
