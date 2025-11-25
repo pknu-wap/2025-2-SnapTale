@@ -277,6 +277,7 @@ public class TurnService {
         // 6. 이전 슬롯의 Play 파워를 0으로 설정 (중복 파워 계산 방지)
         // Play 자체는 유지하여 이동 이력을 추적할 수 있도록 함
         previousPlay.setPowerSnapshot(0);
+        previousPlay.setIsTurnEnd(true);
         playRepository.save(previousPlay);
 
         log.info(

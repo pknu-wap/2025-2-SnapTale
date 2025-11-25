@@ -53,4 +53,9 @@ public interface PlayRepository extends JpaRepository<Play, Long> {
         Integer sumPowerSnapshotByMatchAndGuestIdAndSlotIndex(@Param("matchId") Long matchId,
                         @Param("guestId") Long guestId,
                         @Param("slotIndex") Integer slotIndex);
+
+        // 보드에 노출되어야 하는 최신 플레이 조회 (이동으로 파워가 0이 된 기록 제외)
+        @Query("SELECT p FROM Play p WHERE p.match.matchId = :matchId " +
+                "AND p.guestId = :guestId AND (p.isTurnEnd = false OR COALESCE(p.powerSnapshot, 0) > 0)")
+        List<Play> findActiveByMatchIdAndGuestId(@Param("matchId") Long matchId, @Param("guestId") Long guestId);
 }
