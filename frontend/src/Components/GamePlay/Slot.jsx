@@ -13,6 +13,8 @@ export default function Slot({
   movedThisTurnMap = {},
   currentTurn = 1,
   locationId = null,
+  onCardClick, 
+  selectedCardId,
 }) {
   const firstEmpty = useMemo(() => cards.findIndex((c) => !c), [cards]); //cards 배열에서 첫 번째 빈 칸의 인덱스 찾기
   const isFull = firstEmpty === -1;
@@ -77,7 +79,8 @@ export default function Slot({
                 origin="board"
                 fromLaneIndex={laneIndex}
                 fromSlotIndex={i}
-                onCardClick={() => {}}
+                onCardClick={(e) => onCardClick && onCardClick(card, e)}
+                isSelected={selectedCardId === card.cardId}
                 isDraggable={
                   isMySide &&
                   !disabled &&

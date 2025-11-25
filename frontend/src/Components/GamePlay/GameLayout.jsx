@@ -623,6 +623,8 @@ export default function GameLayout({ matchId }) {
                     isMySide={false} 
                     disabled={getLocationDisabled(i)}
                     cards={opponentBoardLanes[i] || isInteractionLocked}
+                    onCardClick={handleCardClick}
+                    selectedCardId={selectedCardId}
                   />
                 </div>
               ))}
@@ -668,6 +670,8 @@ export default function GameLayout({ matchId }) {
                     onDropCard={handleCardDrop}
                     cards={boardLanes[i]}
                     locationId={locations[i]?.locationId}
+                    onCardClick={handleCardClick}
+                    selectedCardId={selectedCardId}
                   />
                 </div>
               ))}
