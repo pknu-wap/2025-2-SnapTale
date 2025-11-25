@@ -2,6 +2,7 @@ import React from "react";
 import { useEffect, useRef } from "react";
 import "./Location.css";
 import powerIcon from "../../assets/locationPower.png";
+import highlightedPowerIcon from "../../assets/locationPower1.png";
 
 /**
  * 게임 카드 정보를 표시하는 컴포넌트입니다.
@@ -38,24 +39,29 @@ const Location = ({
     turnsLeft,
   });
     const isLocked = turnsLeft > 0;
+    const opponentHasHigherPower = opponentPower > myPower;
+    const myHasHigherPower = myPower > opponentPower;
+    const opponentPowerIcon = opponentHasHigherPower ? highlightedPowerIcon : powerIcon;
+    const myPowerIcon = myHasHigherPower ? highlightedPowerIcon : powerIcon;
     const ref = useRef(null);
-    useEffect(() => {
-      const el = ref.current;
-      if (!el) return;
-      
-      // 초기 폰트 스타일
-      el.style.fontSize = "24px";
-      el.style.whiteSpace = "nowrap";
-  
-      const tooLong = el.scrollWidth > el.clientWidth; // 내용이 card-name div박스를 넘으면 2줄로 표시 허용
 
-      if (tooLong) {
-        el.style.fontSize = "15px";
-        el.style.whiteSpace = "normal"; // 줄바꿈 허용
-        el.style.wordBreak = "keep-all";  //한글 공백 단위로 줄바꿈
-        el.style.lineHeight = "1.1";    // 줄 간격 살짝 조정
+      useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    // 초기 폰트 스타일
+    el.style.fontSize = "24px";
+    el.style.whiteSpace = "nowrap";
+
+    const tooLong = el.scrollWidth > el.clientWidth; // 내용이 card-name div박스를 넘으면 2줄로 표시 허용
+
+    if (tooLong) {
+      el.style.fontSize = "15px";
+      el.style.whiteSpace = "normal"; // 줄바꿈 허용
+      el.style.wordBreak = "keep-all"; //한글 공백 단위로 줄바꿈
+      el.style.lineHeight = "1.1"; // 줄 간격 살짝 조정
     }
-    }, [name, isLocked]);
+  }, [name, isLocked]);
     
   return (
     <div
@@ -81,12 +87,16 @@ const Location = ({
       ) : (
         <>
           <div className="opponentPower-container">
-            <img src={powerIcon} alt="opponentPower" className="location-icon" />
+            <img
+              src={opponentPowerIcon}
+              alt="opponentPower"
+              className="location-icon"
+            />
             <span className="location-icon-text">{opponentPower}</span>
           </div>
 
           <div className="myPower-container">
-            <img src={powerIcon} alt="myPower" className="location-icon" />
+            <img src={myPowerIcon} alt="myPower" className="location-icon" />
             <span className="location-icon-text">{myPower}</span>
           </div>
 

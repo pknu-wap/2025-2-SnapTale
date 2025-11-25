@@ -137,7 +137,6 @@ const Card = ({
       </div>
 
       <div className="card-name" ref={nameRef}>{name}</div>
-      {isMoveAvailable && <div className="card-move-badge">이동 가능</div>}
     </div>
   );
 };

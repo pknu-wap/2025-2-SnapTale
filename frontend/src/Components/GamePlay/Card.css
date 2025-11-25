@@ -6,11 +6,12 @@
   align-items: center;
   justify-content: center;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
+  border-radius: 7px;
 }
 
 .card-container:hover {
   transform: translateY(-4px) scale(1.03);
-  box-shadow: 0 10px 45px 25px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .card-undraggable {
@@ -21,6 +22,17 @@
 .card-movable {
   box-shadow: 0 0 0 3px #6dd3ff;
   border-radius: 4px;
+  box-shadow: none;
+}
+
+.card-movable::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 11px;
+  border: 3px solid #6dd3ff;
+  box-shadow: 0 0 12px rgba(109, 211, 255, 0.55);
+  pointer-events: none;
 }
 
 .card-image {
@@ -105,21 +117,6 @@
   line-height: 1.12;
   text-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
   padding-inline: 4px;
-}
-
-.card-move-badge {
-  position: absolute;
-  top: 4px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 174, 255, 0.9);
-  color: #fff;
-  padding: 2px 4px;
-  border-radius: 4px;
-  font-size: 9px;
-  z-index: 7;
-  pointer-events: none;
-  text-shadow: 0 0 4px rgba(0, 0, 0, 0.35);
 }
 
 .enlarged-card-container {
