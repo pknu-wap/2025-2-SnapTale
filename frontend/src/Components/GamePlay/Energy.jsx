@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
+import energyIcon from "../../assets/energy.png"
 import "./Energy.css"
 
 export default function Energy({ value }) {
@@ -53,6 +54,7 @@ export default function Energy({ value }) {
       aria-label="에너지 정보"
       ref={energyRef}
     >
+       <img className="energy-icon" src={energyIcon} alt="에너지 아이콘" aria-hidden />
       <div className="energy-value">{value}</div>
 
       {createPortal(

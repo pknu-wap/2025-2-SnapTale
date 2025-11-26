@@ -5,9 +5,15 @@
   width: 100px;
   aspect-ratio: 1;
   font-weight: 900;
-  background: url("../../assets/energy.png") center/contain no-repeat;
   transition: transform 0.25s ease;
   cursor: pointer;
+}
+
+.energy-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
 }
 
 .energy:hover {
@@ -96,5 +102,10 @@
 
   .energy-tooltip-text {
     font-size: 11px;
+  }
+
+  .energy-icon{
+    width: 50%;
+    height: 50%;
   }
 }
