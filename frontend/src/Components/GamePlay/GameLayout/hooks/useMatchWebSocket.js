@@ -158,6 +158,7 @@ export default function useMatchWebSocket({
                           imageUrl: card.cardImageUrl,
                           cost: card.cost,
                           power: card.power,
+                          effectDesc: card.effectDesc,
                           faction: card.faction,
                         };
                       }
@@ -187,6 +188,7 @@ export default function useMatchWebSocket({
               power: card.power, // 여기서 변경된 파워가 반영됨
               faction: card.faction,
               effect: card.effect, // effect 정보도 필요하다면 매핑
+              effectDesc: card.effectDesc,
             };
           }
         });
