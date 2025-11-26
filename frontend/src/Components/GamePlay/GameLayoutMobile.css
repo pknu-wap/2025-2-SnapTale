@@ -21,7 +21,7 @@
   .gameplay-body {
     display: grid;
     grid-template-columns: 1fr;
-    grid-template-rows: 80px 320px 55px 120px;
+    grid-template-rows: 80px 360px 55px 90px;
     grid-template-areas:
         "matchup"
         "board"
@@ -72,16 +72,14 @@
     grid-area: matchup;
     width: 70%;
     max-width: 250px;
-    min-height: 30px;
-    padding: 10px 10px;
+    min-height: 20px;
+    padding: 5px 5px;
     flex-direction: row;
     justify-content: center;
     align-items: center;
     align-self: center;
     gap: 18px;
-    border-radius: 18px;
-    background: rgba(12, 7, 3, 0.56);
-    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
+    border-radius: 100px;
   }
 
   .hud-matchup--desktop {
@@ -101,7 +99,7 @@
     width: 100%;
     align-items: center;
     justify-content: center;
-    padding: 7px;
+    padding: 0px;
   }
 
   .hud-section > * {
@@ -187,7 +185,7 @@
     grid-area: hand;
     flex: 0 0 320px;
     width: 320px;
-    height: 140px;
+    height: 90px;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -211,5 +209,48 @@
     width: 66px;
     display: flex;
     justify-content: center;
+  }
+
+  /* 모바일 게임 화면 전용 카드 크기 축소 */
+  .gameplay-shell .card-container {
+    width: 50px;
+    height: 75px;
+  }
+
+  .gameplay-shell .card-image {
+    inset: 2px;
+    border-radius: 6px;
+    width: calc(100% - 6px);
+    height: calc(100% - 6px);
+  }
+
+  .gameplay-shell .icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .gameplay-shell .card-cost-container,
+  .gameplay-shell .card-power-container {
+    width: 16px;
+    height: 16px;
+  }
+
+  .gameplay-shell .card-cost-container {
+    top: -2px;
+    left: -1px;
+  }
+
+  .gameplay-shell .card-power-container {
+    top: -2px;
+    right: -3px;
+  }
+
+  .gameplay-shell .icon-text {
+    font-size: 10px;
+  }
+
+  .gameplay-shell .card-name {
+    bottom: 4px;
+    font-size: 9px;
   }
 }

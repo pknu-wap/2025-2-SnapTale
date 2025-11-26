@@ -577,7 +577,7 @@ export default function GameLayout({ matchId }) {
       
       // 사용자에게 에러 알림
       const errorMessage = error.message || "카드 제출에 실패했습니다.";
-      alert(`상대가 턴을 종료하기 전에는 카드를 낼 수 없습니다`);
+      alert(`카드 제출 실패`);
     }
   };
 
