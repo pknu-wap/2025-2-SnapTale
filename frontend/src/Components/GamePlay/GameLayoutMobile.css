@@ -50,7 +50,7 @@
     grid-area: hud;
     width: 100%;
     max-width: 280px;
-    height: 80px;
+    height: 65px;
     display: grid;
     grid-template-columns: 1fr auto;
     grid-template-rows: 1fr;
@@ -144,10 +144,10 @@
 
   .end-turn-button {
     grid-area: button;
-    width: 150px;
+    width: 120px;
     padding: 8px 8px;
     border-radius: 17px;
-    font-size: 15px;
+    font-size: 12px;
     letter-spacing: 0.2px;
   }
 

@@ -79,4 +79,8 @@ body,
     border-radius: 10px;
     box-sizing: border-box;
   }
+
+  .app-bg-image.bg-gameplay {
+    align-items: center;
+  }
 }
