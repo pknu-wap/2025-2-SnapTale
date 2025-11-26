@@ -258,6 +258,7 @@ export default function GameLayout({ matchId }) {
     setMyPowers,
     setOpponentPowers,
     setOpponentBoardLanes,
+    setBoardLanes,
     setGameEndModalState,
     setIsGameEnded,
     setIsReviewingBoard,
@@ -340,11 +341,6 @@ export default function GameLayout({ matchId }) {
   };
 
   const SLOT_COUNT = 3;
-  // turn에 따라 해당 지역의 슬롯 활성화 상태를 결정
-  const getLocationDisabled = (index) => {
-    // 1번째 지역은 turn >= 1일 때 활성, 2번째는 turn >= 2일 때 활성, 3번째는 turn >= 3일 때 활성
-    return turn < index + 1;
-  };
 
   const handleLocationClick = (locationData, index) => {
     if (isInteractionLocked) return;
@@ -625,8 +621,9 @@ export default function GameLayout({ matchId }) {
                   <Slot 
                     key={`enemy-${i}`} 
                     isMySide={false} 
-                    disabled={getLocationDisabled(i)}
                     cards={opponentBoardLanes[i] || isInteractionLocked}
+                    onCardClick={handleCardClick}
+                    selectedCardId={selectedCardId}
                   />
                 </div>
               ))}
@@ -667,11 +664,12 @@ export default function GameLayout({ matchId }) {
                   <Slot 
                     key={`ally-${i}`} 
                     isMySide={true} 
-                    disabled={getLocationDisabled(i) || isInteractionLocked}
                     laneIndex={i}                 
                     onDropCard={handleCardDrop}
                     cards={boardLanes[i]}
                     locationId={locations[i]?.locationId}
+                    onCardClick={handleCardClick}
+                    selectedCardId={selectedCardId}
                   />
                 </div>
               ))}

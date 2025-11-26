@@ -64,7 +64,7 @@
   position: absolute;
   inset: 3.5px;
   border-radius: inherit;
-  background: linear-gradient(180deg, rgba(15, 9, 3, 0.45), rgba(15, 9, 3, 0));
+  /* background: linear-gradient(180deg, rgba(15, 9, 3, 0.45), rgba(15, 9, 3, 0)); */ /* 지역에 회색 필터 임시 제거 */
   mix-blend-mode: multiply;
   pointer-events: none;
   z-index: 1;

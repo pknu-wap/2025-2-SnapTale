@@ -8,15 +8,16 @@ export default function Slot({
   isMySide = false,
   laneIndex,
   onDropCard,
-  disabled = false,
   cards = [null, null, null, null],
   movedThisTurnMap = {},
   currentTurn = 1,
   locationId = null,
+  onCardClick, 
+  selectedCardId,
 }) {
   const firstEmpty = useMemo(() => cards.findIndex((c) => !c), [cards]); //cards 배열에서 첫 번째 빈 칸의 인덱스 찾기
   const isFull = firstEmpty === -1;
-  const allowDrop = isMySide && !disabled && !isFull;
+  const allowDrop = isMySide && !isFull;
 
   const [{ isOver }, dropRef] = useDrop({
     accept: "CARD",
@@ -77,16 +78,15 @@ export default function Slot({
                 origin="board"
                 fromLaneIndex={laneIndex}
                 fromSlotIndex={i}
-                onCardClick={() => {}}
+                onCardClick={(e) => onCardClick && onCardClick(card, e)}
+                isSelected={selectedCardId === card.cardId}
                 isDraggable={
                   isMySide &&
-                  !disabled &&
                   canMoveCard(card, locationId) &&
                   !(isMoveLimitedPerTurn(card) && movedThisTurnMap[card.cardId] === currentTurn)
                 }
                 isMoveAvailable={
                   isMySide &&
-                  !disabled &&
                   canMoveCard(card, locationId) &&
                   !(isMoveLimitedPerTurn(card) && movedThisTurnMap[card.cardId] === currentTurn)
                 }

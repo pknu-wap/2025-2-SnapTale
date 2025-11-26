@@ -48,19 +48,22 @@ const Card = ({
   isMoveAvailable = false,
   locationId = null,
 }) => {
-  console.log({
-    cardId,
-    name,
-    imageUrl,
-    cost,
-    power,
-    faction,
-    effectDesc,
-    effect,//todo:console에 뜰 수 있게 수정해주세요
-    active,
-    createdAt,
-    updatedAt
-  });
+  useEffect(() => {
+    //변경되는 값이 있을 때만 표시
+    console.log(`[Card Debug - ${name}]`, {
+      cardId,
+      name,
+      imageUrl,
+      cost,
+      power,
+      faction,
+      effectDesc,
+      effect: effect || "No Effect JSON", // effect가 없으면 문구 출력
+      active,
+      createdAt,
+      updatedAt,
+    });
+  }, [cardId, name, effect, cost, power, faction, active]);
     const nameRef = useRef(null);
     const [{ isDragging }, dragRef] = useDrag(
       () => ({
@@ -117,7 +120,6 @@ const Card = ({
     isDragging ? "card-dragging" : "",
     isSelected ? "card-selected" : "",
     isMoveAvailable ? "card-movable" : "",
-    !isDraggable ? "card-undraggable" : "",
   ]
     .filter(Boolean)
     .join(" ");
