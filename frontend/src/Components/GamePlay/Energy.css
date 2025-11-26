@@ -80,8 +80,7 @@
   }
 
   .energy-value {
-    font-size: 18px;
-    text-shadow: 0 0 5px rgba(255, 255, 255, 0.95);
+    font-size: 15px;
   }
 
   .energy-tooltip {

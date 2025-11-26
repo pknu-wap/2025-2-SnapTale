@@ -21,11 +21,12 @@
   .gameplay-body {
     display: grid;
     grid-template-columns: 1fr;
-    grid-template-rows: 320px 180px 120px;
+    grid-template-rows: 80px 360px 55px 90px;
     grid-template-areas:
+        "matchup"
         "board"
-        "hud"
-        "hand";
+        "hand"
+        "hud";
 
     align-items: center;
     justify-items: center;
@@ -39,46 +40,50 @@
     max-width: 330px;
 
     height: auto;
-    min-height: 540px;
+    min-height: 600px;
     box-sizing: border-box;
     margin: 0 auto;
-    margin-top: 170px;
+    margin-top: 16px;
   }
 
   .hud-panel {
     grid-area: hud;
     width: 100%;
     max-width: 280px;
-    height: 165px;
+    height: 65px;
     display: grid;
-    grid-template-columns: 0.6fr 1.4fr;
-    grid-template-rows: auto 1fr;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: 1fr;
     grid-template-areas:
-      "matchup matchup"
-      "energy turn";
+      "energy button";
     align-items: center;
     justify-items: stretch;
     align-content: center;
     row-gap: 10px;
     column-gap: 10px;
-    padding: 15px 1px 15px;
+    padding: 16px 10px;
     border-radius: 20px;
     background: linear-gradient(158deg, rgba(22, 13, 5, 0.5) 0px, rgba(22, 13, 5, 0.24) 200px);
     box-shadow: 0 0 22px rgba(0, 0, 0, 0.24);
   }
 
-  .hud-matchup {
+  .hud-matchup--mobile {
+    display: flex;
     grid-area: matchup;
-    width: 230px;
-    min-height: 30px;
-    padding: 12px 10px;
+    width: 70%;
+    max-width: 250px;
+    min-height: 20px;
+    padding: 5px 5px;
     flex-direction: row;
     justify-content: center;
+    align-items: center;
     align-self: center;
-    margin: 0 auto;
     gap: 18px;
-    border-radius: 18px;
-    background: rgba(12, 7, 3, 0.56);
+    border-radius: 100px;
+  }
+
+  .hud-matchup--desktop {
+    display: none;
   }
 
   .hud-player {
@@ -94,14 +99,14 @@
     width: 100%;
     align-items: center;
     justify-content: center;
-    padding: 7px;
+    padding: 0px;
   }
 
   .hud-section > * {
     width: auto;
   }
 
-  .hud-section:nth-of-type(2) {
+  .hud-section:nth-of-type(1) {
     grid-area: energy;
   }
 
@@ -110,9 +115,9 @@
   }
 
   .hud-panel > .hud-section:last-of-type {
-    grid-area: turn;
+    grid-area: button;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: center;
   }
 
   .turn-panel {
@@ -137,10 +142,10 @@
 
   .end-turn-button {
     grid-area: button;
-    width: 150px;
+    width: 120px;
     padding: 8px 8px;
     border-radius: 17px;
-    font-size: 15px;
+    font-size: 12px;
     letter-spacing: 0.2px;
   }
 
@@ -180,7 +185,7 @@
     grid-area: hand;
     flex: 0 0 320px;
     width: 320px;
-    height: 140px;
+    height: 90px;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -204,5 +209,48 @@
     width: 66px;
     display: flex;
     justify-content: center;
+  }
+
+  /* 모바일 게임 화면 전용 카드 크기 축소 */
+  .gameplay-shell .card-container {
+    width: 50px;
+    height: 75px;
+  }
+
+  .gameplay-shell .card-image {
+    inset: 2px;
+    border-radius: 6px;
+    width: calc(100% - 6px);
+    height: calc(100% - 6px);
+  }
+
+  .gameplay-shell .icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .gameplay-shell .card-cost-container,
+  .gameplay-shell .card-power-container {
+    width: 16px;
+    height: 16px;
+  }
+
+  .gameplay-shell .card-cost-container {
+    top: -2px;
+    left: -1px;
+  }
+
+  .gameplay-shell .card-power-container {
+    top: -2px;
+    right: -3px;
+  }
+
+  .gameplay-shell .icon-text {
+    font-size: 10px;
+  }
+
+  .gameplay-shell .card-name {
+    bottom: 4px;
+    font-size: 9px;
   }
 }

@@ -67,6 +67,10 @@
   justify-content: center;
 }
 
+.hud-matchup--mobile {
+  display: none;
+}
+
 .hud-player {
   display: block;
   font-size: 18px;

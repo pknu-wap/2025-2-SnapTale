@@ -577,7 +577,7 @@ export default function GameLayout({ matchId }) {
       
       // 사용자에게 에러 알림
       const errorMessage = error.message || "카드 제출에 실패했습니다.";
-      alert(`상대가 턴을 종료하기 전에는 카드를 낼 수 없습니다`);
+      alert(`카드 제출 실패`);
     }
   };
 
@@ -587,8 +587,13 @@ export default function GameLayout({ matchId }) {
       <DndProvider backend={TouchBackend} options={{ enableMouseEvents: true }}>
         <CustomDragLayer selectedCard={selectedCard} />
         <div className="gameplay-body">
+          <div className="hud-matchup hud-matchup--mobile" aria-label="플레이어 정보">
+            <span className="hud-player hud-player--opponent" title={opponentName}>{opponentName}</span>
+            <span className="hud-vs" aria-hidden="true">VS</span>
+            <span className="hud-player hud-player--me" title={myNickname}>{myNickname}</span>
+          </div>
           <aside className="hud-panel" aria-label="턴 정보">
-            <div className="hud-matchup" aria-label="플레이어 정보">
+            <div className="hud-matchup hud-matchup--desktop" aria-label="플레이어 정보">
               <span className="hud-player hud-player--opponent" title={opponentName}>{opponentName}</span>
               <span className="hud-vs" aria-hidden="true">VS</span>
               <span className="hud-player hud-player--me" title={myNickname}>{myNickname}</span>

@@ -80,10 +80,10 @@
 
 @media (max-width: 767px) {
   .slot {
-    width: 98px;
-    height: 104px;
-    padding: 9px;
-    border-radius: 15px;
+    width: 92px;
+    height: 98px;
+    padding: 8px;
+    border-radius: 14px;
     border: 2px solid rgba(194, 144, 101, 0.55);
     box-shadow:
       inset 0 0 9px rgba(0, 0, 0, 0.3),
@@ -96,7 +96,9 @@
   }
 
   .slot__grid {
-    gap: 5px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: 4px;
   }
 
   .slot__cell {
@@ -104,21 +106,24 @@
     height: 100%;
     min-width: 0;
     min-height: 0;
+    aspect-ratio: 2 / 3;
   }
 
   .slot__cell .card-container {
     width: 100%;
     height: 100%;
-    border-radius: 5px;
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 6px;
   }
 
-   .slot__cell .card-image {
+  .slot__cell .card-image {
     border-width: 2px;
-    border-radius: 5px;
+    border-radius: 6px;
     width: 100%;
     height: 100%;
     inset: 0;
-    object-fit: cover;
+    object-fit: contain;
   }
 
   .slot__cell .card-cost-container,
