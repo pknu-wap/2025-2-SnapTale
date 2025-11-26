@@ -587,8 +587,13 @@ export default function GameLayout({ matchId }) {
       <DndProvider backend={TouchBackend} options={{ enableMouseEvents: true }}>
         <CustomDragLayer selectedCard={selectedCard} />
         <div className="gameplay-body">
+          <div className="hud-matchup hud-matchup--mobile" aria-label="플레이어 정보">
+            <span className="hud-player hud-player--opponent" title={opponentName}>{opponentName}</span>
+            <span className="hud-vs" aria-hidden="true">VS</span>
+            <span className="hud-player hud-player--me" title={myNickname}>{myNickname}</span>
+          </div>
           <aside className="hud-panel" aria-label="턴 정보">
-            <div className="hud-matchup" aria-label="플레이어 정보">
+            <div className="hud-matchup hud-matchup--desktop" aria-label="플레이어 정보">
               <span className="hud-player hud-player--opponent" title={opponentName}>{opponentName}</span>
               <span className="hud-vs" aria-hidden="true">VS</span>
               <span className="hud-player hud-player--me" title={myNickname}>{myNickname}</span>
