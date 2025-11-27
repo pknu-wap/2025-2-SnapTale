@@ -401,6 +401,10 @@ public class MatchRESTService {
 			if (result.isGameEnded()) {
 				log.info("게임 종료 감지: matchId={}, currentTurn={}, processGameEnd 호출 시작",
 						matchId, result.getNextTurn());
+				// 마지막 턴에서도 프론트엔드가 최신 보드 상태를 받을 수 있도록
+				// 기존 턴 시작 알림과 동일한 형태의 메시지를 먼저 전송
+				matchWebSocketService.notifyTurnStart(matchId, result);
+
 				matchWebSocketService.processGameEnd(matchId);
 				log.info("게임 종료 처리 완료: matchId={}", matchId);
 			} else {
