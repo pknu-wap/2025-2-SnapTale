@@ -50,7 +50,6 @@ public class TurnService {
     private static final long GYEONGBOKGUNG_LOCATION_ID = 3L;
     private static final long CARD_EFFECTS_DISABLED_LOCATION_ID = 9L;
 
-
     // 카드 제출 처리
     @Transactional
     public void submitPlay(Long matchId, Long participantId,
@@ -392,6 +391,44 @@ public class TurnService {
                 .bothPlayersEnded(bothPlayersEnded)
                 .currentTurn(currentTurn)
                 .build();
+    }
+
+    @Transactional
+    public TurnEndResult forceEndTurnDueToTimeout(Long matchId) {
+        log.info("턴 타임아웃 처리 시작: matchId={}", matchId);
+
+        Match match = matchRepository.findById(matchId)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_NOT_FOUND));
+
+        if (match.getStatus() != MatchStatus.PLAYING) {
+            log.info("타임아웃 무시 - 매치 상태가 PLAYING 아님: matchId={}, status={}",
+                    matchId, match.getStatus());
+            throw new BaseException(BaseResponseStatus.INVALID_MATCH_STATUS);
+        }
+
+        int currentTurn = Optional.ofNullable(match.getTurnCount()).orElse(0);
+        List<MatchParticipant> participants = matchParticipantRepository.findByMatch_MatchId(matchId);
+
+        for (MatchParticipant participant : participants) {
+            boolean alreadyEnded = playRepository.existsTurnEndByMatchAndTurnAndPlayer(
+                    matchId, currentTurn, participant.getGuestId());
+            if (alreadyEnded) {
+                continue;
+            }
+
+            Play turnEndPlay = Play.builder()
+                    .match(match)
+                    .turnCount(currentTurn)
+                    .guestId(participant.getGuestId())
+                    .isTurnEnd(true)
+                    .build();
+            playRepository.save(turnEndPlay);
+            match.addPlay(turnEndPlay);
+            log.info("타임아웃으로 턴 종료 처리: matchId={}, guestId={}, turn={}",
+                    matchId, participant.getGuestId(), currentTurn);
+        }
+
+        return endTurnAndStartNext(matchId);
     }
 
     // 현재 턴의 모든 플레이어가 턴 종료했는지 확인

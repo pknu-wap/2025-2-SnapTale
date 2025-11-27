@@ -58,6 +58,7 @@ public class MatchRESTService {
 	private final com.snaptale.backend.deck.repository.DeckPresetRepository deckPresetRepository;
 	private final TurnService turnService;
 	private final MatchWebSocketService matchWebSocketService;
+	private final TurnTimerService turnTimerService;
 	private static final int LOCATION_COUNT = 3;
 
 	// 매치 참가자 검증
@@ -229,6 +230,7 @@ public class MatchRESTService {
 
 		// 게임 시작 로직 실행
 		gameFlowService.startGame(message.getMatchId());
+		turnTimerService.startTurnTimer(message.getMatchId(), 1);
 
 		// 게임 상태 생성
 		Match match = matchRepository.findById(message.getMatchId())
@@ -237,6 +239,23 @@ public class MatchRESTService {
 				.findByMatch_MatchId(message.getMatchId());
 
 		GameStateMessage gameState = createGameStateMessage(match, participants);
+
+		// 첫 턴 시작을 WebSocket으로 브로드캐스트 (TURN_START)
+		try {
+			GameCalculationService.LocationPowerResult locationPowerResult = gameCalculationService
+					.calculateLocationPowers(message.getMatchId());
+
+			TurnService.TurnEndResult initialTurnResult = TurnService.TurnEndResult.builder()
+					.gameEnded(false)
+					.nextTurn(Optional.ofNullable(match.getTurnCount()).orElse(1))
+					.locationPowerResult(locationPowerResult)
+					.build();
+
+			matchWebSocketService.notifyTurnStart(message.getMatchId(), initialTurnResult);
+		} catch (Exception e) {
+			log.warn("첫 턴 시작 WebSocket 알림 중 오류 발생: matchId={}, error={}",
+					message.getMatchId(), e.getMessage(), e);
+		}
 
 		return MatchStartRes.success(message.getMatchId(), "게임이 시작되었습니다!", gameState);
 	}
@@ -255,7 +274,7 @@ public class MatchRESTService {
 
 		return switch (actionType) {
 			case PLAY_CARD -> handlePlayCard(message);
-			case MOVE_CARD -> handleMoveCard(message); //테스트 완
+			case MOVE_CARD -> handleMoveCard(message); // 테스트 완
 			case END_TURN -> handleEndTurn(message);
 			default -> throw new BaseException(BaseResponseStatus.INVALID_ACTION_TYPE);
 		};
@@ -365,6 +384,7 @@ public class MatchRESTService {
 		// 양쪽 플레이어가 모두 턴 종료했으면 턴 종료 처리 후 다음 턴 시작됨.
 		if (result.isBothPlayersEnded()) {
 			log.info("양쪽 플레이어 모두 턴 종료 완료, processTurnEnd 호출: matchId={}", message.getMatchId());
+			turnTimerService.cancelTurnTimer(message.getMatchId());
 			processTurnEnd(message.getMatchId());
 		} else {
 			log.info("아직 상대방 턴 종료 대기 중: matchId={}", message.getMatchId());
@@ -407,9 +427,11 @@ public class MatchRESTService {
 
 				matchWebSocketService.processGameEnd(matchId);
 				log.info("게임 종료 처리 완료: matchId={}", matchId);
+				turnTimerService.cancelTurnTimer(matchId);
 			} else {
 				log.info("게임 계속 진행: matchId={}, 다음 턴={}", matchId, result.getNextTurn());
 				matchWebSocketService.notifyTurnStart(matchId, result);
+				turnTimerService.startTurnTimer(matchId, result.getNextTurn());
 			}
 		} catch (Exception e) {
 			log.error("턴 종료 처리 중 오류 발생: matchId={}, error={}", matchId, e.getMessage(), e);
