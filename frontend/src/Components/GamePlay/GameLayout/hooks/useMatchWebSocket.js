@@ -14,6 +14,9 @@ export default function useMatchWebSocket({
   setGameEndModalState,
   setIsGameEnded,
   setIsReviewingBoard,
+  onTurnTimerRestart,
+  onTurnTimerStop,
+  onTurnTimeout,
 }) {
   useEffect(() => {
     if (!matchId) {
@@ -52,6 +55,7 @@ export default function useMatchWebSocket({
         }
 
         if (messageType === "GAME_END") {
+          onTurnTimerStop?.();
           const gameState = payload;
 
           setIsGameEnded(true);
@@ -77,6 +81,7 @@ export default function useMatchWebSocket({
 
           if (endedGuestId === user?.guestId && waitingForOpponent) {
             setIsWaitingForOpponent(true);
+            onTurnTimerStop?.();
           } else if (!waitingForOpponent) {
             setIsWaitingForOpponent(false);
           } else if (endedGuestId !== user?.guestId) {
@@ -86,8 +91,16 @@ export default function useMatchWebSocket({
           updateEnergyFromScores(payload?.gameState?.participantScores);
         }
 
+          if (messageType === "TURN_TIMEOUT") {
+            onTurnTimeout?.();
+            setIsWaitingForOpponent(false);
+            updateEnergyFromScores(payload?.gameState?.participantScores);
+            return;
+          }
+
           if (messageType === "TURN_START") {
             setIsWaitingForOpponent(false);
+            onTurnTimerRestart?.();
 
             if (typeof payload?.currentTurn === "number") {
               setTurn(payload.currentTurn);
@@ -201,7 +214,7 @@ export default function useMatchWebSocket({
   );
     return unsubscribe;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [matchId, subscribe, user?.guestId, user?.participantId]);
+  }, [matchId, subscribe, user?.guestId, user?.participantId, onTurnTimerRestart, onTurnTimerStop, onTurnTimeout]);
 }
 
 

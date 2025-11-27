@@ -136,6 +136,8 @@
   letter-spacing: 0.64px;
   cursor: pointer;
   transition: transform 0.2s ease, filter 0.2s ease;
+  position: relative;
+  overflow: hidden;
 }
 
 .end-turn-button:hover {
@@ -152,6 +154,52 @@
   cursor: not-allowed;
   filter: grayscale(0.3);
   transform: none;
+}
+
+.end-turn-button__label {
+  position: relative;
+  z-index: 2;
+}
+
+.end-turn-button__timer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  background: linear-gradient(90deg, rgba(255, 100, 80, 0.9), rgba(255, 180, 120, 0.3));
+  pointer-events: none;
+  transition: width 0.1s linear, opacity 0.1s ease;
+  z-index: 1;
+}
+
+.end-turn-button__countdown {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 18px;
+  font-weight: 800;
+  color: #2c1105;
+  z-index: 3;
+  animation: countdownPop 0.3s ease;
+}
+
+.end-turn-button--shake {
+  animation: endTurnShake 0.4s infinite;
+}
+
+@keyframes endTurnShake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  50% { transform: translateX(2px); }
+  75% { transform: translateX(-1px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes countdownPop {
+  from { transform: translate(-50%, -50%) scale(0.8); opacity: 0.5; }
+  to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
 }
 
 .board-wrapper {

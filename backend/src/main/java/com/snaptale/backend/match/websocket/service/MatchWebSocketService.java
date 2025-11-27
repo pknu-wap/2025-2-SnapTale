@@ -268,6 +268,28 @@ public class MatchWebSocketService {
 	}
 
 	@Transactional(readOnly = true)
+	public void notifyTurnTimeout(Long matchId, int expiredTurn) {
+		Match match = matchRepository.findById(matchId)
+				.orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_NOT_FOUND));
+
+		List<MatchParticipant> participants = matchParticipantRepository.findByMatch_MatchId(matchId);
+		GameStateMessage gameState = createGameStateMessage(match, participants);
+		gameState.setLastPlayInfo("턴 " + expiredTurn + "이 시간 초과로 자동 종료되었습니다.");
+
+		TurnStatusMessage payload = TurnStatusMessage.builder()
+				.matchId(matchId)
+				.currentTurn(expiredTurn)
+				.waitingGuestIds(List.of())
+				.waitingForOpponent(false)
+				.bothPlayersEnded(true)
+				.gameState(gameState)
+				.build();
+
+		broadcastToMatch(matchId, "TURN_TIMEOUT", payload,
+				"턴 " + expiredTurn + "이 시간 초과로 자동 종료되었습니다.");
+	}
+
+	@Transactional(readOnly = true)
 	public void notifyTurnStart(Long matchId, TurnService.TurnEndResult turnResult) {
 		Match match = matchRepository.findById(matchId)
 				.orElseThrow(() -> new BaseException(BaseResponseStatus.MATCH_NOT_FOUND));

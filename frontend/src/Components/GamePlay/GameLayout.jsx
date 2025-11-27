@@ -1,5 +1,5 @@
 // src/Components/GamePlay/GameLayout.jsx
-import { useState, useEffect, useMemo} from "react";
+import { useState, useEffect, useMemo, useCallback} from "react";
 import { useUser } from "../../contexts/UserContext";
 import { useWebSocket } from "../../contexts/WebSocketContext";
 import { useNavigate } from "react-router-dom";
@@ -22,6 +22,9 @@ import useMatchWebSocket from "./GameLayout/hooks/useMatchWebSocket";
 import { DndProvider } from "react-dnd";
 import { TouchBackend } from "react-dnd-touch-backend";
 import { canMoveCard, isMoveLimitedPerTurn } from "./utils/effect";
+
+const TURN_TIMEOUT_MS = 60 * 1000;
+const TURN_SHAKE_THRESHOLD_MS = 3000;
 
 export default function GameLayout({ matchId }) {
   const maxTurn = 6;
@@ -60,6 +63,9 @@ export default function GameLayout({ matchId }) {
   const [isGameEnded, setIsGameEnded] = useState(false);
   const [isReviewingBoard, setIsReviewingBoard] = useState(false);
   const [movedThisTurn, setMovedThisTurn] = useState({});
+  const [turnTimerDeadline, setTurnTimerDeadline] = useState(null);
+  const [turnTimerProgress, setTurnTimerProgress] = useState(0);
+  const [turnTimerRemainingMs, setTurnTimerRemainingMs] = useState(0);
   const { subscribe } = useWebSocket();
   const isInteractionLocked = isGameEnded;
   const handleCardClick = (card, e) => {
@@ -248,6 +254,59 @@ export default function GameLayout({ matchId }) {
     loadLocations();
   }, [matchId, user?.participantId]);
 
+  
+  const restartTurnTimer = useCallback(() => {
+    setTurnTimerDeadline(Date.now() + TURN_TIMEOUT_MS);
+    setTurnTimerProgress(0);
+    setTurnTimerRemainingMs(TURN_TIMEOUT_MS);
+  }, []);
+
+  const stopTurnTimer = useCallback(() => {
+    setTurnTimerDeadline(null);
+    setTurnTimerProgress(0);
+    setTurnTimerRemainingMs(0);
+  }, []);
+
+  const completeTurnTimer = useCallback(() => {
+    setTurnTimerProgress(1);
+    setTurnTimerDeadline(null);
+    setTurnTimerRemainingMs(0);
+  }, []);
+
+  useEffect(() => {
+    // 게임이 처음 로드되고, 첫 턴이며, 대기중이 아니고, 타이머가 없으면 시작
+    if (turn === 1 && !isWaitingForOpponent && !isGameEnded && !turnTimerDeadline) {
+      console.log("🎮 게임 초기화: 첫 턴 타이머 시작");
+      restartTurnTimer();
+    }
+  }, [turn, isWaitingForOpponent, isGameEnded, turnTimerDeadline, restartTurnTimer]);
+
+  useEffect(() => {
+    if (!turnTimerDeadline || isWaitingForOpponent || isGameEnded) {
+      return undefined;
+    }
+
+    const updateProgress = () => {
+      const remaining = Math.max(turnTimerDeadline - Date.now(), 0);
+      setTurnTimerRemainingMs(remaining);
+      const progress = 1 - remaining / TURN_TIMEOUT_MS;
+      setTurnTimerProgress(Math.min(1, Math.max(0, progress)));
+      if (remaining <= 0) {
+        setTurnTimerDeadline(null);
+      }
+    };
+
+    updateProgress();
+    const intervalId = setInterval(updateProgress, 100);
+    return () => clearInterval(intervalId);
+  }, [turnTimerDeadline, isWaitingForOpponent, isGameEnded]);
+
+  useEffect(() => {
+    if (isWaitingForOpponent || isGameEnded) {
+      stopTurnTimer();
+    }
+  }, [isWaitingForOpponent, isGameEnded, stopTurnTimer]);
+
   useMatchWebSocket({
     matchId,
     user,
@@ -262,6 +321,9 @@ export default function GameLayout({ matchId }) {
     setGameEndModalState,
     setIsGameEnded,
     setIsReviewingBoard,
+    onTurnTimerRestart: restartTurnTimer,
+    onTurnTimerStop: stopTurnTimer,
+    onTurnTimeout: completeTurnTimer,
   });
 
   useEffect(() => {
@@ -281,6 +343,19 @@ export default function GameLayout({ matchId }) {
     }
     return { line1: "턴 종료", line2: `(${turn} / ${maxTurn})` };
   }, [isWaitingForOpponent, turn, maxTurn]);
+
+  const isTurnTimerVisible = Boolean(
+    turnTimerDeadline && !isWaitingForOpponent && !isGameEnded
+  );
+  const secondsLeft = Math.max(0, Math.ceil(turnTimerRemainingMs / 1000));
+  const shouldShowCountdown = isTurnTimerVisible && secondsLeft > 0 && secondsLeft <= 3;
+  const shouldShakeButton =
+    shouldShowCountdown && turnTimerRemainingMs <= TURN_SHAKE_THRESHOLD_MS;
+  const turnTimerFillPercent = isTurnTimerVisible
+    ? Math.min(100, Math.max(turnTimerProgress, 0.05) * 100)
+    : 0;
+  console.log("isTurnTimerVisible: %s, turnTimerDeadline: %s, isWaitingForOpponent: %s, isGameEnded: %s"
+    , isTurnTimerVisible, turnTimerDeadline, isWaitingForOpponent, isGameEnded);
 
   // const handleCardClick = (cardData) => {
   //   setSelectedCard(cardData);
@@ -572,7 +647,6 @@ export default function GameLayout({ matchId }) {
       setCardPlayed(false);
       
       // 사용자에게 에러 알림
-      const errorMessage = error.message || "카드 제출에 실패했습니다.";
       alert(`카드를 낼 수 없습니다. 에너지 수를 확인해 주세요!`);
     }
   };
@@ -603,13 +677,31 @@ export default function GameLayout({ matchId }) {
             </div>
             <div className="hud-section">
               <button
-                className="end-turn-button"
+                className={`end-turn-button ${shouldShakeButton ? "end-turn-button--shake" : ""}`}
                 onClick={endTurn}
                 disabled={turn === maxTurn + 1 || isWaitingForOpponent || isInteractionLocked}
               >
-                <span>{endTurnButtonLabel.line1}</span>
-                <br />
-                <span>{endTurnButtonLabel.line2}</span>
+                <div
+                  className="end-turn-button__timer"
+                  style={{
+                    width: `${turnTimerFillPercent}%`,
+                    opacity: isTurnTimerVisible ? 1 : 0,
+                  }}
+                />
+                {shouldShowCountdown && (
+                  <div className="end-turn-button__countdown">
+                    {secondsLeft}
+                  </div>
+                )}
+                <div
+                  className="end-turn-button__label"
+                  style={{ opacity: shouldShowCountdown ? 0 : 1 }}
+                  aria-hidden={shouldShowCountdown}
+                >
+                  <span>{endTurnButtonLabel.line1}</span>
+                  <br />
+                  <span>{endTurnButtonLabel.line2}</span>
+                </div>
               </button>
             </div>
           </aside>
