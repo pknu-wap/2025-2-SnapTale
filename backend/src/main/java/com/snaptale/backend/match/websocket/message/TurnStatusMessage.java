@@ -42,5 +42,7 @@ public class TurnStatusMessage {
         private Integer cost; // 카드 코스트
         private Integer power;
         private String faction;
+        private String effect_desc;
+        private String effect;
     }
 }

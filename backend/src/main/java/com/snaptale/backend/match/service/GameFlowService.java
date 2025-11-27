@@ -32,7 +32,7 @@ public class GameFlowService {
     private final MatchParticipantRepository matchParticipantRepository;
     private final MatchLocationRepository matchLocationRepository;
     private final MatchLocationService matchLocationService;
-    private static final int INITIAL_ENERGY = 1;
+    private static final int INITIAL_ENERGY = 2;
 
     // 게임 시작 (턴 카운트를 1로 설정하고 상태를 PLAYING으로 변경)
     @Transactional
@@ -101,8 +101,9 @@ public class GameFlowService {
         // 모든 플레이어에게 턴 수에 맞는 에너지 설정 및 다음 턴 에너지 보너스 적용
         List<MatchParticipant> participants = matchParticipantRepository.findByMatch_MatchId(matchId);
         for (MatchParticipant participant : participants) {
+            int baseEnergy = INITIAL_ENERGY + (nextTurn - 1);
             // 턴 수에 맞는 에너지로 설정 (1턴 = 1, 2턴 = 2, 3턴 = 3)
-            participant.setEnergy(nextTurn);
+            participant.setEnergy(baseEnergy);
             // 다음 턴 에너지 보너스 적용
             participant.applyNextTurnEnergyBonus();
             matchParticipantRepository.save(participant);
