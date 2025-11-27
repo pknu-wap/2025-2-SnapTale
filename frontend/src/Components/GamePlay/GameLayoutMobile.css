@@ -140,6 +140,20 @@
     font-size: 14px;
   }
 
+  .turn-timer-track {
+    width: 100%;
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    overflow: hidden;
+  }
+
+  .turn-timer-bar {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #47b0ff 0%, #5b7bff 100%);
+  }
+
   .end-turn-button {
     grid-area: button;
     width: 120px;
