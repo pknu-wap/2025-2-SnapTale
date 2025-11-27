@@ -6,18 +6,13 @@
 ---
 
 ## 개요
-<img width="2000" height="1125" alt="image" src="https://github.com/user-attachments/assets/f5f1fa4d-8e18-4817-82f0-afd2f31cb1b2" />
-<img width="2000" height="1125" alt="image" src="https://github.com/user-attachments/assets/2376acea-97e5-45c8-8ccd-f168f3103016" />
-
 SnapTale은 **WebSocket 기반 실시간 카드 배틀 게임**입니다.  
 홍길동, 각시탈, 닌자, 오니, 여포, 손오공 등 동양의 캐릭터를 활용하여, 친숙하면서도 독특한 재미를 제공합니다.
+
 <img width="1827" height="424" alt="image" src="https://github.com/user-attachments/assets/98e407a0-e0f3-4c43-bef4-419cc0b24aa7" />
+<img width="3732" height="2475" alt="MOBILEavailable" src="https://github.com/user-attachments/assets/68889722-942f-499d-a13b-953bd61375a1" />
+<img width="3747" height="2475" alt="SELECTADECK_MOBLIE" src="https://github.com/user-attachments/assets/84b41382-f253-45ab-95f0-3a41bfce1f69" />
 
- 
-
-- **플랫폼**: 웹앱(Web App)  
-- **지원 환경**: PC 및 모바일 브라우저  
-- **특징**: 짧고 빠른 템포의 전략 대전  
 
 ---
 
@@ -26,17 +21,19 @@ SnapTale은 **WebSocket 기반 실시간 카드 배틀 게임**입니다.
 게임에는 **한국, 일본, 중국**의 세 가지 진영이 존재합니다.  
 각 진영은 고유한 전략적 개성을 가지며, 플레이어는 선택한 진영의 카드 스타일에 따라 다른 전술을 구사할 수 있습니다.
 
+### 한국덱
+<img width="3650" height="1197" alt="korean-core" src="https://github.com/user-attachments/assets/f2bf916b-24be-428c-bab8-14e9dca241bd" />
+
+* #출현연계 #버프폭발 #한턴콤보
+* “출현 효과를 연계해 한 순간에 판도를 뒤집는 폭발적 콤보 덱”
+
 ### 일본덱
 <img width="1620" height="725" alt="image" src="https://github.com/user-attachments/assets/ce7523fc-5343-4a1d-b392-1b5fdc26d930" />
-
 
 * #이동, #무작위성, #하이리스크하이리턴
 * “예측 불가 이동과 무작위 효과로 필드를 교란하며 폭발력을 노리는 덱”
 
-### 한국덱
 
-* #출현연계 #버프폭발 #한턴콤보
-* “출현 효과를 연계해 한 순간에 판도를 뒤집는 폭발적 콤보 덱”
 
 ### 중국덱
 
