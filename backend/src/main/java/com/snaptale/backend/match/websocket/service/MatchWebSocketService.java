@@ -243,6 +243,8 @@ public class MatchWebSocketService {
 							.cost(play.getCard().getCost())
 							.power(play.getPowerSnapshot())
 							.faction(play.getCard().getFaction())
+							.effect_desc(play.getCard().getEffectDesc())
+							.effect(play.getCard().getEffect())
 							.build())
 					.toList();
 
@@ -298,6 +300,8 @@ public class MatchWebSocketService {
 							.cost(play.getCard().getCost())
 							.power(play.getPowerSnapshot())
 							.faction(play.getCard().getFaction())
+							.effect_desc(play.getCard().getEffectDesc())
+							.effect(play.getCard().getEffect())
 							.build())
 					.toList();
 
