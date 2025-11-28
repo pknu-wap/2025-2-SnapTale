@@ -380,7 +380,8 @@ export default function GameLayout({ matchId }) {
     toLocationId,
    }) => {
     // main 브랜치에서 온 가드 로직 유지
-    if (isInteractionLocked) {
+    // 대기/종료 상태에서는 드래그 투하도 막는다.
+    if (isInteractionLocked || isWaitingForOpponent) {
       return;
     }
 
@@ -685,7 +686,7 @@ export default function GameLayout({ matchId }) {
                 >
                   <Card
                     {...card}
-                    isDraggable={!isInteractionLocked}
+                    isDraggable={!isInteractionLocked && !isWaitingForOpponent}
                     isSelected={selectedCardId === card.cardId}
                   />
                 </div>
