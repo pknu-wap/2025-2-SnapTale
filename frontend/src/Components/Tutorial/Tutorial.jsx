@@ -219,23 +219,29 @@ export default function Tutorial() {
   // --- 턴 종료 및 에너지 계산 로직 ---
   const endTurn = () => {
     if (isWaitingForOpponent) return;
+    const flatBoard = boardLanes.flat();
     
-    // 1. 기본 카드 배치 체크
-    if (turn === 1 && boardLanes.flat().filter(Boolean).length === 0) {
-        alert("미션 1: 인면조를 배치해야 합니다!");
-        return;
-    }
+    const requireCardOnBoard = (cardId, message) => {
+      const exists = flatBoard.some((c) => c && c.cardId === cardId);
+      if (!exists) {
+        alert(message);
+      }
+      return exists;
+    };
 
-    // 2. 6턴 종료 조건
+    // 턴별 필수 카드 확인
+    if (turn === 1 && !requireCardOnBoard(2, "미션 1: 인면조를 배치해야 합니다!")) return;
+    if (turn === 2 && !requireCardOnBoard(3, "미션 2: '흥부'를 배치해야 합니다!")) return;
+    if (turn === 3 && !requireCardOnBoard(4, "미션 3: '놀부'를 배치해야 합니다!")) return;
+    if (turn === 4 && !requireCardOnBoard(8, "미션 4: '춘향'을 배치해야 합니다!")) return;
+    if (turn === 5 && !requireCardOnBoard(10, "미션 5: '토우'를 배치해야 합니다!")) return;
     if (turn === 6) {
-        const flatBoard = boardLanes.flat();
-        const hasHongGildong = flatBoard.some(c => c && c.cardId === 1);
-        const hasGaksital = flatBoard.some(c => c && c.cardId === 65);
-
-        if (!hasHongGildong || !hasGaksital) {
-            alert("미션 6: '홍길동'과 '각시탈'을 모두 배치해야 합니다!");
-            return;
-        }
+      const hasHongGildong = flatBoard.some((c) => c && c.cardId === 1);
+      const hasGaksital = flatBoard.some((c) => c && c.cardId === 65);
+      if (!hasHongGildong || !hasGaksital) {
+        alert("미션 6: '홍길동'과 '각시탈'을 모두 배치해야 합니다!");
+        return;
+      }
     }
 
     if (turn >= maxTurn) {
