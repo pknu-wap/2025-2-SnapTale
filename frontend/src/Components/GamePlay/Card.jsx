@@ -47,6 +47,7 @@ const Card = ({
   fromSlotIndex = null,
   isMoveAvailable = false,
   locationId = null,
+  isDragBlocked = false,
 }) => {
   useEffect(() => {
     //변경되는 값이 있을 때만 표시
@@ -85,7 +86,7 @@ const Card = ({
         collect: (monitor) => ({
           isDragging: monitor.isDragging(),
         }),
-        canDrag: () => isDraggable,
+        canDrag: () => isDraggable && !isDragBlocked,
       }),
       [
         cardId,
@@ -101,6 +102,7 @@ const Card = ({
         fromSlotIndex,
         locationId,
         isDraggable,
+        isDragBlocked,
       ]
     );
     useEffect(() => {
@@ -123,13 +125,32 @@ const Card = ({
   ]
     .filter(Boolean)
     .join(" ");
+  const handleContextMenu = (event) => {
+    event.preventDefault();
+  };
+
+  const handleMouseDown = (event) => {
+    event.preventDefault();
+  };
+
+  const handleTouchStart = (event) => {
+    event.preventDefault();
+  };
+
+  const handleDragStart = (event) => {
+    event.preventDefault();
+  };
   return (
     <div 
       className={containerClassNames}
       ref={isDraggable ? dragRef : null} //드래그 가능 시에만 DnD ref 연결
       onClick={onCardClick}
+      onContextMenu={handleContextMenu}
+      onMouseDown={handleMouseDown}
+      onTouchStart={handleTouchStart}
+      onDragStart={handleDragStart}
     >
-      <img className={`card-image ${borderClass} ${isSelected ? "card-image-selected" : ""}`} src={imageUrl} alt={name} />
+      <img className={`card-image ${borderClass} ${isSelected ? "card-image-selected" : ""}`} src={imageUrl} alt={name} draggable={false} />
 
       <div className="card-cost-container">
         <img src={costIcon} alt="Cost Icon" className="icon" />
