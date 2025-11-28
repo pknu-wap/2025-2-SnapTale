@@ -1,5 +1,5 @@
 // src/Components/GamePlay/GameLayout.jsx
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo} from "react";
 import { useUser } from "../../contexts/UserContext";
 import { useWebSocket } from "../../contexts/WebSocketContext";
 import { useNavigate } from "react-router-dom";
@@ -22,7 +22,6 @@ import useMatchWebSocket from "./GameLayout/hooks/useMatchWebSocket";
 import { DndProvider } from "react-dnd";
 import { TouchBackend } from "react-dnd-touch-backend";
 import { canMoveCard, isMoveLimitedPerTurn } from "./utils/effect";
-import { motion } from "motion/react";
 
 export default function GameLayout({ matchId }) {
   const maxTurn = 6;
@@ -61,37 +60,8 @@ export default function GameLayout({ matchId }) {
   const [isGameEnded, setIsGameEnded] = useState(false);
   const [isReviewingBoard, setIsReviewingBoard] = useState(false);
   const [movedThisTurn, setMovedThisTurn] = useState({});
-  const [progress, setProgress] = useState(0);
   const { subscribe } = useWebSocket();
   const isInteractionLocked = isGameEnded;
-  // 턴 종료 타이머 관련
-  const TOTAL_TIME = 30000;
-  const timerRef = useRef(null);
-  const [timeLeft, setTimeLeft] = useState(TOTAL_TIME);
-
-  // 턴 시작할 때 타이머 리셋
-  useEffect(() => {
-    clearInterval(timerRef.current);
-
-    setTimeLeft(TOTAL_TIME);
-    setProgress(1);
-
-    const start = Date.now();
-    timerRef.current = setInterval(() => {
-      const elapsed = Date.now() - start;
-      const ratio = Math.max(1 - elapsed / TOTAL_TIME, 0);
-
-      setProgress(ratio);
-      setTimeLeft(TOTAL_TIME - elapsed);
-
-      if (ratio <= 0) {
-        clearInterval(timerRef.current);
-        endTurn(); // 자동 종료
-      }
-    }, 100);
-
-    return () => clearInterval(timerRef.current);
-  }, [turn]);
   const handleCardClick = (card, e) => {
   if (isInteractionLocked) return;
     // 버블링 방지 (외부 클릭 감지와 충돌 방지)
@@ -322,7 +292,6 @@ export default function GameLayout({ matchId }) {
 
   const endTurn = async () => {
     if (isInteractionLocked) return;
-    clearInterval(timerRef.current);
     if (turn <= maxTurn) { // 6턴도 종료 가능하도록 변경
       try {
         // 서버에 턴 종료 요청
@@ -633,13 +602,6 @@ export default function GameLayout({ matchId }) {
             <div className="hud-section turn-panel">
             </div>
             <div className="hud-section">
-              <div className="turn-timer-track">
-                <motion.div
-                  className="turn-timer-bar"
-                  animate={{ width: `${progress * 100}%` }}
-                  transition={{ duration: 0.1 }}
-                />
-              </div>
               <button
                 className="end-turn-button"
                 onClick={endTurn}
@@ -659,7 +621,7 @@ export default function GameLayout({ matchId }) {
                   <Slot 
                     key={`enemy-${i}`} 
                     isMySide={false} 
-                    cards={opponentBoardLanes[i] || []}
+                    cards={opponentBoardLanes[i] || isInteractionLocked}
                     onCardClick={handleCardClick}
                     selectedCardId={selectedCardId}
                   />
