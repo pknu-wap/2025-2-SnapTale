@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { DndProvider } from "react-dnd";
 import { TouchBackend } from "react-dnd-touch-backend";
@@ -68,6 +68,7 @@ export default function Tutorial() {
   const [selectedCard, setSelectedCard] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [isWaitingForOpponent, setIsWaitingForOpponent] = useState(false);
+  const isDragBlocked = isWaitingForOpponent;
 
   const handleCloseModal = () => {
     setSelectedCard(null);
@@ -242,6 +243,7 @@ export default function Tutorial() {
         navigate("/home");
         return;
     }
+    setIsWaitingForOpponent(true);
     setGuideMessage("상대방 진행 중...");
 
     setTimeout(() => {
@@ -298,53 +300,60 @@ export default function Tutorial() {
 }
 
 
+  const endTurnButtonLabel = useMemo(() => {
+    if (isWaitingForOpponent) {
+      return { line1: "턴 종료", line2: "Waiting..." };
+    }
+    return { line1: "턴 종료", line2: `(${turn} / ${maxTurn})` };
+  }, [isWaitingForOpponent, turn, maxTurn]);
+
   if (loading) {
-      return <div className="gameplay-shell"><div className="board-message board-message--full">튜토리얼 준비 중...</div></div>;
+    return <div className="gameplay-shell"><div className="board-message board-message--full">Tutorial loading...</div></div>;
   }
 
   return (
     <>
-      <Topbar screenType="gameplay" onExit={handleExit} /> 
+      <Topbar screenType="gameplay" onExit={handleExit} />
 
-      <div className="gameplay-shell"> {/* Topbar 공간 확보 */}
+      <div className="gameplay-shell"> {/* Topbar ?? ?? */}
         <DndProvider backend={TouchBackend} options={{ enableMouseEvents: true }}>
-          <CustomDragLayer selectedCard={selectedCard} />
-          
-          <div className="tutorial-guide-bar" style={{
-              position: 'absolute', top: '0px', left: '50%', transform: 'translateX(-50%)',
-              backgroundColor: 'rgba(0, 0, 0, 0.85)', color: '#fff', padding: '12px 24px',
-              borderRadius: '30px', zIndex: 900, border: '2px solid #00d4ff',
-              fontSize: '1rem', fontWeight: 'bold', width: '90%', maxWidth: '600px', textAlign: 'center',
-              boxShadow: '0 4px 15px rgba(0,0,0,0.5)'
-          }}>
+          <CustomDragLayer selectedCard={selectedCard} isDragBlocked={isDragBlocked} />
+
+          <div className="tutorial-guide-bar">
             {guideMessage}
           </div>
 
           <div className="gameplay-body">
-            <aside className="hud-panel">
-              <div className="hud-matchup">
-                <span className="hud-player hud-player--opponent">AI 교관</span>
-                <span className="hud-vs">VS</span>
-                <span className="hud-player hud-player--me">나</span>
+            <div className="hud-matchup hud-matchup--mobile" aria-label="Player info">
+              <span className="hud-player hud-player--opponent" title="AI Coach">AI 교관</span>
+              <span className="hud-vs" aria-hidden="true">VS</span>
+              <span className="hud-player hud-player--me" title="You">나</span>
+            </div>
+            <aside className="hud-panel" aria-label="Match info">
+              <div className="hud-matchup hud-matchup--desktop" aria-label="Player info">
+                <span className="hud-player hud-player--opponent" title="AI Coach">AI 교관</span>
+                <span className="hud-vs" aria-hidden="true">VS</span>
+                <span className="hud-player hud-player--me" title="You">나</span>
               </div>
               <div className="hud-section">
                 <Energy value={energy} />
               </div>
-              <div className="hud-section" style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
+              <div className="hud-section turn-panel"></div>
+              <div className="hud-section">
                 <button
                   className="end-turn-button"
                   onClick={endTurn}
-                  disabled={isWaitingForOpponent}
-                  style={isWaitingForOpponent ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                  disabled={isDragBlocked}
                 >
-                  <span>{isWaitingForOpponent ? "진행 중..." : "턴 종료"}</span><br/>
-                  <span>({turn} / {maxTurn})</span>
+                  <span>{endTurnButtonLabel.line1}</span>
+                  <br />
+                  <span>{endTurnButtonLabel.line2}</span>
                 </button>
               </div>
             </aside>
 
-            <main className="board-wrapper">
-              <div className="board-grid">
+            <main className="board-wrapper" aria-label="Match info">
+              <div className="board-grid" role="group" aria-label="Slots and locations">
                 {Array.from({ length: SLOT_COUNT }).map((_, i) => (
                   <div className="board-cell board-cell--slot board-cell--enemy" key={`enemy-slot-${i}`}>
                     <Slot 
@@ -378,6 +387,7 @@ export default function Tutorial() {
                       laneIndex={i}
                       onDropCard={handleCardDrop}
                       cards={boardLanes[i]}
+                      isDragBlocked={isDragBlocked}
                       onCardClick={handleCardClick}
                       selectedCardId={selectedCardId}
                     />
@@ -386,7 +396,7 @@ export default function Tutorial() {
               </div>
             </main>
 
-            <aside className="hand-panel">
+            <aside className="hand-panel" aria-label="Hand">
               <div className="hand-grid">
                 {hand.map((card) => (
                   <div
@@ -396,7 +406,8 @@ export default function Tutorial() {
                   >
                     <Card
                       {...card}
-                      isDraggable={!isWaitingForOpponent}
+                      isDraggable={!isDragBlocked}
+                      isDragBlocked={isDragBlocked}
                       isSelected={selectedCardId === card.cardId}
                     />
                   </div>
@@ -413,12 +424,12 @@ export default function Tutorial() {
         </div>
       )}
       {selectedLocation && (
-              <div className="modal-backdrop" onClick = {handleCloseLocationModal}>
-                <EnlargedLocation
-                  location={selectedLocation}
-                />
-              </div>
-            )}
+        <div className="modal-backdrop" onClick={handleCloseLocationModal}>
+          <EnlargedLocation
+            location={selectedLocation}
+          />
+        </div>
+      )}
     </>
   );
 }

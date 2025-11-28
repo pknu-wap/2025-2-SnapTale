@@ -648,7 +648,7 @@ export default function GameLayout({ matchId }) {
       setCardPlayed(false);
       
       // 사용자에게 에러 알림
-      alert(`카드를 낼 수 없습니다. 에너지 수를 확인해 주세요!`);
+      alert(`에너지가 부족합니다! (필요: ${card.cost}, 보유: ${energy})`);
     }
   };
 

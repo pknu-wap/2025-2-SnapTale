@@ -196,6 +196,23 @@
     background: rgba(0, 0, 0, 0.18);
     border-radius: 18px;
     box-sizing: border-box;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(150, 150, 150, 0.5) transparent;
+  }
+
+  /* DeckCheck-style horizontal scrollbar */
+  .hand-panel::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  .hand-panel::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .hand-panel::-webkit-scrollbar-thumb {
+    background: rgba(150, 150, 150, 0.5);
+    border-radius: 10px;
   }
 
   .hand-grid {
@@ -252,5 +269,19 @@
   .gameplay-shell .card-name {
     bottom: 4px;
     font-size: 9px;
+  }
+
+  /* Tutorial guide bar mobile sizing */
+  .tutorial-guide-bar {
+    max-width: 280px;
+    width: 90%;
+    font-size: 0.85rem;
+    padding: 10px 16px;
+    border-radius: 22px;
+    border-width: 3px !important;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    background: transparent;
+    border-color: rgba(0, 212, 255, 0.55) !important;
+    backdrop-filter: none;
   }
 }

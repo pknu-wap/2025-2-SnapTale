@@ -352,3 +352,24 @@
   align-items: center;
   z-index: 1000;
 }
+
+/* Tutorial guide bar (desktop defaults, mobile overrides in GameLayoutMobile.css) */
+.tutorial-guide-bar {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: transparent;
+  backdrop-filter: none;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 30px;
+  z-index: 900;
+  border: 1.5px solid rgba(0, 212, 255, 0.65);
+  font-size: 1rem;
+  font-weight: bold;
+  width: 90%;
+  max-width: 600px;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
